@@ -1,0 +1,348 @@
+.woori-guide {
+  border: 0;
+  padding: 0;
+  background: #fff;
+  color: #202226;
+  max-width: min(760px, calc(100vw - 64px));
+  width: 760px;
+  height: min(700px, calc(100dvh - 64px));
+  max-height: none;
+  border-radius: 18px;
+  overflow: hidden;
+  opacity: 1;
+  transition: opacity 180ms ease-in;
+}
+.woori-guide::backdrop {
+  background: #090b0f99;
+}
+.woori-guide.is-closing {
+  opacity: 0;
+  pointer-events: none;
+}
+.woori-guide p,
+.woori-guide h2 {
+  margin: 0;
+}
+.woori-guide button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  min-width: 44px;
+  padding: 0 12px;
+  background: transparent;
+  border: 0;
+  border-radius: 10px;
+  color: #202226;
+  font: inherit;
+  cursor: pointer;
+}
+.woori-guide button:focus-visible {
+  outline: 2px solid #294f92;
+  outline-offset: -3px;
+}
+.woori-guide button:hover {
+  background: #f4f5f7;
+}
+.guide-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.guide-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 20px;
+  flex: none;
+}
+.guide-header p {
+  font-size: 14px;
+  color: #676d75;
+}
+.guide-header button {
+  font-size: 14px;
+}
+.guide-progress {
+  display: flex;
+  gap: 6px;
+  padding: 0 24px;
+  flex: none;
+}
+.guide-progress > span {
+  height: 3px;
+  flex: 1;
+  border-radius: 3px;
+  background: #e8eaed;
+  transition: background-color 180ms;
+}
+.guide-progress > span.is-active {
+  background: #284e91;
+}
+.guide-content {
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  min-height: 0;
+  flex: 1;
+  animation: guide-step-in 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.guide-demo-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 220px;
+  padding: 24px 28px 14px;
+}
+.guide-demo {
+  position: relative;
+  width: min(360px, 100%);
+  aspect-ratio: 4/3;
+  background: #121314;
+  border-radius: 12px;
+  overflow: hidden;
+  isolation: isolate;
+}
+.guide-demo-photo {
+  position: absolute;
+  inset: 0;
+  transition: transform 750ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.guide-demo-photo > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.guide-demo-bars {
+  display: flex;
+  justify-content: space-between;
+  position: absolute;
+  inset: 0 0 auto;
+  padding: 10px 16px 20px;
+  background: linear-gradient(#0009, transparent);
+  color: #fff;
+  transition:
+    opacity 200ms,
+    transform 200ms;
+  font-size: 16px;
+}
+.guide-demo-bars.is-hidden {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+.guide-finger {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 25px;
+  height: 25px;
+  margin: -12px;
+  border-radius: 50%;
+  background: #ffffff77;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 6px #ffffff22;
+  transition: transform 750ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.guide-finger--left {
+  left: 40%;
+}
+.guide-finger--right {
+  left: 60%;
+}
+.guide-finger--left.is-spread {
+  transform: translateX(-32px);
+}
+.guide-finger--right.is-spread {
+  transform: translateX(32px);
+}
+.guide-finger--swipe {
+  animation: guide-swipe 800ms ease-in-out both;
+}
+.guide-finger--pin {
+  left: 58%;
+  top: 43%;
+}
+.guide-demo-pin {
+  position: absolute;
+  left: 58%;
+  top: 43%;
+  display: grid;
+  place-items: center;
+  width: 21px;
+  height: 21px;
+  margin: -10px;
+  border-radius: 50%;
+  background: #284e91;
+  color: #fff;
+  font-size: 11px;
+  box-shadow: 0 0 0 2px #fff;
+}
+.guide-demo-composer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: #fff;
+  color: #30343a;
+  padding: 12px;
+  animation: guide-step-in 220ms ease-out;
+}
+.guide-demo-composer p {
+  font-size: 12px !important;
+}
+.guide-demo-composer > span {
+  padding: 8px;
+  background: #284e91;
+  color: #fff;
+  border-radius: 7px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.guide-demo-bubble {
+  position: absolute;
+  left: 20%;
+  right: 14%;
+  top: 53%;
+  background: #fff;
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: #202226;
+  box-shadow: 0 4px 20px #0004;
+}
+.guide-demo-bubble p:first-child {
+  color: #747982;
+  font-size: 10px;
+  margin-bottom: 4px;
+}
+.guide-demo-bubble p:last-child {
+  font-size: 12px;
+}
+.guide-demo-counter {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0006;
+  color: #fff;
+  padding: 4px 9px;
+  font-size: 12px;
+  border-radius: 10px;
+}
+.guide-copy {
+  padding: 12px 32px 24px;
+  max-width: 590px;
+  width: 100%;
+  box-sizing: border-box;
+  align-self: center;
+}
+.guide-copy h2 {
+  font-size: 23px;
+  font-weight: 650;
+  line-height: 1.4;
+  margin-bottom: 12px;
+  letter-spacing: -0.025em;
+}
+.guide-copy > p {
+  font-size: 16px;
+  line-height: 1.7;
+  word-break: keep-all;
+}
+.guide-copy .guide-note {
+  margin-top: 9px;
+  color: #787e86;
+  font-size: 13px;
+}
+.guide-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px 22px;
+  flex: none;
+}
+.guide-footer .guide-replay {
+  font-size: 14px;
+  color: #6b717a;
+}
+.guide-footer .guide-next {
+  margin-left: auto;
+  min-width: 92px;
+  background: #284e91;
+  color: #fff;
+  font-weight: 600;
+}
+.guide-footer .guide-next:hover {
+  background: #21427c;
+}
+.guide-demo-wrap--static {
+  gap: 10px;
+  padding: 16px;
+}
+.guide-demo-wrap--static > div {
+  flex: 1;
+  min-width: 0;
+}
+.guide-demo-wrap--static .guide-demo {
+  aspect-ratio: 3/4;
+}
+.guide-demo-wrap--static .guide-frame-label {
+  margin-top: 8px;
+  text-align: center;
+  color: #7b7f85;
+  font-size: 12px;
+}
+@keyframes guide-step-in {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes guide-swipe {
+  from {
+    transform: translateX(45px);
+  }
+  to {
+    transform: translateX(-65px);
+  }
+}
+@media (max-width: 760px) {
+  .woori-guide {
+    inset: 0;
+    margin: 0;
+    width: 100vw;
+    height: 100dvh;
+    max-width: none;
+    border-radius: 0;
+  }
+  .guide-header {
+    padding-top: calc(env(safe-area-inset-top) + 12px);
+  }
+  .guide-footer {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 18px);
+  }
+  .guide-demo-wrap {
+    padding: 20px 24px;
+  }
+  .guide-copy {
+    padding: 12px 24px 24px;
+  }
+  .guide-copy h2 {
+    font-size: 22px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .woori-guide,
+  .woori-guide * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

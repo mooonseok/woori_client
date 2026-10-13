@@ -10,6 +10,21 @@
     "dev": "pnpm --filter @woori/web dev",
     "dev:admin": "pnpm --filter @woori/admin dev",
     "build": "pnpm -r build",
-    "typecheck": "pnpm -r typecheck"
+    "typecheck": "pnpm -r typecheck",
+    "test": "node --test scripts/tests/*.test.mjs && pnpm --filter @woori/web test",
+    "check:boundaries": "node scripts/check-boundaries.mjs",
+    "lint": "eslint apps scripts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "policy:install": "node scripts/policy/install.mjs",
+    "policy:check": "node scripts/policy/check.mjs",
+    "policy:test": "node --test scripts/policy/policy.test.mjs",
+    "policy:quality": "node scripts/policy/gate.mjs quality",
+    "policy:ci": "node scripts/policy/gate.mjs ci"
+  },
+  "devDependencies": {
+    "eslint": "^9.39.0",
+    "eslint-config-next": "16.4.0",
+    "prettier": "^3.6.2"
   }
 }

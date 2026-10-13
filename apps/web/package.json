@@ -3,24 +3,28 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3000",
+    "dev": "next dev -p 3210",
     "build": "next build",
     "typecheck": "tsc --noEmit",
-    "cap:sync": "cap sync"
+    "cap:sync": "cap sync",
+    "test": "node --experimental-strip-types --test tests/*.test.ts"
   },
   "dependencies": {
+    "@capacitor/core": "8.5.3",
     "next": "16.4.0",
+    "qrcode": "^1.5.4",
     "react": "19.3.0",
-    "react-dom": "19.3.0",
-    "@capacitor/core": "8.5.3"
+    "react-dom": "19.3.0"
   },
   "devDependencies": {
-    "typescript": "5.9.3",
+    "@capacitor/android": "8.5.3",
+    "@capacitor/cli": "8.5.3",
+    "@capacitor/ios": "8.5.3",
     "@types/node": "24.19.2",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
-    "@capacitor/cli": "8.5.3",
-    "@capacitor/android": "8.5.3",
-    "@capacitor/ios": "8.5.3"
-  }
+    "typescript": "5.9.3"
+  },
+  "type": "module"
 }

@@ -1,0 +1,13 @@
+:root {
+  --paper: #fff;
+  --ink: #1e2023;
+  --muted: #666a72;
+  --line: #e8e8e6;
+  --wash: #f5f5f3;
+  --accent: #244f9b;
+  --radius: 12px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration: 220ms;
+  --page-width: 1180px;
+  color-scheme: light;
+}
