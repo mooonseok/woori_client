@@ -15,7 +15,12 @@
     "check:boundaries": "node scripts/check-boundaries.mjs",
     "lint": "eslint apps scripts",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "policy:install": "node scripts/policy/install.mjs",
+    "policy:check": "node scripts/policy/check.mjs",
+    "policy:test": "node --test scripts/policy/policy.test.mjs",
+    "policy:quality": "node scripts/policy/gate.mjs quality",
+    "policy:ci": "node scripts/policy/gate.mjs ci"
   },
   "devDependencies": {
     "eslint": "^9.39.0",
