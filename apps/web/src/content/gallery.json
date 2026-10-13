@@ -1,0 +1,275 @@
+{
+  "groups": [
+    {
+      "id": "g1",
+      "name": "윤슬네 가족",
+      "members": 7
+    },
+    {
+      "id": "g2",
+      "name": "주말 산책 모임",
+      "members": 4
+    }
+  ],
+  "albums": [
+    {
+      "id": "a1",
+      "groupId": "g1",
+      "title": "가을 단풍 나들이",
+      "date": "2025-10-13",
+      "coverId": "p129",
+      "createdAt": "2025-10-13"
+    },
+    {
+      "id": "a2",
+      "groupId": "g1",
+      "title": "바닷가 캠핑",
+      "date": "2026-09-12",
+      "coverId": "p17",
+      "createdAt": "2026-09-12"
+    },
+    {
+      "id": "a3",
+      "groupId": "g1",
+      "title": "제주 여름 여행",
+      "date": "2026-07-18",
+      "coverId": "p468",
+      "createdAt": "2026-07-18"
+    },
+    {
+      "id": "a4",
+      "groupId": "g1",
+      "title": "봄 소풍",
+      "date": "2026-04-05",
+      "coverId": "p643",
+      "createdAt": "2026-04-05"
+    },
+    {
+      "id": "a5",
+      "groupId": "g1",
+      "title": "할머니 팔순 잔치",
+      "date": "2026-03-01",
+      "coverId": "p156",
+      "createdAt": "2026-03-01"
+    },
+    {
+      "id": "a6",
+      "groupId": "g1",
+      "title": "추석 연휴, 할머니 댁",
+      "date": "2026-09-24",
+      "coverId": "p106",
+      "createdAt": "2026-09-24"
+    }
+  ],
+  "photos": [
+    {
+      "id": "p129",
+      "albumId": "a1",
+      "src": "/demo/photos/p129.jpg",
+      "width": 1400,
+      "height": 927,
+      "alt": "가을 단풍 나들이의 사진",
+      "capturedAt": "2025-10-13",
+      "authorId": "family"
+    },
+    {
+      "id": "p289",
+      "albumId": "a1",
+      "src": "/demo/photos/p289.jpg",
+      "width": 1400,
+      "height": 754,
+      "alt": "가을 단풍 나들이의 사진",
+      "capturedAt": "2025-10-13",
+      "authorId": "family"
+    },
+    {
+      "id": "p301",
+      "albumId": "a1",
+      "src": "/demo/photos/p301.jpg",
+      "width": 1400,
+      "height": 933,
+      "alt": "가을 단풍 나들이의 사진",
+      "capturedAt": "2025-10-13",
+      "authorId": "family"
+    },
+    {
+      "id": "p17",
+      "albumId": "a2",
+      "src": "/demo/photos/p17.jpg",
+      "width": 1400,
+      "height": 934,
+      "alt": "바닷가 캠핑의 사진",
+      "capturedAt": "2026-09-12",
+      "authorId": "family"
+    },
+    {
+      "id": "p103",
+      "albumId": "a2",
+      "src": "/demo/photos/p103.jpg",
+      "width": 1400,
+      "height": 1046,
+      "alt": "바닷가 캠핑의 사진",
+      "capturedAt": "2026-09-12",
+      "authorId": "family"
+    },
+    {
+      "id": "p112",
+      "albumId": "a2",
+      "src": "/demo/photos/p112.jpg",
+      "width": 1400,
+      "height": 933,
+      "alt": "바닷가 캠핑의 사진",
+      "capturedAt": "2026-09-12",
+      "authorId": "family"
+    },
+    {
+      "id": "p468",
+      "albumId": "a3",
+      "src": "/demo/photos/p468.jpg",
+      "width": 1400,
+      "height": 934,
+      "alt": "제주 여름 여행의 사진",
+      "capturedAt": "2026-07-18",
+      "authorId": "family"
+    },
+    {
+      "id": "p652",
+      "albumId": "a3",
+      "src": "/demo/photos/p652.jpg",
+      "width": 1400,
+      "height": 934,
+      "alt": "제주 여름 여행의 사진",
+      "capturedAt": "2026-07-18",
+      "authorId": "family"
+    },
+    {
+      "id": "p655",
+      "albumId": "a3",
+      "src": "/demo/photos/p655.jpg",
+      "width": 1400,
+      "height": 788,
+      "alt": "제주 여름 여행의 사진",
+      "capturedAt": "2026-07-18",
+      "authorId": "family"
+    },
+    {
+      "id": "p643",
+      "albumId": "a4",
+      "src": "/demo/photos/p643.jpg",
+      "width": 1400,
+      "height": 1050,
+      "alt": "봄 소풍의 사진",
+      "capturedAt": "2026-04-05",
+      "authorId": "family"
+    },
+    {
+      "id": "p640",
+      "albumId": "a4",
+      "src": "/demo/photos/p640.jpg",
+      "width": 1400,
+      "height": 934,
+      "alt": "봄 소풍의 사진",
+      "capturedAt": "2026-04-05",
+      "authorId": "family"
+    },
+    {
+      "id": "p641",
+      "albumId": "a4",
+      "src": "/demo/photos/p641.jpg",
+      "width": 1400,
+      "height": 934,
+      "alt": "봄 소풍의 사진",
+      "capturedAt": "2026-04-05",
+      "authorId": "family"
+    },
+    {
+      "id": "p156",
+      "albumId": "a5",
+      "src": "/demo/photos/p156.jpg",
+      "width": 934,
+      "height": 1400,
+      "alt": "할머니 팔순 잔치의 사진",
+      "capturedAt": "2026-03-01",
+      "authorId": "family"
+    },
+    {
+      "id": "p842",
+      "albumId": "a5",
+      "src": "/demo/photos/p842.jpg",
+      "width": 1049,
+      "height": 1400,
+      "alt": "할머니 팔순 잔치의 사진",
+      "capturedAt": "2026-03-01",
+      "authorId": "family"
+    },
+    {
+      "id": "p845",
+      "albumId": "a5",
+      "src": "/demo/photos/p845.jpg",
+      "width": 1400,
+      "height": 930,
+      "alt": "할머니 팔순 잔치의 사진",
+      "capturedAt": "2026-03-01",
+      "authorId": "family"
+    },
+    {
+      "id": "p106",
+      "albumId": "a6",
+      "src": "/demo/photos/p106.jpg",
+      "width": 1400,
+      "height": 933,
+      "alt": "추석 연휴, 할머니 댁의 사진",
+      "capturedAt": "2026-09-24",
+      "authorId": "family"
+    },
+    {
+      "id": "p117",
+      "albumId": "a6",
+      "src": "/demo/photos/p117.jpg",
+      "width": 1400,
+      "height": 928,
+      "alt": "추석 연휴, 할머니 댁의 사진",
+      "capturedAt": "2026-09-24",
+      "authorId": "family"
+    },
+    {
+      "id": "p30",
+      "albumId": "a6",
+      "src": "/demo/photos/p30.jpg",
+      "width": 1400,
+      "height": 985,
+      "alt": "추석 연휴, 할머니 댁의 사진",
+      "capturedAt": "2026-09-24",
+      "authorId": "family"
+    }
+  ],
+  "comments": [
+    {
+      "id": "c1",
+      "photoId": "p129",
+      "authorId": "family",
+      "authorName": "순자",
+      "body": "이날 바닷바람이 참 시원했지. 다 같이 걸어서 좋았다.",
+      "createdAt": "2026-10-13T03:00:00Z"
+    },
+    {
+      "id": "c2",
+      "photoId": "p129",
+      "authorId": "family",
+      "authorName": "성호",
+      "body": "이 벤치에서 도시락 먹었어요.",
+      "createdAt": "2026-10-13T02:00:00Z",
+      "point": {
+        "x": 0.42,
+        "y": 0.65
+      }
+    }
+  ],
+  "reactions": [
+    {
+      "photoId": "p129",
+      "userId": "family",
+      "emoji": "❤️"
+    }
+  ]
+}

@@ -1,24 +1,35 @@
 {
   "name": "woori_client",
   "product": "우리",
-  "status": "bootstrap-only",
+  "status": "local-postgresql-auth-groups-invitations-implemented",
   "plans": "/Users/parkmoonseok/.Codex/projects/woori_client/plans",
   "sharedPlan": "/Users/parkmoonseok/.Codex/projects/woori/plans/00-product-plan.md",
   "implemented": [
-    "buildable scaffold"
+    "Next.js App Router with portfolio-style sections/container/view and Atomic components",
+    "live signup/login/logout/session restoration and email verification/resend",
+    "live group creation/list/selection and owner invitation issuance/list/revocation",
+    "invitation token/code/QR presentation and authenticated joining",
+    "explicit demo mode for v6 photo viewer, gestures, pin comments, reactions and guides",
+    "session-safe API boundary, scoped live state and architecture/regression checks"
   ],
   "notImplemented": [
-    "authentication",
-    "authorization",
-    "database connection and migrations",
-    "photo upload and media processing",
-    "admin operations",
-    "cloud deployment"
+    "username/password recovery, profile edits and account deletion",
+    "live album/photo writes, R2 processing and protected image delivery",
+    "persisted comments/reactions/notification preferences and real push delivery",
+    "admin operations and native token authentication",
+    "production cloud deployment"
   ],
   "deployment": {
     "api": "Railway paid; Serverless off",
     "worker": "Railway paid; separate service; Serverless off",
     "database": "Supabase Pro PostgreSQL",
     "objects": "Cloudflare R2 Standard private buckets"
+  },
+  "localSetupPlan": "/Users/parkmoonseok/.Codex/projects/woori/plans/05-local-auth-setup.md",
+  "localDevelopment": {
+    "web": "http://localhost:3210",
+    "api": "http://localhost:3001",
+    "appMode": "live",
+    "demoMode": "NEXT_PUBLIC_APP_MODE=demo; isolated sample data only"
   }
 }

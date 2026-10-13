@@ -10,6 +10,16 @@
     "dev": "pnpm --filter @woori/web dev",
     "dev:admin": "pnpm --filter @woori/admin dev",
     "build": "pnpm -r build",
-    "typecheck": "pnpm -r typecheck"
+    "typecheck": "pnpm -r typecheck",
+    "test": "node --test scripts/tests/*.test.mjs && pnpm --filter @woori/web test",
+    "check:boundaries": "node scripts/check-boundaries.mjs",
+    "lint": "eslint apps scripts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "eslint": "^9.39.0",
+    "eslint-config-next": "16.4.0",
+    "prettier": "^3.6.2"
   }
 }

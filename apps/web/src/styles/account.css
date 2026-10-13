@@ -1,0 +1,218 @@
+/* Account and invitation screens use the existing gallery tokens. */
+.auth-panel {
+  max-width: 440px;
+  margin: 56px auto 90px;
+  display: grid;
+  gap: 20px;
+}
+.auth-panel h2 {
+  font-size: clamp(25px, 4vw, 32px);
+  line-height: 1.3;
+  letter-spacing: -0.04em;
+}
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+  font-weight: 650;
+}
+.stack-form {
+  display: grid;
+  gap: 20px;
+}
+.stack-form label {
+  display: grid;
+  gap: 9px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.stack-form input {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1px solid #c8cbce;
+  border-radius: 8px;
+  background: white;
+  font-weight: 400;
+}
+.stack-form input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.stack-form button {
+  margin-top: 4px;
+}
+.field-help {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+.form-error {
+  color: #a82424;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.auth-alternate {
+  text-align: center;
+  font-size: 14px;
+  color: var(--muted);
+}
+.auth-alternate a {
+  margin-left: 8px;
+  text-decoration: underline;
+  color: var(--ink);
+}
+.secondary-button {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 11px 18px;
+  border: 1px solid #c8cbce;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  background: var(--paper);
+  color: var(--ink);
+}
+.primary-button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none;
+}
+.inline-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.welcome-panel {
+  max-width: 600px;
+  display: grid;
+  justify-items: start;
+  gap: 24px;
+  margin: 72px auto;
+}
+.welcome-panel h2 {
+  font-size: clamp(28px, 5vw, 44px);
+  line-height: 1.3;
+  letter-spacing: -0.045em;
+}
+.welcome-panel > p {
+  color: var(--muted);
+  line-height: 1.8;
+  max-width: 470px;
+}
+.state-panel {
+  margin: 60px auto;
+  max-width: 520px;
+  display: grid;
+  gap: 20px;
+}
+.notice-panel {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--wash);
+  display: grid;
+  gap: 12px;
+  line-height: 1.6;
+  width: 100%;
+}
+.groups-page {
+  max-width: 760px;
+  margin: 24px auto 60px;
+  display: grid;
+  gap: 28px;
+}
+.groups-page .section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+.group-list {
+  display: grid;
+}
+.group-list-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  padding: 20px 4px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+}
+.group-list-row[aria-pressed="true"] {
+  color: var(--accent);
+  font-weight: 650;
+}
+.settings-card {
+  display: grid;
+  gap: 20px;
+  border-top: 1px solid var(--line);
+  padding-top: 28px;
+}
+.settings-card h2 {
+  font-size: 21px;
+  letter-spacing: -0.03em;
+}
+.settings-card > button {
+  justify-self: start;
+}
+.invitation-result {
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  padding: 24px;
+  background: var(--wash);
+  border-radius: 12px;
+}
+.invitation-code {
+  font-size: 26px;
+  letter-spacing: 0.12em;
+  font-weight: 650;
+  user-select: all;
+}
+.invitation-url {
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  color: var(--muted);
+  user-select: all;
+}
+.invitation-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+.invite-preview {
+  display: grid;
+  gap: 20px;
+  border-top: 1px solid var(--line);
+  padding-top: 24px;
+}
+@media (max-width: 600px) {
+  .auth-panel {
+    margin-top: 28px;
+  }
+  .welcome-panel {
+    margin: 40px auto;
+    gap: 20px;
+  }
+  .groups-page {
+    margin-top: 16px;
+  }
+  .groups-page .section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .invitation-result {
+    padding: 16px;
+  }
+}
