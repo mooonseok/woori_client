@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Photo } from '@/dto/album.dto';
 import type { NotificationTarget } from '@/dto/notification-api.dto';
-import { notificationTarget } from '@/services/notifications';
+import { notificationTarget, readNotification } from '@/services/notifications';
 import { originalPhoto, photoBlob } from '@/services/media-client';
 export function useNotificationTarget() {
   const [viewer, setViewer] = useState<{
@@ -29,7 +29,7 @@ export function useNotificationTarget() {
     setOpening(false);
     setError('');
   }
-  async function open(id: string) {
+  async function open(id: string, markObserved = false) {
     close();
     const controller = new AbortController();
     current.current = controller;
@@ -65,6 +65,18 @@ export function useNotificationTarget() {
           authorId: '',
         },
       });
+      if (markObserved) {
+        try {
+          await readNotification(id, target.latestSequence, signal);
+        } catch (cause) {
+          if (!signal.aborted)
+            setError(
+              cause instanceof Error
+                ? cause.message
+                : '사진을 열었지만 읽음 상태를 저장하지 못했어요.'
+            );
+        }
+      }
       return true;
     } catch (error) {
       if (!signal.aborted)

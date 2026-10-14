@@ -21,6 +21,7 @@ import {
   post,
   SESSION_EXPIRED,
 } from '@/services/api-client';
+import { clearBrowserPush } from '@/services/web-push';
 import { DEMO_MODE } from '@/constants/app-mode';
 function useAuthState() {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -94,6 +95,7 @@ function useAuthState() {
   ) {
     const request = ++generation.current;
     advanceSessionRevision();
+    await clearBrowserPush().catch(() => undefined);
     const result = await post<{
       user: AuthUser;
       verificationDelivery?: 'sent' | 'unavailable';
@@ -110,6 +112,7 @@ function useAuthState() {
     const request = ++generation.current;
     advanceSessionRevision();
     await post<void>('/v1/auth/logout');
+    await clearBrowserPush().catch(() => undefined);
     if (request === generation.current) clear();
   }
   async function confirm(token: string) {

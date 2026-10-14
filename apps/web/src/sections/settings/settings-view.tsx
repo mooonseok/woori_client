@@ -18,6 +18,7 @@ import type { NotificationSettingsViewProps } from '../../dto/notification-setti
 
 export function SettingsView(props: NotificationSettingsViewProps) {
   const {
+    devicePush,
     preferences: prefs,
     status,
     ready,
@@ -66,7 +67,7 @@ export function SettingsView(props: NotificationSettingsViewProps) {
       </Header>
       <Text className='notification-demo-note'>
         {live
-          ? '설정은 계정에 저장돼요. 실제 기기 푸시 발송은 준비 중이에요.'
+          ? '받을 소식은 계정에 저장돼요. 기기 연결은 브라우저마다 설정해 주세요.'
           : '예시 설정은 이 브라우저에만 저장돼요.'}
       </Text>
       {(status === 'error' || settingsError) && (
@@ -93,24 +94,72 @@ export function SettingsView(props: NotificationSettingsViewProps) {
         <Heading id='notification-device'>이 기기 알림</Heading>
         <Box className='notification-device-row'>
           <Box>
-            <Text>기기 푸시 연결 전</Text>
+            <Text role='status'>
+              {
+                {
+                  loading: '기기 연결 확인 중…',
+                  unsupported: live
+                    ? '이 브라우저에서는 연결할 수 없어요'
+                    : '데모에서는 기기 알림을 보내지 않아요',
+                  unconfigured: '서버 알림 설정이 필요해요',
+                  denied: '브라우저에서 알림이 차단됐어요',
+                  off: '이 브라우저 알림 꺼짐',
+                  on: '이 브라우저 알림 켜짐',
+                  busy: '연결 변경 중…',
+                  error: '기기 연결 확인 필요',
+                }[devicePush.state]
+              }
+            </Text>
             <Text className='notification-description'>
-              아직 브라우저나 휴대폰에 알림을 보내지 않아요.
+              {devicePush.state === 'denied'
+                ? '브라우저의 사이트 설정에서 알림을 허용한 뒤 다시 확인해 주세요.'
+                : devicePush.state === 'unsupported'
+                  ? '최신 브라우저와 보안 연결이 필요해요. iPhone은 Safari에서 홈 화면에 추가한 후 앱을 열어 주세요.'
+                  : '여러 기기를 쓰면 각 기기에서 한 번씩 연결해 주세요.'}
             </Text>
           </Box>
-          <Button
-            className='notification-outline-button'
-            onClick={onPermissionHelp}
-            aria-expanded={permissionHelp}
-          >
-            알아보기
-          </Button>
+          {devicePush.state === 'off' && (
+            <Button
+              className='notification-outline-button'
+              onClick={devicePush.onEnable}
+            >
+              알림 켜기
+            </Button>
+          )}
+          {devicePush.state === 'on' && (
+            <Button
+              className='notification-outline-button'
+              onClick={devicePush.onDisable}
+            >
+              이 기기 끄기
+            </Button>
+          )}
+          {['denied', 'error', 'unconfigured'].includes(devicePush.state) && (
+            <Button
+              className='notification-outline-button'
+              onClick={devicePush.onRetry}
+            >
+              다시 확인
+            </Button>
+          )}
         </Box>
+        {devicePush.error && (
+          <Text className='notification-field-error' role='alert'>
+            {devicePush.error}
+          </Text>
+        )}
+        <Button
+          className='text-button'
+          onClick={onPermissionHelp}
+          aria-expanded={permissionHelp}
+        >
+          기기 알림 도움말
+        </Button>
         {permissionHelp && (
           <Text className='notification-help'>
-            앱은 iOS·Android 알림 권한과, 웹은 브라우저 알림 기능을 연결한 후
-            사용할 수 있어요. iPhone 웹은 홈 화면에 추가한 웹앱에서 설정하게
-            돼요. 지금은 권한을 요청하지 않아요.
+            알림 켜기를 누르면 브라우저가 권한을 물어봐요. iPhone·iPad는 iOS
+            16.4 이상에서 홈 화면에 추가한 웹앱을 열어야 해요. 로그아웃하면 이
+            기기의 연결이 해제돼요. 다시 로그인한 뒤 알림을 켜 주세요.
           </Text>
         )}
       </Section>

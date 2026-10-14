@@ -19,6 +19,7 @@ export interface InboxPage {
   unreadCount: number;
 }
 export interface NotificationTarget {
+  latestSequence: number;
   groupId: string;
   albumId: string;
   photoId: string;

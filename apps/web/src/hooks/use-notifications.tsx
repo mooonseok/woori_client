@@ -98,7 +98,7 @@ function DemoNotificationProvider({ children }: { children: ReactNode }) {
         notificationKstTime(new Date(timestamp))
       );
       setLatestDecision(
-        `${decision.reason} 기기 푸시는 아직 연결하지 않았어요.`
+        `${decision.reason} 데모에서는 기기 알림을 보내지 않아요.`
       );
     },
     []

@@ -1,5 +1,5 @@
 'use client';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNotifications } from '../../hooks/use-notifications';
 import { useNotificationTarget } from '@/hooks/use-notification-target';
 import {
@@ -23,6 +23,37 @@ export function NotificationsContainer({
   const inbox = useNotifications();
   const target = useNotificationTarget();
   const reload = inbox.reload;
+  const requested = useRef(false);
+  const targetRef = useRef(target);
+  const inboxRef = useRef(inbox);
+  useEffect(() => {
+    targetRef.current = target;
+    inboxRef.current = inbox;
+  });
+  useEffect(() => {
+    if (!inbox.live || requested.current) return;
+    const id = new URLSearchParams(window.location.search).get(
+      'notificationId'
+    );
+    if (
+      !id ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        id
+      )
+    )
+      return;
+    let active = true;
+    queueMicrotask(() => {
+      if (!active) return;
+      requested.current = true;
+      void targetRef.current.open(id, true).then(async (opened) => {
+        if (opened) await inboxRef.current.reload?.();
+      });
+    });
+    return () => {
+      active = false;
+    };
+  }, [inbox.live]);
   useEffect(() => {
     void reload?.();
   }, [reload]);
