@@ -21,6 +21,8 @@ export function SettingsView(props: NotificationSettingsViewProps) {
     preferences: prefs,
     status,
     ready,
+    live,
+    settingsError,
     rows,
     quietRow,
     previewRow,
@@ -31,6 +33,8 @@ export function SettingsView(props: NotificationSettingsViewProps) {
     onTime,
     onGroup,
     onRetry,
+    onReload,
+    onDiscard,
     onBack,
     onPermissionHelp,
   } = props;
@@ -49,22 +53,37 @@ export function SettingsView(props: NotificationSettingsViewProps) {
         </Button>
         <Heading id='notification-settings-title'>알림 설정</Heading>
         <Span className='notification-save-state' role='status'>
-          {!ready
-            ? '불러오는 중'
-            : status === 'saving'
-              ? '저장 중…'
-              : status === 'saved'
-                ? '저장됨'
-                : ''}
+          {settingsError
+            ? '확인 필요'
+            : !ready && status !== 'saving'
+              ? '불러오는 중'
+              : status === 'saving'
+                ? '저장 중…'
+                : status === 'saved'
+                  ? '저장됨'
+                  : ''}
         </Span>
       </Header>
       <Text className='notification-demo-note'>
-        설정은 이 브라우저에 저장돼요. 서버와 기기 푸시 연결은 준비 중이에요.
+        {live
+          ? '설정은 계정에 저장돼요. 실제 기기 푸시 발송은 준비 중이에요.'
+          : '예시 설정은 이 브라우저에만 저장돼요.'}
       </Text>
-      {status === 'error' && (
+      {(status === 'error' || settingsError) && (
         <Box className='notification-error' role='alert'>
-          <Text>설정을 저장하지 못해 마지막 저장 상태로 되돌렸어요.</Text>
+          <Text>
+            {settingsError || '설정을 저장하지 못했어요. 다시 시도해 주세요.'}
+          </Text>
           <Button onClick={onRetry}>다시 시도</Button>
+          {onDiscard && (
+            <Button onClick={onDiscard}>저장하지 않고 나가기</Button>
+          )}
+          {onReload && <Button onClick={onReload}>최신 설정 불러오기</Button>}
+          {onReload && (
+            <Text>
+              최신 설정을 불러오면 아직 저장되지 않은 선택은 취소돼요.
+            </Text>
+          )}
         </Box>
       )}
       <Section
@@ -118,6 +137,12 @@ export function SettingsView(props: NotificationSettingsViewProps) {
         <Text className='notification-description'>
           계정에서 끈 알림은 그룹 설정으로 다시 켜지지 않아요.
         </Text>
+        {ready && !groups.length && (
+          <Text className='notification-description'>
+            참여한 그룹이 없어요. 그룹에 참여하면 여기에서 따로 설정할 수
+            있어요.
+          </Text>
+        )}
         {groups.map((group) => (
           <Label className='notification-group-setting' key={group.id}>
             <Span>{group.name}</Span>
@@ -154,6 +179,7 @@ export function SettingsView(props: NotificationSettingsViewProps) {
                 시작
                 <Input
                   type='time'
+                  disabled={!ready}
                   value={prefs.quietStart}
                   aria-describedby={
                     error ? 'notification-time-error' : undefined
@@ -165,6 +191,7 @@ export function SettingsView(props: NotificationSettingsViewProps) {
                 끝
                 <Input
                   type='time'
+                  disabled={!ready}
                   value={prefs.quietEnd}
                   aria-describedby={
                     error ? 'notification-time-error' : undefined

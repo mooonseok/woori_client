@@ -393,3 +393,10 @@
     transition: none !important;
   }
 }
+
+.notification-placeholder {
+  display: grid;
+  place-items: center;
+  background: var(--surface-alt, #f0f0f0);
+  color: var(--muted, #666);
+}

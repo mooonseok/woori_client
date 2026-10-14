@@ -21,26 +21,40 @@ import {
   notificationDecision,
   notificationKstTime,
 } from '../utils/notification-policy';
-import { useNotificationPreferences } from './use-notification-preferences';
+import { useDemoNotificationPreferences } from './use-demo-notification-preferences';
+import { useLiveNotifications } from './use-live-notifications';
+import { useAuth } from './use-auth';
 
-type PreferencesApi = ReturnType<typeof useNotificationPreferences>;
-interface NotificationsApi extends PreferencesApi {
+type PreferencesApi = ReturnType<typeof useDemoNotificationPreferences>;
+interface NotificationsApi extends Omit<PreferencesApi, 'flush'> {
+  flush: () => boolean | Promise<boolean>;
+  live?: boolean;
+  loading?: boolean;
+  pending?: boolean;
+  error?: string;
+  settingsError?: string;
+  settingsGroups?: { id: string; name: string }[];
+  nextCursor?: string | null;
+  reload?: () => Promise<void>;
+  more?: () => Promise<void>;
+  reloadSettings?: () => Promise<void>;
+  discardChanges?: () => void;
   items: NotificationItem[];
   unreadCount: number;
   now: number;
   latestDecision: string;
   notify: (type: NotificationType, photoId: string, title: string) => void;
-  markRead: (id: string) => void;
+  markRead: (id: string) => void | Promise<boolean>;
   markAllRead: () => void;
 }
 const NotificationContext = createContext<NotificationsApi | null>(null);
 
-export function NotificationProvider({ children }: { children: ReactNode }) {
+function DemoNotificationProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [now, setNow] = useState(0);
   const [latestDecision, setLatestDecision] = useState('');
   const counter = useRef(0);
-  const settings = useNotificationPreferences();
+  const settings = useDemoNotificationPreferences();
   const settingsRef = useRef(settings.savedPreferences);
   useEffect(() => {
     settingsRef.current = settings.savedPreferences;
@@ -125,4 +139,23 @@ export function useNotifications(): NotificationsApi {
   if (!value)
     throw new Error('NotificationProvider 안에서 알림 기능을 사용해 주세요.');
   return value;
+}
+
+function LiveNotificationProvider({ children }: { children: ReactNode }) {
+  const value = useLiveNotifications();
+  return (
+    <NotificationContext.Provider value={value}>
+      {children}
+    </NotificationContext.Provider>
+  );
+}
+export function NotificationProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  return DEMO_MODE ? (
+    <DemoNotificationProvider>{children}</DemoNotificationProvider>
+  ) : (
+    <LiveNotificationProvider key={user?.id || 'anonymous'}>
+      {children}
+    </LiveNotificationProvider>
+  );
 }

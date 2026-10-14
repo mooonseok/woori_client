@@ -15,7 +15,7 @@ import { Icon } from '../../components/atoms/icon';
 export interface NotificationRowViewModel {
   id: string;
   title: string;
-  image: string;
+  image?: string;
   group: string;
   when: string;
   read: boolean;
@@ -25,9 +25,13 @@ export interface NotificationRowViewModel {
 interface Props {
   groups: { label: string; rows: NotificationRowViewModel[] }[];
   unreadCount: number;
-  pendingCount: number;
+  live: boolean;
+  error: string;
+  pending: boolean;
+  hasMore: boolean;
   loading: boolean;
-  onShowNew: () => void;
+  onRefresh: () => void;
+  onMore: () => void;
   onReadAll: () => void;
   onBack: () => void;
   onSettings: () => void;
@@ -35,9 +39,13 @@ interface Props {
 export function NotificationsView({
   groups,
   unreadCount,
-  pendingCount,
+  live,
+  error,
+  pending,
+  hasMore,
   loading,
-  onShowNew,
+  onRefresh,
+  onMore,
   onReadAll,
   onBack,
   onSettings,
@@ -65,18 +73,31 @@ export function NotificationsView({
         </Button>
       </Header>
       <Text className='notification-demo-note'>
-        지금은 예시 소식이에요. 실제 계정의 푸시 연결은 준비 중이에요.
+        {live
+          ? '가족의 사진과 이야기를 확인해 보세요. 기기 푸시 발송은 준비 중이에요.'
+          : '지금은 예시 소식이에요. 실제 계정의 푸시 연결은 준비 중이에요.'}
       </Text>
-      {pendingCount > 0 && (
-        <Button className='notification-new' onClick={onShowNew}>
-          새 소식 {pendingCount}개 보기
-        </Button>
+      {live && (
+        <Box className='notification-list-tools'>
+          <Button disabled={loading || pending} onClick={onRefresh}>
+            새로고침
+          </Button>
+        </Box>
       )}
-      {loading ? (
+      {error && (
+        <Box className='notification-error' role='alert'>
+          <Text>{error}</Text>
+          <Button disabled={loading || pending} onClick={onRefresh}>
+            다시 불러오기
+          </Button>
+        </Box>
+      )}
+      {pending && <Text role='status'>알림을 확인하고 있어요.</Text>}
+      {loading && !groups.length ? (
         <Box className='notification-loading' role='status'>
           알림을 불러오고 있어요.
         </Box>
-      ) : groups.length === 0 ? (
+      ) : groups.length === 0 && !error ? (
         <Box className='notification-empty'>
           <Icon name='bell' size={32} />
           <Heading>아직 받은 알림이 없어요</Heading>
@@ -90,8 +111,15 @@ export function NotificationsView({
                 ? `읽지 않은 소식 ${unreadCount}개`
                 : '새 소식을 모두 확인했어요'}
             </Text>
-            <Button onClick={onReadAll} disabled={!unreadCount}>
-              모두 읽음
+            <Button
+              onClick={onReadAll}
+              disabled={
+                loading ||
+                pending ||
+                !groups.some((group) => group.rows.some((row) => !row.read))
+              }
+            >
+              {live ? '표시된 알림 읽음' : '모두 읽음'}
             </Button>
           </Box>
           {groups.map((group) => (
@@ -106,16 +134,26 @@ export function NotificationsView({
                   <Li key={row.id}>
                     <Button
                       className='notification-item'
+                      disabled={loading || pending}
                       onClick={row.onOpen}
                       aria-label={`${row.read ? '' : '읽지 않음. '}${row.title}${row.count > 1 ? `. 반응 ${row.count}개` : ''}. ${row.when}`}
                     >
-                      <Image
-                        className='notification-thumbnail'
-                        src={row.image}
-                        alt=''
-                        width={56}
-                        height={56}
-                      />
+                      {row.image ? (
+                        <Image
+                          className='notification-thumbnail'
+                          src={row.image}
+                          alt=''
+                          width={56}
+                          height={56}
+                        />
+                      ) : (
+                        <Span
+                          className='notification-thumbnail notification-placeholder'
+                          aria-hidden='true'
+                        >
+                          <Icon name='bell' />
+                        </Span>
+                      )}
                       <Span className='notification-item-copy'>
                         <Span>
                           {row.title}
@@ -137,6 +175,15 @@ export function NotificationsView({
               </Ul>
             </Section>
           ))}
+          {hasMore && (
+            <Button
+              className='notification-new'
+              disabled={loading || pending}
+              onClick={onMore}
+            >
+              {loading ? '불러오는 중…' : '이전 알림 더 보기'}
+            </Button>
+          )}
         </>
       )}
     </Section>

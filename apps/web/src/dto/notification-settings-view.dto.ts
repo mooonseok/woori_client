@@ -9,6 +9,8 @@ export interface NotificationSettingsViewProps {
   preferences: NotificationPreferences;
   status: NotificationSaveStatus;
   ready: boolean;
+  live: boolean;
+  settingsError: string;
   rows: NotificationSettingRow[];
   quietRow: NotificationSettingRow;
   previewRow: NotificationSettingRow;
@@ -19,6 +21,8 @@ export interface NotificationSettingsViewProps {
   onTime: (key: 'quietStart' | 'quietEnd', value: string) => void;
   onGroup: (groupId: string, mode: NotificationGroupMode) => void;
   onRetry: () => void;
+  onReload?: () => void;
+  onDiscard?: () => void;
   onBack: () => void;
   onPermissionHelp: () => void;
 }
