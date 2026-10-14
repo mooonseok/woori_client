@@ -18,9 +18,15 @@ export function AccountGate({ children }: { children: ReactNode }) {
   }, [path]);
   if (
     DEMO_MODE ||
-    ['/login', '/signup', '/invite', '/verify-email'].includes(
-      path.replace(/\/$/, '')
-    )
+    [
+      '/login',
+      '/signup',
+      '/invite',
+      '/verify-email',
+      '/find-id',
+      '/forgot-password',
+      '/reset-password',
+    ].includes(path.replace(/\/$/, ''))
   )
     return children;
   if (auth.status === 'loading')

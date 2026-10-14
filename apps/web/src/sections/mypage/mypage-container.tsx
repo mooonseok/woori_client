@@ -42,7 +42,13 @@ export function MypageContainer() {
       edit={edit}
       guide={guide}
       groupCount={data.groups.length}
-      setName={setName}
+      setName={async (value) => {
+        if (DEMO_MODE) setName(value);
+        else {
+          await auth.saveProfile(value.trim());
+          setToast('이름을 저장했어요.');
+        }
+      }}
       setEdit={setEdit}
       setGuide={setGuide}
       onNavigate={router.push}

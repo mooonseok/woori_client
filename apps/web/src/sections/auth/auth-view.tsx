@@ -14,6 +14,8 @@ interface Props {
   pending: boolean;
   error: string;
   alternate: string;
+  recoveryNext: string;
+  passwordReset: boolean;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }
 export function AuthView({
@@ -21,6 +23,8 @@ export function AuthView({
   pending,
   error,
   alternate,
+  recoveryNext,
+  passwordReset,
   onSubmit,
 }: Props) {
   return (
@@ -34,6 +38,12 @@ export function AuthView({
           ? '간단한 정보로 가족의 사진 공간을 만들어요.'
           : '가족의 새로운 순간이 기다리고 있어요.'}
       </Text>
+      {!signup && passwordReset && (
+        <Text role='status' className='notice-panel'>
+          비밀번호를 바꿨어요. 새 비밀번호로 로그인해 주세요. 기존 기기의
+          로그인이 해제됐으니 알림도 다시 켜 주세요.
+        </Text>
+      )}
       <Form className='stack-form' onSubmit={onSubmit} aria-busy={pending}>
         <Label>
           아이디
@@ -108,6 +118,18 @@ export function AuthView({
           {pending ? '잠시만 기다려 주세요…' : signup ? '회원가입' : '로그인'}
         </Button>
       </Form>
+      {!signup && (
+        <Box className='inline-actions'>
+          <Link href={`/find-id?next=${encodeURIComponent(recoveryNext)}`}>
+            아이디 찾기
+          </Link>
+          <Link
+            href={`/forgot-password?next=${encodeURIComponent(recoveryNext)}`}
+          >
+            비밀번호 찾기
+          </Link>
+        </Box>
+      )}
       <Text className='auth-alternate'>
         {signup ? '이미 계정이 있나요?' : '처음 오셨나요?'}{' '}
         <Link href={alternate}>{signup ? '로그인' : '회원가입'}</Link>

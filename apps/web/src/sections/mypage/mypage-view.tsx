@@ -19,7 +19,7 @@ interface Props {
   edit: boolean;
   guide: 'view' | 'pin' | null;
   groupCount: number;
-  setName: (value: string) => void;
+  setName: (value: string) => void | Promise<void>;
   setEdit: (value: boolean) => void;
   setGuide: (value: 'view' | 'pin' | null) => void;
   onNavigate: (path: string) => void;
@@ -49,12 +49,8 @@ export function MypageView({
           <Heading>{name}</Heading>
           <Text className='muted'>{live ? email : '미리보기 계정'}</Text>
         </Box>
-        <Button
-          className='text-button'
-          disabled={live}
-          onClick={() => setEdit(true)}
-        >
-          {live ? '프로필 수정 준비 중' : '프로필 수정'}
+        <Button className='text-button' onClick={() => setEdit(true)}>
+          프로필 수정
         </Button>
       </Section>
       <Section>
@@ -128,6 +124,11 @@ export function MypageView({
           label='이름'
           initialValue={name}
           submitLabel='저장'
+          note={
+            live
+              ? '아이디·비밀번호 찾기에도 변경한 이름을 사용해 주세요.'
+              : undefined
+          }
           onSubmit={setName}
           onClose={() => setEdit(false)}
         />

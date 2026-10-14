@@ -21,6 +21,7 @@ import {
   post,
   SESSION_EXPIRED,
 } from '@/services/api-client';
+import { updateProfile } from '@/services/recovery';
 import { clearBrowserPush } from '@/services/web-push';
 import { DEMO_MODE } from '@/constants/app-mode';
 function useAuthState() {
@@ -128,12 +129,21 @@ function useAuthState() {
     }
     return result.user;
   }
+  async function saveProfile(displayName: string) {
+    const request = ++generation.current;
+    const result = await updateProfile(displayName);
+    if (request !== generation.current)
+      throw new Error('계정 상태가 바뀌었어요. 다시 확인해 주세요.');
+    setUser(result.user);
+    return result.user;
+  }
   return {
     user,
     status,
     error,
     verificationDelivery,
     refresh,
+    saveProfile,
     logout,
     confirm,
     login: (input: LoginInput) => authenticate('login', input),
