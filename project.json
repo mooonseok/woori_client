@@ -1,7 +1,7 @@
 {
   "name": "woori_client",
   "product": "우리",
-  "status": "albums-private-r2-media-verified-with-local-api",
+  "status": "album-photo-management-implemented",
   "plans": "/Users/parkmoonseok/.Codex/projects/woori_client/plans",
   "sharedPlan": "/Users/parkmoonseok/.Codex/projects/woori/plans/00-product-plan.md",
   "implemented": [
@@ -13,14 +13,15 @@
     "session-safe API boundary, scoped live state and architecture/regression checks",
     "live album creation, protected photo browsing and multipart-free direct R2 PUT upload flow",
     "partial upload retry and cancellation, session-scoped photo Blob cleanup",
-    "actual R2 browser upload and authenticated viewing verified with PNG/JPEG/WebP in an isolated local test environment"
+    "actual R2 browser upload and authenticated viewing verified with PNG/JPEG/WebP in an isolated local test environment",
+    "authenticated original downloads with MIME-correct filenames, owner album rename/deletion, owner/uploader photo deletion with confirmation and scoped refresh"
   ],
   "notImplemented": [
     "username/password recovery, profile edits and account deletion",
     "persisted comments/reactions/notification preferences and real push delivery",
     "admin operations and native token authentication",
     "production cloud deployment",
-    "album/photo edits and deletion, HEIC conversion"
+    "HEIC conversion"
   ],
   "deployment": {
     "api": "Railway paid; Serverless off",

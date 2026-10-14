@@ -5,6 +5,7 @@ export interface AlbumResponse {
   createdAt: string;
   photoCount: number;
   coverPhotoId: string | null;
+  canManage: boolean;
 }
 export interface PhotoResponse {
   id: string;
@@ -15,6 +16,7 @@ export interface PhotoResponse {
   createdAt: string;
   capturedAt: string | null;
   status: "READY";
+  canDelete: boolean;
 }
 export interface UploadTicket {
   photoId: string;

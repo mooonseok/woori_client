@@ -13,7 +13,10 @@ import {
 } from "@/components/atoms/ui";
 import { Icon } from "@/components/atoms/icon";
 import { EmptyState } from "@/components/molecules/empty-state";
+import { AlbumManagement } from "@/components/organisms/album-management/album-management";
 interface Props {
+  onRename: (title: string) => Promise<void>;
+  onDelete: () => Promise<void>;
   live: boolean;
   loading: boolean;
   error: string;
@@ -35,6 +38,8 @@ interface Props {
 }
 export function AlbumView({
   live,
+  onRename,
+  onDelete,
   loading,
   error,
   hasMore,
@@ -68,17 +73,33 @@ export function AlbumView({
         <Button className="icon-button" onClick={onBack} aria-label="뒤로 가기">
           <Icon name="back" />
         </Button>
-        <Box>
+        <Box className="album-heading-info">
           <Heading>{album.title}</Heading>
           <Text className="muted">
             {album.date.replaceAll("-", ".")} · 사진{" "}
             {album.photoCount ?? photos.length}장
           </Text>
         </Box>
-        <Button className="primary" onClick={onUpload} disabled={busy}>
-          <Icon name="upload" size={20} />
-          {busy ? (live ? "사진 저장 중…" : "사진 읽는 중…") : "사진 추가"}
-        </Button>
+        <Box className="album-heading-actions">
+          <Button
+            className="primary"
+            onClick={onUpload}
+            disabled={busy}
+            data-photo-viewer-return
+          >
+            <Icon name="upload" size={20} />
+            {busy ? (live ? "사진 저장 중…" : "사진 읽는 중…") : "사진 추가"}
+          </Button>
+          {live && album.canManage && (
+            <AlbumManagement
+              key={`${album.groupId}:${album.id}`}
+              album={album}
+              disabled={busy}
+              onRename={onRename}
+              onDelete={onDelete}
+            />
+          )}
+        </Box>
       </Header>
       <Input
         ref={fileRef}

@@ -116,3 +116,56 @@ export async function uploadPhoto(
     throw error;
   }
 }
+
+export function renameAlbum(
+  groupId: string,
+  albumId: string,
+  title: string,
+  signal: AbortSignal,
+) {
+  return apiRequest<{ album: AlbumResponse }>(albumPath(groupId, albumId), {
+    method: "PATCH",
+    body: JSON.stringify({ title: title.trim() }),
+    signal,
+  });
+}
+export function deleteAlbum(
+  groupId: string,
+  albumId: string,
+  signal: AbortSignal,
+) {
+  return apiRequest<void>(albumPath(groupId, albumId), {
+    method: "DELETE",
+    signal,
+  });
+}
+export function deletePhoto(
+  groupId: string,
+  albumId: string,
+  photoId: string,
+  signal: AbortSignal,
+) {
+  return apiRequest<void>(
+    `${albumPath(groupId, albumId)}/photos/${encodeURIComponent(photoId)}`,
+    { method: "DELETE", signal },
+  );
+}
+export async function originalPhoto(
+  groupId: string,
+  albumId: string,
+  photoId: string,
+  signal: AbortSignal,
+) {
+  const blob = await photoBlob(groupId, albumId, photoId, signal, "original");
+  signal.throwIfAborted();
+  const extension = (
+    { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" } as Record<
+      string,
+      string
+    >
+  )[blob.type];
+  if (!extension)
+    throw new Error("원본 사진 형식을 확인하지 못했어요. 다시 시도해 주세요.");
+  const safeId = photoId.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 80) || "photo";
+  return { blob, filename: `woori-${safeId}.${extension}` };
+}

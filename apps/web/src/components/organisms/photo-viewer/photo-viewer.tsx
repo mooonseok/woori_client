@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { PhotoViewerProps } from "@/dto/viewer.dto";
 import {
   Box,
@@ -17,18 +17,31 @@ import { Guide } from "@/components/organisms/guide/guide";
 import { PhotoStageView } from "./photo-stage-view";
 import { PhotoCommentsView } from "./photo-comments-view";
 import { ViewerToolbarView } from "./viewer-toolbar-view";
+import { ActionConfirm } from "@/components/organisms/action-confirm/action-confirm";
 import { ViewerConfirm } from "./viewer-confirm";
 export function PhotoViewer(props: PhotoViewerProps) {
   return props.photos.length ? <PhotoViewerContainer {...props} /> : null;
 }
 function PhotoViewerContainer(props: PhotoViewerProps) {
+  const [deleting, setDeleting] = useState(false),
+    [downloading, setDownloading] = useState(false),
+    [downloadError, setDownloadError] = useState("");
+  const menuButton = useRef<HTMLButtonElement>(null);
+  const downloadLock = useRef(false),
+    mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
   const m = usePhotoViewer(props),
     dialog = useRef<HTMLDialogElement>(null);
   const g = usePhotoGestures({
     photo: m.photo,
     canPrevious: m.index > 0,
     canNext: m.index < props.photos.length - 1,
-    disabled: !!m.guide || !!m.confirm || m.mode === "write",
+    disabled: !!m.guide || !!m.confirm || deleting || m.mode === "write",
     placing: m.mode === "place",
     onTap: m.tap,
     onNavigate: m.navigate,
@@ -40,7 +53,12 @@ function PhotoViewerContainer(props: PhotoViewerProps) {
     dialog.current?.showModal();
     return () => {
       document.body.style.overflow = overflow;
-      if (previous?.isConnected) previous.focus({ preventScroll: true });
+      queueMicrotask(() => {
+        const target = previous?.isConnected
+          ? previous
+          : document.querySelector<HTMLElement>("[data-photo-viewer-return]");
+        target?.focus({ preventScroll: true });
+      });
     };
   }, []);
   const comments = props.comments.filter(
@@ -75,8 +93,42 @@ function PhotoViewerContainer(props: PhotoViewerProps) {
         <ViewerToolbarView
           model={m}
           gestures={g}
+          menuButtonRef={menuButton}
           interactionsEnabled={props.interactionsEnabled !== false}
           count={props.photos.length}
+          downloading={downloading}
+          downloadError={downloadError}
+          onDownloadOriginal={
+            props.onDownloadOriginal
+              ? async () => {
+                  if (downloadLock.current) return;
+                  downloadLock.current = true;
+                  setDownloading(true);
+                  setDownloadError("");
+                  try {
+                    await props.onDownloadOriginal?.(m.photo);
+                  } catch (e) {
+                    if (mounted.current)
+                      setDownloadError(
+                        e instanceof Error
+                          ? e.message
+                          : "다운로드하지 못했어요. 다시 시도해 주세요.",
+                      );
+                  } finally {
+                    downloadLock.current = false;
+                    if (mounted.current) setDownloading(false);
+                  }
+                }
+              : undefined
+          }
+          onDelete={
+            props.onDeletePhoto && m.photo.canDelete
+              ? () => {
+                  m.setMore(false);
+                  setDeleting(true);
+                }
+              : undefined
+          }
           comments={comments.length}
           reactions={reactions}
           onReact={(emoji) => props.onReact(m.photo.id, emoji)}
@@ -138,6 +190,15 @@ function PhotoViewerContainer(props: PhotoViewerProps) {
             m.setPanel(false);
           }}
           photoDescription={`${m.photo.capturedAt} · ${m.photo.alt}`}
+        />
+      )}
+      {deleting && props.onDeletePhoto && (
+        <ActionConfirm
+          title="사진을 삭제할까요?"
+          description="모든 구성원에게서 이 사진이 삭제돼요. 원본과 썸네일도 정리되며 되돌릴 수 없어요."
+          returnFocus={menuButton}
+          onConfirm={() => props.onDeletePhoto!(m.photo)}
+          onClose={() => setDeleting(false)}
         />
       )}
       {m.guide && <Guide kind={m.guide} onClose={m.finishGuide} />}

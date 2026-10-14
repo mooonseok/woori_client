@@ -1,3 +1,4 @@
+import type { RefObject } from "react";
 import {
   Anchor,
   Box,
@@ -11,6 +12,11 @@ import { Icon } from "@/components/atoms/icon";
 import type { Reaction } from "@/dto/album.dto";
 import type { PhotoViewerModel, PhotoGestureModel } from "@/dto/viewer-ui.dto";
 interface Props {
+  menuButtonRef: RefObject<HTMLButtonElement | null>;
+  downloading: boolean;
+  downloadError: string;
+  onDownloadOriginal?: () => Promise<void>;
+  onDelete?: () => void;
   interactionsEnabled: boolean;
   model: PhotoViewerModel;
   gestures: PhotoGestureModel;
@@ -28,6 +34,11 @@ const EMOJI = [
 ];
 export function ViewerToolbarView({
   interactionsEnabled,
+  menuButtonRef,
+  downloading,
+  downloadError,
+  onDownloadOriginal,
+  onDelete,
   model: m,
   gestures: g,
   count,
@@ -60,6 +71,7 @@ export function ViewerToolbarView({
               </Button>
             )}
             <Button
+              ref={menuButtonRef}
               aria-label="사진 메뉴"
               aria-expanded={m.more}
               onClick={() => m.setMore(!m.more)}
@@ -107,13 +119,17 @@ export function ViewerToolbarView({
             </Button>
           </>
         )}
-        <Anchor
-          href={m.photo.src}
-          download={`woori-${m.photo.id}.jpg`}
-          aria-label={interactionsEnabled ? "사진 다운로드" : "화면 사진 저장"}
-        >
-          <Icon name="download" />
-        </Anchor>
+        {!onDownloadOriginal && (
+          <Anchor
+            href={m.photo.src}
+            download={`woori-${m.photo.id}.jpg`}
+            aria-label={
+              interactionsEnabled ? "사진 다운로드" : "화면 사진 저장"
+            }
+          >
+            <Icon name="download" />
+          </Anchor>
+        )}
       </Footer>
       {m.reacting && (
         <Box className="viewer-reactions" role="group" aria-label="반응 선택">
@@ -135,6 +151,29 @@ export function ViewerToolbarView({
       )}
       {m.more && (
         <Box className="viewer-menu" role="group" aria-label="사진 메뉴">
+          {onDownloadOriginal && (
+            <Button
+              disabled={downloading}
+              onClick={() => void onDownloadOriginal()}
+            >
+              <Icon name="download" />
+              {downloading ? "원본 받는 중…" : "원본 다운로드"}
+            </Button>
+          )}
+          {downloadError && (
+            <Text role="alert" className="viewer-download-error">
+              {downloadError}
+            </Text>
+          )}
+          {onDelete && (
+            <Button
+              className="danger-text"
+              disabled={downloading}
+              onClick={onDelete}
+            >
+              사진 삭제
+            </Button>
+          )}
           <Button onClick={() => g.zoom(1.5)}>
             <Icon name="zoom-in" />
             확대

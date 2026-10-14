@@ -38,6 +38,7 @@ export function useLiveGalleryState() {
   const scope = useRef(new AbortController()),
     urls = useRef(new Set<string>()),
     request = useRef(0);
+  const albumRequest = useRef(0);
   const photoRequest = useRef(0),
     loadedAlbum = useRef("");
   const dataRef = useRef(data);
@@ -54,6 +55,7 @@ export function useLiveGalleryState() {
     pending.current.clear();
     loadedAlbum.current = "";
     photoRequest.current++;
+    albumRequest.current++;
   }, []);
   useEffect(() => () => dispose(), [dispose]);
   const reload = useCallback(async () => {
@@ -93,8 +95,9 @@ export function useLiveGalleryState() {
     };
   }, [reload]);
   const fetchAlbums = useCallback(async (id: string, signal: AbortSignal) => {
+    const current = ++albumRequest.current;
     const result = await media.listAlbums(id, signal);
-    if (signal.aborted) return;
+    if (signal.aborted || current !== albumRequest.current) return;
     setData((d) => ({ ...d, albums: result.albums.map(albumModel) }));
     // Load only small cover renditions; full photographs load on album entry.
     for (const album of result.albums) {
@@ -112,9 +115,9 @@ export function useLiveGalleryState() {
           signal,
           "thumbnail",
         );
-        if (signal.aborted) return;
+        if (signal.aborted || current !== albumRequest.current) return;
         const bitmap = await createImageBitmap(blob);
-        if (signal.aborted) {
+        if (signal.aborted || current !== albumRequest.current) {
           bitmap.close();
           return;
         }
@@ -203,6 +206,7 @@ export function useLiveGalleryState() {
       alt: "함께 나눈 사진",
       capturedAt: (p.capturedAt || p.createdAt).slice(0, 10),
       authorId: "",
+      canDelete: p.canDelete,
     };
   }
   async function loadPhotos(albumId: string, cursor: string | null = null) {
@@ -277,6 +281,98 @@ export function useLiveGalleryState() {
     signal.throwIfAborted();
     setData((d) => ({ ...d, albums: [albumModel(album), ...d.albums] }));
     return album.id;
+  }
+  function removeLocalPhotos(predicate: (p: Photo) => boolean) {
+    photoRequest.current++;
+    albumRequest.current++;
+    setPhotoLoading(false);
+    setPhotoError("");
+    setNextCursor(null);
+    setViewer(null);
+    dataRef.current.photos.filter(predicate).forEach((p) => {
+      URL.revokeObjectURL(p.src);
+      urls.current.delete(p.src);
+    });
+    setData((d) => ({ ...d, photos: d.photos.filter((p) => !predicate(p)) }));
+  }
+  async function renameAlbum(albumId: string, title: string) {
+    const signal = scope.current.signal;
+    const { album } = await media.renameAlbum(groupId, albumId, title, signal);
+    signal.throwIfAborted();
+    albumRequest.current++;
+    setData((d) => ({
+      ...d,
+      albums: d.albums.map((a) => (a.id === albumId ? albumModel(album) : a)),
+    }));
+    setToast("앨범 제목을 변경했어요.");
+  }
+  async function deleteAlbum(albumId: string) {
+    const signal = scope.current.signal;
+    await media.deleteAlbum(groupId, albumId, signal);
+    signal.throwIfAborted();
+    removeLocalPhotos((p) => p.albumId === albumId);
+    pending.current.clear();
+    setFailedFiles([]);
+    loadedAlbum.current = "";
+    setData((d) => ({
+      ...d,
+      albums: d.albums.filter((a) => a.id !== albumId),
+    }));
+    setToast("앨범을 삭제했어요.");
+  }
+  async function deletePhoto(photo: Photo) {
+    const signal = scope.current.signal;
+    await media.deletePhoto(groupId, photo.albumId, photo.id, signal);
+    signal.throwIfAborted();
+    removeLocalPhotos((p) => p.id === photo.id);
+    setData((d) => ({
+      ...d,
+      albums: d.albums.map((a) =>
+        a.id === photo.albumId
+          ? {
+              ...a,
+              photoCount: Math.max(0, (a.photoCount || 0) - 1),
+              coverId: a.coverId === photo.id ? "" : a.coverId,
+            }
+          : a,
+      ),
+    }));
+    setToast("사진을 삭제했어요.");
+    await loadPhotos(photo.albumId);
+    if (!signal.aborted) {
+      try {
+        await fetchAlbums(groupId, signal);
+      } catch {
+        if (!signal.aborted)
+          setError(
+            "사진은 삭제했지만 앨범 정보를 갱신하지 못했어요. 다시 불러와 주세요.",
+          );
+      }
+    }
+  }
+  async function downloadOriginal(photo: Photo) {
+    const signal = scope.current.signal;
+    const { blob, filename } = await media.originalPhoto(
+      groupId,
+      photo.albumId,
+      photo.id,
+      signal,
+    );
+    signal.throwIfAborted();
+    const src = URL.createObjectURL(blob);
+    urls.current.add(src);
+    const link = document.createElement("a");
+    link.href = src;
+    link.download = filename;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    // Allow the browser to consume the object URL before releasing it.
+    setTimeout(() => {
+      URL.revokeObjectURL(src);
+      urls.current.delete(src);
+    }, 1000);
+    setToast("원본 사진 다운로드를 시작했어요.");
   }
   async function createGroup(name: string) {
     const { group } = await post<{ group: Group }>("/v1/groups", {
@@ -423,6 +519,10 @@ export function useLiveGalleryState() {
     addComment: () => setToast("댓글 저장 기능을 준비하고 있어요."),
     react: () => setToast("반응 저장 기능을 준비하고 있어요."),
     createAlbum,
+    renameAlbum,
+    deleteAlbum,
+    deletePhoto,
+    downloadOriginal,
     createGroup,
     addPhotos,
     photoLoading,
