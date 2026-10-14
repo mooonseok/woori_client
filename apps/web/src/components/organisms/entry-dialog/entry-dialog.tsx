@@ -1,5 +1,5 @@
-"use client";
-import { useEffect, useRef, useState } from "react";
+'use client';
+import { useEffect, useRef, useState } from 'react';
 import {
   Dialog,
   Form,
@@ -9,17 +9,17 @@ import {
   Input,
   Label,
   Text,
-} from "@/components/atoms/ui";
-import { Icon } from "@/components/atoms/icon";
+} from '@/components/atoms/ui';
+import { Icon } from '@/components/atoms/icon';
 export function EntryDialog({
   title,
   label,
   onSubmit,
   onClose,
-  initialValue = "",
-  submitLabel = "만들기",
+  initialValue = '',
+  submitLabel = '만들기',
   maxLength = 80,
-  note = "미리보기에서 만든 내용은 새로고침하면 초기화돼요.",
+  note = '미리보기에서 만든 내용은 새로고침하면 초기화돼요.',
 }: {
   title: string;
   label: string;
@@ -34,7 +34,7 @@ export function EntryDialog({
     input = useRef<HTMLInputElement>(null),
     [value, setValue] = useState(initialValue),
     [busy, setBusy] = useState(false),
-    [error, setError] = useState("");
+    [error, setError] = useState('');
   useEffect(() => {
     const previous = document.activeElement as HTMLElement;
     const dialog = ref.current;
@@ -48,7 +48,7 @@ export function EntryDialog({
   return (
     <Dialog
       ref={ref}
-      className="entry-dialog"
+      className='entry-dialog'
       aria-label={title}
       onCancel={(e) => {
         if (busy) e.preventDefault();
@@ -60,7 +60,7 @@ export function EntryDialog({
           e.preventDefault();
           if (!value.trim() || busy) return;
           setBusy(true);
-          setError("");
+          setError('');
           try {
             await onSubmit(value);
             onClose();
@@ -68,50 +68,50 @@ export function EntryDialog({
             setError(
               error instanceof Error
                 ? error.message
-                : "저장하지 못했어요. 다시 시도해 주세요.",
+                : '저장하지 못했어요. 다시 시도해 주세요.'
             );
           } finally {
             setBusy(false);
           }
         }}
       >
-        <Header className="dialog-header">
+        <Header className='dialog-header'>
           <Heading>{title}</Heading>
           <Button
-            className="icon-button"
+            className='icon-button'
             onClick={onClose}
             disabled={busy}
-            aria-label="닫기"
+            aria-label='닫기'
           >
-            <Icon name="close" />
+            <Icon name='close' />
           </Button>
         </Header>
-        <Label className="field-label" htmlFor="entry-name">
+        <Label className='field-label' htmlFor='entry-name'>
           {label}
         </Label>
         <Input
           ref={input}
-          id="entry-name"
+          id='entry-name'
           autoFocus
           required
           maxLength={maxLength}
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder={label}
-          className="field"
+          className='field'
         />
-        {note && <Text className="muted">{note}</Text>}
+        {note && <Text className='muted'>{note}</Text>}
         {error && (
-          <Text role="alert" className="error-notice">
+          <Text role='alert' className='error-notice'>
             {error}
           </Text>
         )}
         <Button
-          className="primary full"
-          type="submit"
+          className='primary full'
+          type='submit'
           disabled={busy || !value.trim()}
         >
-          {busy ? "저장 중…" : submitLabel}
+          {busy ? '저장 중…' : submitLabel}
         </Button>
       </Form>
     </Dialog>

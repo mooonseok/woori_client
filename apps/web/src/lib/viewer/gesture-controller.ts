@@ -1,5 +1,5 @@
-import type { Point } from "@/dto/album.dto";
-import type { Transform } from "./geometry";
+import type { Point } from '@/dto/album.dto';
+import type { Transform } from './geometry';
 const TAP_MS = 280;
 interface Options {
   read(): Transform;
@@ -16,7 +16,7 @@ interface Options {
   now?: () => number;
 }
 interface Gesture {
-  type: "pending" | "pan" | "pinch" | "swipe" | "idle";
+  type: 'pending' | 'pan' | 'pinch' | 'swipe' | 'idle';
   start: Point;
   base: Transform;
   time: number;
@@ -59,7 +59,7 @@ export class PhotoGestures {
         Math.hypot(p.x - this.lastTap.x, p.y - this.lastTap.y) < 40;
       if (second) this.clearTap();
       this.gesture = {
-        type: "pending",
+        type: 'pending',
         start: p,
         base: this.options.read(),
         time: now,
@@ -77,7 +77,7 @@ export class PhotoGestures {
       this.options.track(0, false);
       this.gesture = {
         ...this.gesture,
-        type: "pinch",
+        type: 'pinch',
         multi: true,
         base: this.options.read(),
         distance: Math.max(10, Math.hypot(a.x - b.x, a.y - b.y)),
@@ -91,7 +91,7 @@ export class PhotoGestures {
     const g = this.gesture;
     if (!g) return;
     if (
-      g.type === "pinch" &&
+      g.type === 'pinch' &&
       this.pointers.size >= 2 &&
       g.midpoint &&
       g.distance
@@ -112,27 +112,27 @@ export class PhotoGestures {
           scale,
           x: middle.x - (scale * (g.midpoint.x - g.base.x)) / g.base.scale,
           y: middle.y - (scale * (g.midpoint.y - g.base.y)) / g.base.scale,
-        }),
+        })
       );
       return;
     }
     if (this.pointers.size !== 1) return;
     const dx = p.x - g.start.x,
       dy = p.y - g.start.y;
-    if (g.type === "pending") {
+    if (g.type === 'pending') {
       if (Math.hypot(dx, dy) < 8) return;
       this.clearTap();
       this.lastTap = null;
-      if (g.base.scale > 1.01) g.type = "pan";
+      if (g.base.scale > 1.01) g.type = 'pan';
       else
         g.type =
-          Math.abs(dx) > Math.abs(dy) * 1.1 && !g.multi ? "swipe" : "idle";
+          Math.abs(dx) > Math.abs(dy) * 1.1 && !g.multi ? 'swipe' : 'idle';
     }
-    if (g.type === "pan")
+    if (g.type === 'pan')
       this.options.paint(
-        this.options.rubber({ ...g.base, x: g.base.x + dx, y: g.base.y + dy }),
+        this.options.rubber({ ...g.base, x: g.base.x + dx, y: g.base.y + dy })
       );
-    if (g.type === "swipe") {
+    if (g.type === 'swipe') {
       const direction = dx < 0 ? 1 : -1;
       g.offset = this.options.canSwipe(direction) ? dx : dx * 0.25;
       this.options.track(g.offset);
@@ -155,7 +155,7 @@ export class PhotoGestures {
     if (this.pointers.size === 1) {
       g.start = [...this.pointers.values()][0];
       g.base = this.options.read();
-      g.type = g.base.scale > 1.01 ? "pan" : "idle";
+      g.type = g.base.scale > 1.01 ? 'pan' : 'idle';
       g.multi = true;
       return;
     }
@@ -166,11 +166,11 @@ export class PhotoGestures {
       this.options.settle();
       return;
     }
-    if (g.multi || g.type === "pan" || g.type === "pinch") {
+    if (g.multi || g.type === 'pan' || g.type === 'pinch') {
       this.options.settle();
       return;
     }
-    if (g.type === "swipe") {
+    if (g.type === 'swipe') {
       const velocity = this.now() - g.lastTime < 100 ? g.velocity : 0;
       const d =
         g.offset < -this.options.width() * 0.2 || velocity < -0.5
@@ -182,7 +182,7 @@ export class PhotoGestures {
       else this.options.track(0, true);
       return;
     }
-    if (g.type !== "pending" || this.now() - g.time >= 500) return;
+    if (g.type !== 'pending' || this.now() - g.time >= 500) return;
     if (g.second) {
       this.clearTap();
       this.lastTap = null;

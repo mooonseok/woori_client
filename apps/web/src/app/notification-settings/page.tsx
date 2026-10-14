@@ -1,4 +1,4 @@
-import { SettingsRoute } from "@/app/notification-routes";
+import { SettingsRoute } from '@/app/notification-routes';
 export default function Page() {
   return <SettingsRoute />;
 }

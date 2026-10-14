@@ -1,4 +1,4 @@
-import type { RefObject, Dispatch, SetStateAction } from "react";
+import type { RefObject, Dispatch, SetStateAction } from 'react';
 export interface AlbumSearch {
   searchOpen: boolean;
   query: string;

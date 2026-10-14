@@ -1,21 +1,21 @@
-"use client";
+'use client';
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type {
   NotificationPreferences,
   NotificationSaveStatus,
-} from "../dto/notification.dto";
+} from '../dto/notification.dto';
 import {
   loadNotificationPreferences,
   saveNotificationPreferences,
-} from "../services/notification-storage";
-import { notificationDefaults } from "../utils/notification-policy";
+} from '../services/notification-storage';
+import { notificationDefaults } from '../utils/notification-policy';
 
 export function useNotificationPreferences() {
   const [preferences, setPreferences] = useState(notificationDefaults);
   const [savedPreferences, setSavedPreferences] =
     useState(notificationDefaults);
-  const [status, setStatus] = useState<NotificationSaveStatus>("idle");
+  const [status, setStatus] = useState<NotificationSaveStatus>('idle');
   const [ready, setReady] = useState(false);
   const draft = useRef(preferences);
   const saved = useRef(savedPreferences);
@@ -32,13 +32,13 @@ export function useNotificationPreferences() {
       saved.current = snapshot;
       failed.current = null;
       setSavedPreferences(snapshot);
-      setStatus("saved");
+      setStatus('saved');
       return true;
     } catch {
       failed.current = snapshot;
       draft.current = saved.current;
       setPreferences(saved.current);
-      setStatus("error");
+      setStatus('error');
       return false;
     }
   }, []);
@@ -55,10 +55,10 @@ export function useNotificationPreferences() {
       setReady(true);
     });
     const visibility = () => {
-      if (document.visibilityState === "hidden") flush();
+      if (document.visibilityState === 'hidden') flush();
     };
-    window.addEventListener("pagehide", flush);
-    document.addEventListener("visibilitychange", visibility);
+    window.addEventListener('pagehide', flush);
+    document.addEventListener('visibilitychange', visibility);
     return () => {
       active = false;
       if (timer.current) clearTimeout(timer.current);
@@ -69,8 +69,8 @@ export function useNotificationPreferences() {
           pending.current = false;
         }
       }
-      window.removeEventListener("pagehide", flush);
-      document.removeEventListener("visibilitychange", visibility);
+      window.removeEventListener('pagehide', flush);
+      document.removeEventListener('visibilitychange', visibility);
     };
   }, [flush]);
 
@@ -82,11 +82,11 @@ export function useNotificationPreferences() {
       failed.current = null;
       pending.current = true;
       setPreferences(next);
-      setStatus("saving");
+      setStatus('saving');
       if (timer.current) clearTimeout(timer.current);
       timer.current = setTimeout(flush, 450);
     },
-    [flush, ready],
+    [flush, ready]
   );
 
   const retry = useCallback(() => {

@@ -305,7 +305,7 @@
   font-size: 11px;
   white-space: nowrap;
 }
-.viewer-reactions button[aria-pressed="true"] {
+.viewer-reactions button[aria-pressed='true'] {
   background: #e9effa;
 }
 .viewer-comments {
@@ -425,7 +425,7 @@
   font-size: 14px;
 }
 .viewer-comment-form button,
-.viewer-pin-composer button[type="submit"] {
+.viewer-pin-composer button[type='submit'] {
   background: #284e91;
   color: white;
   padding: 0 14px;

@@ -1,4 +1,4 @@
-import type { Point } from "@/dto/album.dto";
+import type { Point } from '@/dto/album.dto';
 export interface Transform {
   scale: number;
   x: number;
@@ -12,7 +12,7 @@ export const FIT: Transform = { scale: 1, x: 0, y: 0 };
 export function fitSize(photo: Size, stage: Size): Size {
   const ratio = Math.min(
     stage.width / photo.width,
-    stage.height / photo.height,
+    stage.height / photo.height
   );
   return { width: photo.width * ratio, height: photo.height * ratio };
 }
@@ -26,7 +26,7 @@ export function clampTransform(
   t: Transform,
   photo: Size,
   stage: Size,
-  max = 4,
+  max = 4
 ): Transform {
   const scale = Math.min(max, Math.max(1, t.scale));
   if (scale <= 1.01) return { ...FIT };
@@ -40,7 +40,7 @@ export function clampTransform(
 export function rubberTransform(
   t: Transform,
   photo: Size,
-  stage: Size,
+  stage: Size
 ): Transform {
   const b = bounds(t.scale, photo, stage);
   const rubber = (v: number, limit: number) =>
@@ -61,7 +61,7 @@ export function zoomAt(t: Transform, point: Point, scale: number): Transform {
 export function photoPoint(
   point: Point,
   t: Transform,
-  photo: Size,
+  photo: Size
 ): Point | null {
   const x = (point.x - t.x) / (photo.width * t.scale) + 0.5;
   const y = (point.y - t.y) / (photo.height * t.scale) + 0.5;

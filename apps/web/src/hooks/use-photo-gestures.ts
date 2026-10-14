@@ -1,15 +1,15 @@
-"use client";
+'use client';
 import {
   useCallback,
   useEffect,
   useLayoutEffect,
   useRef,
   useState,
-} from "react";
-import type { KeyboardEvent, PointerEvent } from "react";
-import type { PhotoGestureModel } from "@/dto/viewer-ui.dto";
-import type { Photo, Point } from "@/dto/album.dto";
-import { PhotoGestures } from "@/lib/viewer/gesture-controller";
+} from 'react';
+import type { KeyboardEvent, PointerEvent } from 'react';
+import type { PhotoGestureModel } from '@/dto/viewer-ui.dto';
+import type { Photo, Point } from '@/dto/album.dto';
+import { PhotoGestures } from '@/lib/viewer/gesture-controller';
 import {
   FIT,
   clampTransform,
@@ -17,8 +17,8 @@ import {
   photoPoint,
   rubberTransform,
   zoomAt,
-} from "@/lib/viewer/geometry";
-import type { Size, Transform } from "@/lib/viewer/geometry";
+} from '@/lib/viewer/geometry';
+import type { Size, Transform } from '@/lib/viewer/geometry';
 interface Options {
   photo: Photo;
   canPrevious: boolean;
@@ -51,12 +51,9 @@ export function usePhotoGestures(options: Options): PhotoGestureModel {
     () =>
       Math.max(
         2,
-        Math.min(
-          4,
-          latest.current.photo.width / dimensions.current.photo.width,
-        ),
+        Math.min(4, latest.current.photo.width / dimensions.current.photo.width)
       ),
-    [],
+    []
   );
   const paint = useCallback((value: Transform, animate = false) => {
     transform.current = value;
@@ -64,10 +61,10 @@ export function usePhotoGestures(options: Options): PhotoGestureModel {
     if (!el) return;
     el.style.transition =
       animate && !reduced.current
-        ? "transform 220ms cubic-bezier(.2,.8,.2,1)"
-        : "none";
+        ? 'transform 220ms cubic-bezier(.2,.8,.2,1)'
+        : 'none';
     el.style.transform = `translate(${value.x}px, ${value.y}px) scale(${value.scale})`;
-    el.style.setProperty("--inverse-scale", String(1 / value.scale));
+    el.style.setProperty('--inverse-scale', String(1 / value.scale));
   }, []);
   const freeze = useCallback(() => {
     const el = imageRef.current;
@@ -84,9 +81,9 @@ export function usePhotoGestures(options: Options): PhotoGestureModel {
         value,
         dimensions.current.photo,
         dimensions.current.stage,
-        maximum(),
+        maximum()
       ),
-    [maximum],
+    [maximum]
   );
   const settle = useCallback(() => {
     const value = clamp(transform.current);
@@ -97,8 +94,8 @@ export function usePhotoGestures(options: Options): PhotoGestureModel {
     if (!trackRef.current) return;
     trackRef.current.style.transition =
       animate && !reduced.current
-        ? "transform 260ms cubic-bezier(.2,.8,.2,1)"
-        : "none";
+        ? 'transform 260ms cubic-bezier(.2,.8,.2,1)'
+        : 'none';
     trackRef.current.style.transform = `translateX(${offset}px)`;
   }, []);
   const navigate = useCallback(
@@ -118,10 +115,10 @@ export function usePhotoGestures(options: Options): PhotoGestureModel {
           busy.current = false;
           latest.current.onNavigate(direction);
         },
-        reduced.current ? 0 : 260,
+        reduced.current ? 0 : 260
       );
     },
-    [track],
+    [track]
   );
   const zoom = useCallback(
     (factor: number, point: Point = { x: 0, y: 0 }) => {
@@ -130,13 +127,13 @@ export function usePhotoGestures(options: Options): PhotoGestureModel {
         zoomAt(
           value,
           point,
-          Math.min(maximum(), Math.max(1, value.scale * factor)),
-        ),
+          Math.min(maximum(), Math.max(1, value.scale * factor))
+        )
       );
       paint(next, true);
       setScale(next.scale);
     },
-    [clamp, freeze, maximum, paint],
+    [clamp, freeze, maximum, paint]
   );
   useLayoutEffect(() => {
     const stage = stageRef.current;
@@ -166,12 +163,12 @@ export function usePhotoGestures(options: Options): PhotoGestureModel {
     };
   }, [options.photo.id, clamp, paint, track]);
   useEffect(() => {
-    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
     const sync = () => {
       reduced.current = media.matches;
     };
     sync();
-    media.addEventListener("change", sync);
+    media.addEventListener('change', sync);
     controller.current = new PhotoGestures({
       read: freeze,
       paint,
@@ -182,7 +179,7 @@ export function usePhotoGestures(options: Options): PhotoGestureModel {
         rubberTransform(
           value,
           dimensions.current.photo,
-          dimensions.current.stage,
+          dimensions.current.stage
         ),
       width: () => dimensions.current.stage.width,
       maxScale: maximum,
@@ -191,12 +188,12 @@ export function usePhotoGestures(options: Options): PhotoGestureModel {
         (direction === 1 ? latest.current.canNext : latest.current.canPrevious),
       tap: (point) =>
         latest.current.onTap(
-          photoPoint(point, transform.current, dimensions.current.photo),
+          photoPoint(point, transform.current, dimensions.current.photo)
         ),
       doubleTap: (point) => {
         if (latest.current.placing) {
           latest.current.onTap(
-            photoPoint(point, transform.current, dimensions.current.photo),
+            photoPoint(point, transform.current, dimensions.current.photo)
           );
           return;
         }
@@ -219,10 +216,10 @@ export function usePhotoGestures(options: Options): PhotoGestureModel {
         y: event.clientY - r.top - r.height / 2,
       });
     };
-    stage?.addEventListener("wheel", wheel, { passive: false });
+    stage?.addEventListener('wheel', wheel, { passive: false });
     return () => {
-      media.removeEventListener("change", sync);
-      stage?.removeEventListener("wheel", wheel);
+      media.removeEventListener('change', sync);
+      stage?.removeEventListener('wheel', wheel);
       controller.current?.dispose();
       if (navTimer.current) clearTimeout(navTimer.current);
     };
@@ -245,9 +242,9 @@ export function usePhotoGestures(options: Options): PhotoGestureModel {
     if (
       options.disabled ||
       busy.current ||
-      (event.pointerType === "mouse" && event.button !== 0) ||
+      (event.pointerType === 'mouse' && event.button !== 0) ||
       (event.target as Element).closest(
-        "button,input,textarea,[data-viewer-interactive]",
+        'button,input,textarea,[data-viewer-interactive]'
       )
     )
       return;
@@ -262,14 +259,14 @@ export function usePhotoGestures(options: Options): PhotoGestureModel {
       event.metaKey
     )
       return;
-    if (["+", "=", "-", "0"].includes(event.key)) {
+    if (['+', '=', '-', '0'].includes(event.key)) {
       event.preventDefault();
-      if (event.key === "0") {
+      if (event.key === '0') {
         paint({ ...FIT }, true);
         setScale(1);
-      } else zoom(event.key === "-" ? 1 / 1.5 : 1.5);
+      } else zoom(event.key === '-' ? 1 / 1.5 : 1.5);
     }
-    if (event.key.startsWith("Arrow")) {
+    if (event.key.startsWith('Arrow')) {
       event.preventDefault();
       if (transform.current.scale > 1.01) {
         const t = freeze();
@@ -282,10 +279,10 @@ export function usePhotoGestures(options: Options): PhotoGestureModel {
         if (direction)
           paint(
             clamp({ ...t, x: t.x + direction[0], y: t.y + direction[1] }),
-            true,
+            true
           );
-      } else if (event.key === "ArrowLeft" || event.key === "ArrowRight")
-        navigate(event.key === "ArrowRight" ? 1 : -1);
+      } else if (event.key === 'ArrowLeft' || event.key === 'ArrowRight')
+        navigate(event.key === 'ArrowRight' ? 1 : -1);
     }
   };
   return {

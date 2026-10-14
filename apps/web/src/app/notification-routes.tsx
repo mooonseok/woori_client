@@ -1,16 +1,16 @@
-"use client";
-import { useRouter } from "next/navigation";
-import { NotificationsContainer } from "@/sections/notifications/notifications-container";
-import { SettingsContainer } from "@/sections/settings/settings-container";
-import { useGallery } from "@/hooks/use-gallery";
+'use client';
+import { useRouter } from 'next/navigation';
+import { NotificationsContainer } from '@/sections/notifications/notifications-container';
+import { SettingsContainer } from '@/sections/settings/settings-container';
+import { useGallery } from '@/hooks/use-gallery';
 export function NotificationsRoute() {
   const router = useRouter(),
     { openPhoto } = useGallery();
   return (
     <NotificationsContainer
       onOpenPhoto={openPhoto}
-      onBack={() => router.push("/")}
-      onSettings={() => router.push("/notification-settings")}
+      onBack={() => router.push('/')}
+      onSettings={() => router.push('/notification-settings')}
     />
   );
 }
@@ -20,7 +20,7 @@ export function SettingsRoute() {
   return (
     <SettingsContainer
       groups={data.groups}
-      onBack={() => router.push("/mypage")}
+      onBack={() => router.push('/mypage')}
     />
   );
 }

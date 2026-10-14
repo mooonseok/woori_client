@@ -15,4 +15,4 @@ export interface LoginInput {
   username: string;
   password: string;
 }
-export type AuthStatus = "loading" | "authenticated" | "anonymous" | "error";
+export type AuthStatus = 'loading' | 'authenticated' | 'anonymous' | 'error';

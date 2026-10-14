@@ -2,7 +2,7 @@ export interface Group {
   id: string;
   name: string;
   members: number;
-  role?: "OWNER" | "MEMBER";
+  role?: 'OWNER' | 'MEMBER';
 }
 export interface Album {
   id: string;

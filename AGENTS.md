@@ -54,3 +54,9 @@
 - pnpm policy:check / policy:test로 연결과 실제 차단을 검증한다. 상세 실행 한계는 아래 절차를 읽는다.
 - Codex/Claude 훅 사용·검증·해제: .claude/skills/woori-verify/references/policy-operations.md.
 - 로컬 훅은 우회 불가능한 보안 경계가 아니다. CI 설정 파일만으로 원격 필수 검사가 활성화되지는 않는다.
+
+## 코드 포맷
+
+- pnpm format으로 전체 포맷, pnpm format:check로 검사한다. Prettier 확장 설치 시 저장에도 적용된다.
+- 커밋 훅은 완전히 스테이징한 파일을 자동 포맷한다. 부분 스테이징 파일에 포맷이 필요하면 변경을 보존하고 차단한다.
+- push와 CI는 포맷 불일치를 차단한다. 마이그레이션·생성 파일·잠금 파일은 자동 포맷하지 않는다.

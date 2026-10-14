@@ -1,21 +1,21 @@
-import type { Album, GalleryData, Photo, Point } from "../dto/album.dto.ts";
+import type { Album, GalleryData, Photo, Point } from '../dto/album.dto.ts';
 export function listAlbums(
   data: GalleryData,
   groupId: string,
   query: string,
-  sort: string,
+  sort: string
 ): Album[] {
-  const key = query.trim().normalize("NFC").toLocaleLowerCase("ko");
+  const key = query.trim().normalize('NFC').toLocaleLowerCase('ko');
   return data.albums
     .filter(
       (a) =>
         a.groupId === groupId &&
-        a.title.normalize("NFC").toLocaleLowerCase("ko").includes(key),
+        a.title.normalize('NFC').toLocaleLowerCase('ko').includes(key)
     )
     .sort((a, b) =>
-      sort === "taken"
+      sort === 'taken'
         ? b.date.localeCompare(a.date)
-        : b.createdAt.localeCompare(a.createdAt),
+        : b.createdAt.localeCompare(a.createdAt)
     );
 }
 export function photosFor(data: GalleryData, albumId: string): Photo[] {
@@ -33,5 +33,5 @@ export function validPoint(point?: Point) {
   );
 }
 export function displayDate(date: string) {
-  return date.slice(0, 10).replaceAll("-", ".");
+  return date.slice(0, 10).replaceAll('-', '.');
 }

@@ -1,13 +1,13 @@
-import assert from "node:assert/strict";
-import test from "node:test";
-import { PhotoGestures } from "../src/lib/viewer/gesture-controller.ts";
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { PhotoGestures } from '../src/lib/viewer/gesture-controller.ts';
 import {
   FIT,
   clampTransform,
   photoPoint,
   zoomAt,
-} from "../src/lib/viewer/geometry.ts";
-import type { Transform } from "../src/lib/viewer/geometry.ts";
+} from '../src/lib/viewer/geometry.ts';
+import type { Transform } from '../src/lib/viewer/geometry.ts';
 function harness() {
   let now = 0,
     value: Transform = { ...FIT },
@@ -47,7 +47,7 @@ function harness() {
     state: () => ({ value, swipes, singles, doubles, offset }),
   };
 }
-test("second pointerdown within 280ms commits double tap even after its release crosses the window", () => {
+test('second pointerdown within 280ms commits double tap even after its release crosses the window', () => {
   const h = harness();
   h.controller.down(1, { x: 0, y: 0 });
   h.controller.up(1);
@@ -59,7 +59,7 @@ test("second pointerdown within 280ms commits double tap even after its release 
   assert.equal(h.state().singles, 0);
   h.controller.dispose();
 });
-test("pointercancel restores a swipe without committing navigation", () => {
+test('pointercancel restores a swipe without committing navigation', () => {
   const h = harness();
   h.controller.down(1, { x: 140, y: 0 });
   h.clock(80);
@@ -69,7 +69,7 @@ test("pointercancel restores a swipe without committing navigation", () => {
   assert.equal(h.state().offset, 0);
   h.controller.dispose();
 });
-test("pinch centroid anchors zoom and canceled pointer hands off to pan", () => {
+test('pinch centroid anchors zoom and canceled pointer hands off to pan', () => {
   const h = harness();
   h.controller.down(1, { x: -50, y: 0 });
   h.controller.down(2, { x: 50, y: 0 });
@@ -82,7 +82,7 @@ test("pinch centroid anchors zoom and canceled pointer hands off to pan", () => 
   h.controller.up(1);
   h.controller.dispose();
 });
-test("a long pause after a short flick does not reuse stale velocity", () => {
+test('a long pause after a short flick does not reuse stale velocity', () => {
   const h = harness();
   h.controller.down(1, { x: 0, y: 0 });
   h.clock(10);
@@ -92,16 +92,16 @@ test("a long pause after a short flick does not reuse stale velocity", () => {
   assert.equal(h.state().swipes, 0);
   h.controller.dispose();
 });
-test("zoom anchoring and normalized comment coordinates preserve the selected point", () => {
+test('zoom anchoring and normalized comment coordinates preserve the selected point', () => {
   const before = { scale: 1, x: 0, y: 0 };
   const location = { x: 70, y: 25 };
   const image = { width: 400, height: 300 };
   assert.deepEqual(
     photoPoint(location, zoomAt(before, location, 2), image),
-    photoPoint(location, before, image),
+    photoPoint(location, before, image)
   );
   assert.deepEqual(
     clampTransform({ scale: 0.85, x: 50, y: 80 }, image, image),
-    FIT,
+    FIT
   );
 });

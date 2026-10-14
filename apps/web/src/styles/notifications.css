@@ -231,10 +231,10 @@
   box-shadow: 0 1px 2px #0002;
   transition: transform 140ms ease-out;
 }
-.notification-switch[data-checked="true"] {
+.notification-switch[data-checked='true'] {
   background: #1f4e9c;
 }
-.notification-switch[data-checked="true"] > span {
+.notification-switch[data-checked='true'] > span {
   transform: translateX(18px);
 }
 .notification-device-row {

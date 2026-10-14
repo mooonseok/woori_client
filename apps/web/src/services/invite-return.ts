@@ -1,8 +1,8 @@
-import { safeReturnTo } from "@/utils/auth-navigation";
-const KEY = "woori.invite-return";
+import { safeReturnTo } from '@/utils/auth-navigation';
+const KEY = 'woori.invite-return';
 export function rememberInvite(next: string) {
   const safe = safeReturnTo(next);
-  if (safe.startsWith("/invite")) {
+  if (safe.startsWith('/invite')) {
     try {
       sessionStorage.setItem(KEY, safe);
     } catch {
@@ -14,7 +14,7 @@ export function pendingInvite() {
   try {
     return safeReturnTo(sessionStorage.getItem(KEY));
   } catch {
-    return "/";
+    return '/';
   }
 }
 export function clearPendingInvite() {

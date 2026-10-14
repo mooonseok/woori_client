@@ -1,14 +1,14 @@
-"use client";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useAuth } from "@/hooks/use-auth";
-import type { Album, GalleryData, Group, Photo } from "@/dto/album.dto";
+'use client';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useAuth } from '@/hooks/use-auth';
+import type { Album, GalleryData, Group, Photo } from '@/dto/album.dto';
 import type {
   AlbumResponse,
   PendingUpload,
   PhotoResponse,
-} from "@/dto/media.dto";
-import { apiRequest, post } from "@/services/api-client";
-import * as media from "@/services/media-client";
+} from '@/dto/media.dto';
+import { apiRequest, post } from '@/services/api-client';
+import * as media from '@/services/media-client';
 const EMPTY: GalleryData = {
   groups: [],
   albums: [],
@@ -19,20 +19,20 @@ const EMPTY: GalleryData = {
 const albumModel = (a: AlbumResponse): Album => ({
   ...a,
   date: a.createdAt.slice(0, 10),
-  coverId: a.coverPhotoId || "",
+  coverId: a.coverPhotoId || '',
 });
 export function useLiveGalleryState() {
   const { user } = useAuth();
   const [data, setData] = useState<GalleryData>(EMPTY);
-  const [groupId, selectGroup] = useState("");
+  const [groupId, selectGroup] = useState('');
   const [loading, setLoading] = useState(true),
-    [error, setError] = useState(""),
-    [toast, setToast] = useState("");
+    [error, setError] = useState(''),
+    [toast, setToast] = useState('');
   const [viewer, setViewer] = useState<{ photos: Photo[]; id: string } | null>(
-    null,
+    null
   );
   const [photoLoading, setPhotoLoading] = useState(false),
-    [photoError, setPhotoError] = useState("");
+    [photoError, setPhotoError] = useState('');
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [failedFiles, setFailedFiles] = useState<File[]>([]);
   const scope = useRef(new AbortController()),
@@ -40,7 +40,7 @@ export function useLiveGalleryState() {
     request = useRef(0);
   const albumRequest = useRef(0);
   const photoRequest = useRef(0),
-    loadedAlbum = useRef("");
+    loadedAlbum = useRef('');
   const dataRef = useRef(data);
   useEffect(() => {
     dataRef.current = data;
@@ -53,7 +53,7 @@ export function useLiveGalleryState() {
     urls.current.forEach(URL.revokeObjectURL);
     urls.current.clear();
     pending.current.clear();
-    loadedAlbum.current = "";
+    loadedAlbum.current = '';
     photoRequest.current++;
     albumRequest.current++;
   }, []);
@@ -66,18 +66,18 @@ export function useLiveGalleryState() {
       return;
     }
     setLoading(true);
-    setError("");
+    setError('');
     try {
-      const { groups } = await apiRequest<{ groups: Group[] }>("/v1/groups");
+      const { groups } = await apiRequest<{ groups: Group[] }>('/v1/groups');
       if (current !== request.current) return;
       setData((d) => ({ ...d, groups }));
       selectGroup((id) =>
-        groups.some((g) => g.id === id) ? id : groups[0]?.id || "",
+        groups.some((g) => g.id === id) ? id : groups[0]?.id || ''
       );
     } catch (e) {
       if (current === request.current) {
         setData(EMPTY);
-        setError(e instanceof Error ? e.message : "그룹을 불러오지 못했어요.");
+        setError(e instanceof Error ? e.message : '그룹을 불러오지 못했어요.');
       }
     } finally {
       if (current === request.current) setLoading(false);
@@ -113,7 +113,7 @@ export function useLiveGalleryState() {
           album.id,
           album.coverPhotoId,
           signal,
-          "thumbnail",
+          'thumbnail'
         );
         if (signal.aborted || current !== albumRequest.current) return;
         const bitmap = await createImageBitmap(blob);
@@ -135,13 +135,13 @@ export function useLiveGalleryState() {
           height: bitmap.height,
           alt: album.title,
           capturedAt: album.createdAt.slice(0, 10),
-          authorId: "",
+          authorId: '',
         };
         bitmap.close();
         setData((d) =>
           d.photos.some((p) => p.id === photo.id)
             ? d
-            : { ...d, photos: [...d.photos, photo] },
+            : { ...d, photos: [...d.photos, photo] }
         );
       } catch {
         if (signal.aborted)
@@ -158,17 +158,17 @@ export function useLiveGalleryState() {
       setData((d) => ({ ...EMPTY, groups: d.groups }));
       setViewer(null);
       setNextCursor(null);
-      setPhotoError("");
+      setPhotoError('');
       setPhotoLoading(false);
       setFailedFiles([]);
       if (!groupId) return;
       setLoading(true);
-      setError("");
+      setError('');
       void fetchAlbums(groupId, controller.signal)
         .catch((e) => {
           if (!controller.signal.aborted)
             setError(
-              e instanceof Error ? e.message : "앨범을 불러오지 못했어요.",
+              e instanceof Error ? e.message : '앨범을 불러오지 못했어요.'
             );
         })
         .finally(() => {
@@ -179,7 +179,7 @@ export function useLiveGalleryState() {
   }, [groupId, dispose, fetchAlbums]);
   useEffect(() => {
     if (!toast) return;
-    const t = setTimeout(() => setToast(""), 4500);
+    const t = setTimeout(() => setToast(''), 4500);
     return () => clearTimeout(t);
   }, [toast]);
   function setGroupId(id: string) {
@@ -191,7 +191,7 @@ export function useLiveGalleryState() {
   }
   async function loadPhoto(
     p: PhotoResponse,
-    signal: AbortSignal,
+    signal: AbortSignal
   ): Promise<Photo> {
     const blob = await media.photoBlob(groupId, p.albumId, p.id, signal);
     signal.throwIfAborted();
@@ -203,9 +203,9 @@ export function useLiveGalleryState() {
       src,
       width: p.width,
       height: p.height,
-      alt: "함께 나눈 사진",
+      alt: '함께 나눈 사진',
       capturedAt: (p.capturedAt || p.createdAt).slice(0, 10),
-      authorId: "",
+      authorId: '',
       canDelete: p.canDelete,
     };
   }
@@ -213,9 +213,9 @@ export function useLiveGalleryState() {
     const signal = scope.current.signal,
       current = ++photoRequest.current;
     setPhotoLoading(true);
-    setPhotoError("");
+    setPhotoError('');
     if (loadedAlbum.current !== albumId) {
-      loadedAlbum.current = "";
+      loadedAlbum.current = '';
       setFailedFiles([]);
       pending.current.clear();
     }
@@ -230,17 +230,17 @@ export function useLiveGalleryState() {
             const photo = await loadPhoto(p, signal);
             photos.push(photo);
             return photo;
-          }),
+          })
         );
-        const failure = batch.find((result) => result.status === "rejected");
-        if (failure?.status === "rejected") throw failure.reason;
+        const failure = batch.find((result) => result.status === 'rejected');
+        if (failure?.status === 'rejected') throw failure.reason;
         if (signal.aborted || current !== photoRequest.current) return [];
       }
       if (signal.aborted || current !== photoRequest.current) return [];
       photos.sort(
         (a, b) =>
           page.photos.findIndex((p) => p.id === a.id) -
-          page.photos.findIndex((p) => p.id === b.id),
+          page.photos.findIndex((p) => p.id === b.id)
       );
       const keep = (p: Photo) =>
         !photos.some((n) => n.id === p.id) &&
@@ -260,7 +260,7 @@ export function useLiveGalleryState() {
     } catch (e) {
       if (!signal.aborted && current === photoRequest.current)
         setPhotoError(
-          e instanceof Error ? e.message : "사진을 불러오지 못했어요.",
+          e instanceof Error ? e.message : '사진을 불러오지 못했어요.'
         );
       return [];
     } finally {
@@ -276,7 +276,7 @@ export function useLiveGalleryState() {
   async function createAlbum(title: string) {
     const signal = scope.current.signal;
     if (!groupId || !title.trim() || title.trim().length > 160)
-      throw new Error("앨범 제목을 1~160자로 입력해 주세요.");
+      throw new Error('앨범 제목을 1~160자로 입력해 주세요.');
     const { album } = await media.createAlbum(groupId, title, signal);
     signal.throwIfAborted();
     setData((d) => ({ ...d, albums: [albumModel(album), ...d.albums] }));
@@ -286,7 +286,7 @@ export function useLiveGalleryState() {
     photoRequest.current++;
     albumRequest.current++;
     setPhotoLoading(false);
-    setPhotoError("");
+    setPhotoError('');
     setNextCursor(null);
     setViewer(null);
     dataRef.current.photos.filter(predicate).forEach((p) => {
@@ -304,7 +304,7 @@ export function useLiveGalleryState() {
       ...d,
       albums: d.albums.map((a) => (a.id === albumId ? albumModel(album) : a)),
     }));
-    setToast("앨범 제목을 변경했어요.");
+    setToast('앨범 제목을 변경했어요.');
   }
   async function deleteAlbum(albumId: string) {
     const signal = scope.current.signal;
@@ -313,12 +313,12 @@ export function useLiveGalleryState() {
     removeLocalPhotos((p) => p.albumId === albumId);
     pending.current.clear();
     setFailedFiles([]);
-    loadedAlbum.current = "";
+    loadedAlbum.current = '';
     setData((d) => ({
       ...d,
       albums: d.albums.filter((a) => a.id !== albumId),
     }));
-    setToast("앨범을 삭제했어요.");
+    setToast('앨범을 삭제했어요.');
   }
   async function deletePhoto(photo: Photo) {
     const signal = scope.current.signal;
@@ -332,12 +332,12 @@ export function useLiveGalleryState() {
           ? {
               ...a,
               photoCount: Math.max(0, (a.photoCount || 0) - 1),
-              coverId: a.coverId === photo.id ? "" : a.coverId,
+              coverId: a.coverId === photo.id ? '' : a.coverId,
             }
-          : a,
+          : a
       ),
     }));
-    setToast("사진을 삭제했어요.");
+    setToast('사진을 삭제했어요.');
     await loadPhotos(photo.albumId);
     if (!signal.aborted) {
       try {
@@ -345,7 +345,7 @@ export function useLiveGalleryState() {
       } catch {
         if (!signal.aborted)
           setError(
-            "사진은 삭제했지만 앨범 정보를 갱신하지 못했어요. 다시 불러와 주세요.",
+            '사진은 삭제했지만 앨범 정보를 갱신하지 못했어요. 다시 불러와 주세요.'
           );
       }
     }
@@ -356,12 +356,12 @@ export function useLiveGalleryState() {
       groupId,
       photo.albumId,
       photo.id,
-      signal,
+      signal
     );
     signal.throwIfAborted();
     const src = URL.createObjectURL(blob);
     urls.current.add(src);
-    const link = document.createElement("a");
+    const link = document.createElement('a');
     link.href = src;
     link.download = filename;
     document.body.append(link);
@@ -372,10 +372,10 @@ export function useLiveGalleryState() {
       URL.revokeObjectURL(src);
       urls.current.delete(src);
     }, 1000);
-    setToast("원본 사진 다운로드를 시작했어요.");
+    setToast('원본 사진 다운로드를 시작했어요.');
   }
   async function createGroup(name: string) {
-    const { group } = await post<{ group: Group }>("/v1/groups", {
+    const { group } = await post<{ group: Group }>('/v1/groups', {
       name: name.trim(),
     });
     await reload();
@@ -385,7 +385,7 @@ export function useLiveGalleryState() {
     if (uploadController.current)
       return {
         added: 0,
-        failures: ["사진을 저장하고 있어요. 잠시 기다려 주세요."],
+        failures: ['사진을 저장하고 있어요. 잠시 기다려 주세요.'],
       };
     const parent = scope.current.signal,
       controller = new AbortController();
@@ -394,7 +394,7 @@ export function useLiveGalleryState() {
       if (!files.includes(file)) pending.current.delete(file);
     }
     const cancel = () => controller.abort();
-    parent.addEventListener("abort", cancel, { once: true });
+    parent.addEventListener('abort', cancel, { once: true });
     const failures: string[] = [],
       failed: File[] = [];
     let added = 0;
@@ -414,7 +414,7 @@ export function useLiveGalleryState() {
             albumId,
             file,
             state,
-            controller.signal,
+            controller.signal
           );
           controller.signal.throwIfAborted();
           pending.current.delete(file);
@@ -428,7 +428,7 @@ export function useLiveGalleryState() {
                     photoCount: (a.photoCount || 0) + 1,
                     coverId: a.coverId || photo.id,
                   }
-                : a,
+                : a
             ),
           }));
         } catch (e) {
@@ -438,13 +438,13 @@ export function useLiveGalleryState() {
           }
           failed.push(file);
           failures.push(
-            `${file.name}: ${e instanceof Error ? e.message : "저장하지 못했어요."}`,
+            `${file.name}: ${e instanceof Error ? e.message : '저장하지 못했어요.'}`
           );
         }
       }
       if (files.length > 30)
         failures.push(
-          "한 번에 30장까지 올릴 수 있어요. 나머지는 다시 선택해 주세요.",
+          '한 번에 30장까지 올릴 수 있어요. 나머지는 다시 선택해 주세요.'
         );
       if (!parent.aborted && loadedAlbum.current === albumId) {
         setFailedFiles(failed);
@@ -452,11 +452,11 @@ export function useLiveGalleryState() {
       }
       if (controller.signal.aborted && !parent.aborted)
         failures.push(
-          "업로드를 중단했어요. 이미 저장된 사진은 앨범에 남아 있어요. 완료를 확인하지 못한 사진은 다시 시도할 수 있어요.",
+          '업로드를 중단했어요. 이미 저장된 사진은 앨범에 남아 있어요. 완료를 확인하지 못한 사진은 다시 시도할 수 있어요.'
         );
       return { added, failures };
     } finally {
-      parent.removeEventListener("abort", cancel);
+      parent.removeEventListener('abort', cancel);
       uploadController.current = null;
     }
   }
@@ -474,7 +474,7 @@ export function useLiveGalleryState() {
     } else
       setViewer({
         photos: dataRef.current.photos.filter(
-          (p) => p.albumId === photo.albumId,
+          (p) => p.albumId === photo.albumId
         ),
         id,
       });
@@ -495,16 +495,16 @@ export function useLiveGalleryState() {
         } catch (e) {
           if (!signal.aborted)
             setError(
-              e instanceof Error ? e.message : "앨범을 불러오지 못했어요.",
+              e instanceof Error ? e.message : '앨범을 불러오지 못했어요.'
             );
         } finally {
           if (!signal.aborted) setLoading(false);
         }
       }
     },
-    mode: "live" as const,
-    profileName: user?.displayName || "",
-    setProfileName: () => setToast("프로필 수정 기능을 준비하고 있어요."),
+    mode: 'live' as const,
+    profileName: user?.displayName || '',
+    setProfileName: () => setToast('프로필 수정 기능을 준비하고 있어요.'),
     viewer,
     openPhoto,
     closeViewer: () => {
@@ -516,8 +516,8 @@ export function useLiveGalleryState() {
         }
       });
     },
-    addComment: () => setToast("댓글 저장 기능을 준비하고 있어요."),
-    react: () => setToast("반응 저장 기능을 준비하고 있어요."),
+    addComment: () => setToast('댓글 저장 기능을 준비하고 있어요.'),
+    react: () => setToast('반응 저장 기능을 준비하고 있어요.'),
     createAlbum,
     renameAlbum,
     deleteAlbum,

@@ -1,6 +1,6 @@
-"use client";
-import { useEffect, useId, useRef, useState, type RefObject } from "react";
-import { Box, Button, Dialog, Heading, Text } from "@/components/atoms/ui";
+'use client';
+import { useEffect, useId, useRef, useState, type RefObject } from 'react';
+import { Box, Button, Dialog, Heading, Text } from '@/components/atoms/ui';
 export function ActionConfirm({
   title,
   description,
@@ -18,7 +18,7 @@ export function ActionConfirm({
     cancel = useRef<HTMLButtonElement>(null),
     locked = useRef(false);
   const [busy, setBusy] = useState(false),
-    [error, setError] = useState("");
+    [error, setError] = useState('');
   const titleId = useId(),
     bodyId = useId();
   useEffect(() => {
@@ -38,7 +38,7 @@ export function ActionConfirm({
     if (locked.current) return;
     locked.current = true;
     setBusy(true);
-    setError("");
+    setError('');
     try {
       await onConfirm();
       onClose();
@@ -46,7 +46,7 @@ export function ActionConfirm({
       setError(
         e instanceof Error
           ? e.message
-          : "삭제하지 못했어요. 다시 시도해 주세요.",
+          : '삭제하지 못했어요. 다시 시도해 주세요.'
       );
     } finally {
       locked.current = false;
@@ -56,7 +56,7 @@ export function ActionConfirm({
   return (
     <Dialog
       ref={dialog}
-      className="entry-dialog management-confirm"
+      className='entry-dialog management-confirm'
       aria-labelledby={titleId}
       aria-describedby={bodyId}
       aria-busy={busy}
@@ -70,25 +70,25 @@ export function ActionConfirm({
       <Heading id={titleId}>{title}</Heading>
       <Text id={bodyId}>{description}</Text>
       {error && (
-        <Text className="error-notice" role="alert">
+        <Text className='error-notice' role='alert'>
           {error}
         </Text>
       )}
-      <Box className="management-confirm-actions">
+      <Box className='management-confirm-actions'>
         <Button
           ref={cancel}
-          className="secondary-button"
+          className='secondary-button'
           disabled={busy}
           onClick={onClose}
         >
           취소
         </Button>
         <Button
-          className="primary danger-button"
+          className='primary danger-button'
           disabled={busy}
           onClick={() => void confirm()}
         >
-          {busy ? "삭제 중…" : error ? "삭제 다시 시도" : "삭제"}
+          {busy ? '삭제 중…' : error ? '삭제 다시 시도' : '삭제'}
         </Button>
       </Box>
     </Dialog>
