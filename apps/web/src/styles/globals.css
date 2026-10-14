@@ -1,13 +1,13 @@
-@import "./tokens.css";
-@import "./viewer.css";
-@import "./guide.css";
+@import './tokens.css';
+@import './viewer.css';
+@import './guide.css';
 * {
   box-sizing: border-box;
 }
 html {
   background: var(--paper);
   color: var(--ink);
-  font-family: Arial, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  font-family: Arial, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 body {

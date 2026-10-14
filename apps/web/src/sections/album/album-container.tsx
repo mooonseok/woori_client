@@ -1,9 +1,9 @@
-"use client";
-import { useEffect, useRef, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { useGallery } from "@/hooks/use-gallery";
-import { GalleryStatus } from "@/components/organisms/gallery-status/gallery-status";
-import { AlbumView } from "./album-view";
+'use client';
+import { useEffect, useRef, useState } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useGallery } from '@/hooks/use-gallery';
+import { GalleryStatus } from '@/components/organisms/gallery-status/gallery-status';
+import { AlbumView } from './album-view';
 export function AlbumContainer() {
   const params = useSearchParams(),
     router = useRouter(),
@@ -11,9 +11,9 @@ export function AlbumContainer() {
   const fileRef = useRef<HTMLInputElement>(null),
     [busy, setBusy] = useState(false),
     [failures, setFailures] = useState<string[]>([]);
-  const id = params.get("id"),
+  const id = params.get('id'),
     album = gallery.data.albums.find(
-      (a) => a.id === id && a.groupId === gallery.groupId,
+      (a) => a.id === id && a.groupId === gallery.groupId
     );
   const photos = gallery.data.photos.filter((p) => p.albumId === album?.id);
   const mediaRef = useRef(gallery),
@@ -46,19 +46,19 @@ export function AlbumContainer() {
       if (current !== revision.current) return;
       setFailures(result.failures);
       gallery.setToast(
-        gallery.mode === "demo"
+        gallery.mode === 'demo'
           ? `${result.added}장을 이 기기에서 미리보고 있어요. 서버에는 업로드되지 않았어요.`
-          : `${result.added}장의 사진을 저장했어요.`,
+          : `${result.added}장의 사진을 저장했어요.`
       );
     } finally {
       if (current === revision.current) {
         setBusy(false);
-        if (fileRef.current) fileRef.current.value = "";
+        if (fileRef.current) fileRef.current.value = '';
       }
     }
   }
   if (
-    gallery.mode === "live" &&
+    gallery.mode === 'live' &&
     (gallery.loading || gallery.error || !gallery.groupId)
   )
     return <GalleryStatus />;
@@ -71,11 +71,11 @@ export function AlbumContainer() {
       onDelete={async () => {
         const current = revision.current;
         if (album) await gallery.deleteAlbum?.(album.id);
-        if (current === revision.current) router.replace("/albums");
+        if (current === revision.current) router.replace('/albums');
       }}
-      live={gallery.mode === "live"}
+      live={gallery.mode === 'live'}
       loading={gallery.photoLoading || false}
-      error={gallery.photoError || ""}
+      error={gallery.photoError || ''}
       hasMore={!!gallery.nextCursor}
       canRetry={!!gallery.failedFiles?.length}
       onRetryUpload={() => void add(gallery.failedFiles || [])}
@@ -93,7 +93,7 @@ export function AlbumContainer() {
       onFiles={add}
       onUpload={() => fileRef.current?.click()}
       onPhoto={gallery.openPhoto}
-      onBack={() => router.push("/albums")}
+      onBack={() => router.push('/albums')}
     />
   );
 }

@@ -15,7 +15,7 @@ export interface PhotoResponse {
   height: number;
   createdAt: string;
   capturedAt: string | null;
-  status: "READY";
+  status: 'READY';
   canDelete: boolean;
 }
 export interface UploadTicket {

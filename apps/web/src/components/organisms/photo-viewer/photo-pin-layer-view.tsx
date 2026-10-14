@@ -1,5 +1,5 @@
-import type { PhotoComment, Point } from "@/dto/album.dto";
-import { Button, Span } from "@/components/atoms/ui";
+import type { PhotoComment, Point } from '@/dto/album.dto';
+import { Button, Span } from '@/components/atoms/ui';
 interface Props {
   comments: PhotoComment[];
   selected: string | null;
@@ -22,7 +22,7 @@ export function PhotoPinLayerView({
           .map((comment, index) => (
             <Button
               key={comment.id}
-              className={`viewer-pin ${selected === comment.id ? "is-selected" : ""}`}
+              className={`viewer-pin ${selected === comment.id ? 'is-selected' : ''}`}
               style={{
                 left: `${comment.point!.x * 100}%`,
                 top: `${comment.point!.y * 100}%`,
@@ -35,9 +35,9 @@ export function PhotoPinLayerView({
           ))}
       {draft && (
         <Span
-          className="viewer-pin viewer-pin--draft"
+          className='viewer-pin viewer-pin--draft'
           style={{ left: `${draft.x * 100}%`, top: `${draft.y * 100}%` }}
-          aria-label="선택한 댓글 위치"
+          aria-label='선택한 댓글 위치'
         >
           <Span />
         </Span>

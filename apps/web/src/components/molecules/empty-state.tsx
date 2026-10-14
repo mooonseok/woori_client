@@ -1,5 +1,5 @@
-import { Box, Heading, Text, Button } from "@/components/atoms/ui";
-import { Icon } from "@/components/atoms/icon";
+import { Box, Heading, Text, Button } from '@/components/atoms/ui';
+import { Icon } from '@/components/atoms/icon';
 export function EmptyState({
   title,
   body,
@@ -12,12 +12,12 @@ export function EmptyState({
   onAction?: () => void;
 }) {
   return (
-    <Box className="empty-state">
-      <Icon name="album" size={36} />
+    <Box className='empty-state'>
+      <Icon name='album' size={36} />
       <Heading>{title}</Heading>
       <Text>{body}</Text>
       {action && (
-        <Button className="primary" onClick={onAction}>
+        <Button className='primary' onClick={onAction}>
           {action}
         </Button>
       )}

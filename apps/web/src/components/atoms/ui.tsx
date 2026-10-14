@@ -1,74 +1,74 @@
-import type { ComponentPropsWithRef } from "react";
+import type { ComponentPropsWithRef } from 'react';
 
-export function Box(props: ComponentPropsWithRef<"div">) {
+export function Box(props: ComponentPropsWithRef<'div'>) {
   return <div {...props} />;
 }
-export function Span(props: ComponentPropsWithRef<"span">) {
+export function Span(props: ComponentPropsWithRef<'span'>) {
   return <span {...props} />;
 }
-export function Section(props: ComponentPropsWithRef<"section">) {
+export function Section(props: ComponentPropsWithRef<'section'>) {
   return <section {...props} />;
 }
-export function Header(props: ComponentPropsWithRef<"header">) {
+export function Header(props: ComponentPropsWithRef<'header'>) {
   return <header {...props} />;
 }
-export function Footer(props: ComponentPropsWithRef<"footer">) {
+export function Footer(props: ComponentPropsWithRef<'footer'>) {
   return <footer {...props} />;
 }
-export function Nav(props: ComponentPropsWithRef<"nav">) {
+export function Nav(props: ComponentPropsWithRef<'nav'>) {
   return <nav {...props} />;
 }
-export function Main(props: ComponentPropsWithRef<"main">) {
+export function Main(props: ComponentPropsWithRef<'main'>) {
   return <main {...props} />;
 }
-export function Text(props: ComponentPropsWithRef<"p">) {
+export function Text(props: ComponentPropsWithRef<'p'>) {
   return <p {...props} />;
 }
-export function Heading(props: ComponentPropsWithRef<"h2">) {
+export function Heading(props: ComponentPropsWithRef<'h2'>) {
   return <h2 {...props} />;
 }
 export function Button({
-  type = "button",
+  type = 'button',
   ...props
-}: ComponentPropsWithRef<"button">) {
+}: ComponentPropsWithRef<'button'>) {
   return <button type={type} {...props} />;
 }
-export function Input(props: ComponentPropsWithRef<"input">) {
+export function Input(props: ComponentPropsWithRef<'input'>) {
   return <input {...props} />;
 }
-export function Textarea(props: ComponentPropsWithRef<"textarea">) {
+export function Textarea(props: ComponentPropsWithRef<'textarea'>) {
   return <textarea {...props} />;
 }
-export function Select(props: ComponentPropsWithRef<"select">) {
+export function Select(props: ComponentPropsWithRef<'select'>) {
   return <select {...props} />;
 }
-export function Option(props: ComponentPropsWithRef<"option">) {
+export function Option(props: ComponentPropsWithRef<'option'>) {
   return <option {...props} />;
 }
-export function Image({ alt, ...props }: ComponentPropsWithRef<"img">) {
-  return <img alt={alt ?? ""} {...props} />;
+export function Image({ alt, ...props }: ComponentPropsWithRef<'img'>) {
+  return <img alt={alt ?? ''} {...props} />;
 }
-export function Label(props: ComponentPropsWithRef<"label">) {
+export function Label(props: ComponentPropsWithRef<'label'>) {
   return <label {...props} />;
 }
-export function Dialog(props: ComponentPropsWithRef<"dialog">) {
+export function Dialog(props: ComponentPropsWithRef<'dialog'>) {
   return <dialog {...props} />;
 }
-export function Ul(props: ComponentPropsWithRef<"ul">) {
+export function Ul(props: ComponentPropsWithRef<'ul'>) {
   return <ul {...props} />;
 }
-export function Li(props: ComponentPropsWithRef<"li">) {
+export function Li(props: ComponentPropsWithRef<'li'>) {
   return <li {...props} />;
 }
-export function Form(props: ComponentPropsWithRef<"form">) {
+export function Form(props: ComponentPropsWithRef<'form'>) {
   return <form {...props} />;
 }
-export function Anchor(props: ComponentPropsWithRef<"a">) {
+export function Anchor(props: ComponentPropsWithRef<'a'>) {
   return <a {...props} />;
 }
-export function Details(props: ComponentPropsWithRef<"details">) {
+export function Details(props: ComponentPropsWithRef<'details'>) {
   return <details {...props} />;
 }
-export function Summary(props: ComponentPropsWithRef<"summary">) {
+export function Summary(props: ComponentPropsWithRef<'summary'>) {
   return <summary {...props} />;
 }

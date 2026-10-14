@@ -1,4 +1,4 @@
-import type { Photo, PhotoComment, Point, Reaction } from "@/dto/album.dto";
+import type { Photo, PhotoComment, Point, Reaction } from '@/dto/album.dto';
 export interface PhotoViewerProps {
   interactionsEnabled?: boolean;
   onDownloadOriginal?: (photo: Photo) => Promise<void>;
@@ -12,6 +12,6 @@ export interface PhotoViewerProps {
   onClose: () => void;
 }
 export interface GuideProps {
-  kind: "view" | "pin";
+  kind: 'view' | 'pin';
   onClose: () => void;
 }

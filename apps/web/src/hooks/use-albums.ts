@@ -1,11 +1,11 @@
-"use client";
-import { useRef, useState } from "react";
-import type { AlbumSearch } from "@/dto/album-search.dto";
+'use client';
+import { useRef, useState } from 'react';
+import type { AlbumSearch } from '@/dto/album-search.dto';
 export function useAlbumSearch(): AlbumSearch {
   const [searchOpen, setSearchOpen] = useState(false),
-    [query, setQuery] = useState(""),
-    [draft, setDraft] = useState(""),
-    [sort, setSort] = useState("recent"),
+    [query, setQuery] = useState(''),
+    [draft, setDraft] = useState(''),
+    [sort, setSort] = useState('recent'),
     [creating, setCreating] = useState(false);
   const input = useRef<HTMLInputElement>(null),
     trigger = useRef<HTMLButtonElement>(null),
@@ -16,8 +16,8 @@ export function useAlbumSearch(): AlbumSearch {
   }
   function closeSearch() {
     setSearchOpen(false);
-    setQuery("");
-    setDraft("");
+    setQuery('');
+    setDraft('');
     requestAnimationFrame(() => trigger.current?.focus());
   }
   return {

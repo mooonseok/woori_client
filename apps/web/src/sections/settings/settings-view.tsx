@@ -10,11 +10,11 @@ import {
   Select,
   Span,
   Text,
-} from "../../components/atoms/ui";
-import { Icon } from "../../components/atoms/icon";
-import { NotificationSwitchView } from "../../components/molecules/notification-switch-view";
-import type { NotificationGroupMode } from "../../dto/notification.dto";
-import type { NotificationSettingsViewProps } from "../../dto/notification-settings-view.dto";
+} from '../../components/atoms/ui';
+import { Icon } from '../../components/atoms/icon';
+import { NotificationSwitchView } from '../../components/molecules/notification-switch-view';
+import type { NotificationGroupMode } from '../../dto/notification.dto';
+import type { NotificationSettingsViewProps } from '../../dto/notification-settings-view.dto';
 
 export function SettingsView(props: NotificationSettingsViewProps) {
   const {
@@ -36,51 +36,51 @@ export function SettingsView(props: NotificationSettingsViewProps) {
   } = props;
   return (
     <Section
-      className="notification-screen notification-settings"
-      aria-labelledby="notification-settings-title"
+      className='notification-screen notification-settings'
+      aria-labelledby='notification-settings-title'
     >
-      <Header className="notification-header">
+      <Header className='notification-header'>
         <Button
-          className="notification-icon-button"
+          className='notification-icon-button'
           onClick={onBack}
-          aria-label="뒤로 가기"
+          aria-label='뒤로 가기'
         >
-          <Icon name="back" />
+          <Icon name='back' />
         </Button>
-        <Heading id="notification-settings-title">알림 설정</Heading>
-        <Span className="notification-save-state" role="status">
+        <Heading id='notification-settings-title'>알림 설정</Heading>
+        <Span className='notification-save-state' role='status'>
           {!ready
-            ? "불러오는 중"
-            : status === "saving"
-              ? "저장 중…"
-              : status === "saved"
-                ? "저장됨"
-                : ""}
+            ? '불러오는 중'
+            : status === 'saving'
+              ? '저장 중…'
+              : status === 'saved'
+                ? '저장됨'
+                : ''}
         </Span>
       </Header>
-      <Text className="notification-demo-note">
+      <Text className='notification-demo-note'>
         설정은 이 브라우저에 저장돼요. 서버와 기기 푸시 연결은 준비 중이에요.
       </Text>
-      {status === "error" && (
-        <Box className="notification-error" role="alert">
+      {status === 'error' && (
+        <Box className='notification-error' role='alert'>
           <Text>설정을 저장하지 못해 마지막 저장 상태로 되돌렸어요.</Text>
           <Button onClick={onRetry}>다시 시도</Button>
         </Box>
       )}
       <Section
-        className="notification-setting-section"
-        aria-labelledby="notification-device"
+        className='notification-setting-section'
+        aria-labelledby='notification-device'
       >
-        <Heading id="notification-device">이 기기 알림</Heading>
-        <Box className="notification-device-row">
+        <Heading id='notification-device'>이 기기 알림</Heading>
+        <Box className='notification-device-row'>
           <Box>
             <Text>기기 푸시 연결 전</Text>
-            <Text className="notification-description">
+            <Text className='notification-description'>
               아직 브라우저나 휴대폰에 알림을 보내지 않아요.
             </Text>
           </Box>
           <Button
-            className="notification-outline-button"
+            className='notification-outline-button'
             onClick={onPermissionHelp}
             aria-expanded={permissionHelp}
           >
@@ -88,7 +88,7 @@ export function SettingsView(props: NotificationSettingsViewProps) {
           </Button>
         </Box>
         {permissionHelp && (
-          <Text className="notification-help">
+          <Text className='notification-help'>
             앱은 iOS·Android 알림 권한과, 웹은 브라우저 알림 기능을 연결한 후
             사용할 수 있어요. iPhone 웹은 홈 화면에 추가한 웹앱에서 설정하게
             돼요. 지금은 권한을 요청하지 않아요.
@@ -96,84 +96,84 @@ export function SettingsView(props: NotificationSettingsViewProps) {
         )}
       </Section>
       <Section
-        className="notification-setting-section"
-        aria-labelledby="notification-types"
+        className='notification-setting-section'
+        aria-labelledby='notification-types'
       >
-        <Heading id="notification-types">받을 소식</Heading>
+        <Heading id='notification-types'>받을 소식</Heading>
         {rows.map((row) => (
           <NotificationSwitchView
             key={row.key}
             row={row}
             checked={prefs[row.key]}
-            disabled={!ready || (row.key !== "master" && !prefs.master)}
+            disabled={!ready || (row.key !== 'master' && !prefs.master)}
             onChange={() => onToggle(row.key)}
           />
         ))}
       </Section>
       <Section
-        className="notification-setting-section"
-        aria-labelledby="notification-groups"
+        className='notification-setting-section'
+        aria-labelledby='notification-groups'
       >
-        <Heading id="notification-groups">그룹별 알림</Heading>
-        <Text className="notification-description">
+        <Heading id='notification-groups'>그룹별 알림</Heading>
+        <Text className='notification-description'>
           계정에서 끈 알림은 그룹 설정으로 다시 켜지지 않아요.
         </Text>
         {groups.map((group) => (
-          <Label className="notification-group-setting" key={group.id}>
+          <Label className='notification-group-setting' key={group.id}>
             <Span>{group.name}</Span>
             <Select
               aria-label={`${group.name} 알림`}
-              value={prefs.groups[group.id] ?? "default"}
+              value={prefs.groups[group.id] ?? 'default'}
               disabled={!ready}
               onChange={(event) =>
                 onGroup(group.id, event.target.value as NotificationGroupMode)
               }
             >
-              <Option value="default">기본 설정 따르기</Option>
-              <Option value="mine">댓글·반응만</Option>
-              <Option value="off">끄기</Option>
+              <Option value='default'>기본 설정 따르기</Option>
+              <Option value='mine'>댓글·반응만</Option>
+              <Option value='off'>끄기</Option>
             </Select>
           </Label>
         ))}
       </Section>
       <Section
-        className="notification-setting-section"
-        aria-labelledby="notification-quiet"
+        className='notification-setting-section'
+        aria-labelledby='notification-quiet'
       >
-        <Heading id="notification-quiet">방해금지 시간</Heading>
+        <Heading id='notification-quiet'>방해금지 시간</Heading>
         <NotificationSwitchView
           row={quietRow}
           checked={prefs.quiet}
           disabled={!ready}
-          onChange={() => onToggle("quiet")}
+          onChange={() => onToggle('quiet')}
         />
         {prefs.quiet && (
           <>
-            <Box className="notification-time-row">
+            <Box className='notification-time-row'>
               <Label>
                 시작
                 <Input
-                  type="time"
+                  type='time'
                   value={prefs.quietStart}
                   aria-describedby={
-                    error ? "notification-time-error" : undefined
+                    error ? 'notification-time-error' : undefined
                   }
-                  onChange={(event) => onTime("quietStart", event.target.value)}
+                  onChange={(event) => onTime('quietStart', event.target.value)}
                 />
               </Label>
               <Label>
                 끝
                 <Input
-                  type="time"
+                  type='time'
                   value={prefs.quietEnd}
                   aria-describedby={
-                    error ? "notification-time-error" : undefined
+                    error ? 'notification-time-error' : undefined
                   }
-                  onChange={(event) => onTime("quietEnd", event.target.value)}
+                  onChange={(event) => onTime('quietEnd', event.target.value)}
                 />
               </Label>
             </Box>
-            <Text className="notification-description">
+            <Text className='notification-description'>
               설정한 시간에는 푸시를 쉬어요. 알림함에서는 소식을 확인할 수
               있어요.
             </Text>
@@ -181,40 +181,40 @@ export function SettingsView(props: NotificationSettingsViewProps) {
         )}
         {error && (
           <Text
-            id="notification-time-error"
-            className="notification-field-error"
-            role="alert"
+            id='notification-time-error'
+            className='notification-field-error'
+            role='alert'
           >
             {error}
           </Text>
         )}
       </Section>
       <Section
-        className="notification-setting-section"
-        aria-labelledby="notification-preview"
+        className='notification-setting-section'
+        aria-labelledby='notification-preview'
       >
-        <Heading id="notification-preview">알림 내용 미리 보기</Heading>
+        <Heading id='notification-preview'>알림 내용 미리 보기</Heading>
         <NotificationSwitchView
           row={previewRow}
           checked={prefs.preview}
           disabled={!ready}
-          onChange={() => onToggle("preview")}
+          onChange={() => onToggle('preview')}
         />
-        <Box className="notification-lock-preview" aria-label="잠금 화면 예시">
-          <Span className="notification-app-mark" aria-hidden="true">
+        <Box className='notification-lock-preview' aria-label='잠금 화면 예시'>
+          <Span className='notification-app-mark' aria-hidden='true'>
             우리
           </Span>
           <Box>
             <Text>우리</Text>
             <Text>
               {prefs.preview
-                ? "하은님이 새 사진을 올렸어요"
-                : "새로운 소식이 있어요"}
+                ? '하은님이 새 사진을 올렸어요'
+                : '새로운 소식이 있어요'}
             </Text>
           </Box>
         </Box>
       </Section>
-      <Text className="notification-help">
+      <Text className='notification-help'>
         푸시를 꺼도 앱 안 알림함의 소식은 그대로 남아요.
       </Text>
     </Section>

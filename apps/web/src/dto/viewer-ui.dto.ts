@@ -4,8 +4,8 @@ import type {
   PointerEvent,
   RefObject,
   SetStateAction,
-} from "react";
-import type { Photo, Point } from "./album.dto";
+} from 'react';
+import type { Photo, Point } from './album.dto';
 type Setter<T> = Dispatch<SetStateAction<T>>;
 export interface PhotoViewerModel {
   photo: Photo;
@@ -17,7 +17,7 @@ export interface PhotoViewerModel {
   setMore: Setter<boolean>;
   reacting: boolean;
   setReacting: Setter<boolean>;
-  mode: "browse" | "place" | "write";
+  mode: 'browse' | 'place' | 'write';
   point: Point | undefined;
   pinText: string;
   setPinText: Setter<string>;
@@ -28,11 +28,11 @@ export interface PhotoViewerModel {
   setSelectedPin: Setter<string | null>;
   pins: boolean;
   setPins: Setter<boolean>;
-  confirm: "close" | "pin" | null;
-  setConfirm: Setter<"close" | "pin" | null>;
-  guide: "view" | "pin" | null;
+  confirm: 'close' | 'pin' | null;
+  setConfirm: Setter<'close' | 'pin' | null>;
+  guide: 'view' | 'pin' | null;
   finishGuide(): void;
-  openGuide(kind: "view" | "pin"): void;
+  openGuide(kind: 'view' | 'pin'): void;
   startPin(): void;
   cancelPin(): void;
   requestClose(): void;

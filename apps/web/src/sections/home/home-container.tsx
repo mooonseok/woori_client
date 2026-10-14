@@ -1,13 +1,13 @@
-"use client";
-import { useRouter } from "next/navigation";
-import { GalleryStatus } from "@/components/organisms/gallery-status/gallery-status";
-import { useGallery } from "@/hooks/use-gallery";
-import { photosFor } from "@/lib/gallery";
-import { HomeView } from "./home-view";
+'use client';
+import { useRouter } from 'next/navigation';
+import { GalleryStatus } from '@/components/organisms/gallery-status/gallery-status';
+import { useGallery } from '@/hooks/use-gallery';
+import { photosFor } from '@/lib/gallery';
+import { HomeView } from './home-view';
 export function HomeContainer() {
   const { data, groupId, openPhoto, mode, loading, error } = useGallery();
   const router = useRouter();
-  if (mode === "live" && (loading || error || !groupId))
+  if (mode === 'live' && (loading || error || !groupId))
     return <GalleryStatus />;
   const albums = data.albums
     .filter((a) => a.groupId === groupId)
@@ -15,7 +15,7 @@ export function HomeContainer() {
   const hero = data.photos.find((p) => p.id === albums[0]?.coverId);
   return (
     <HomeView
-      demo={mode === "demo"}
+      demo={mode === 'demo'}
       albums={albums}
       photos={data.photos}
       hero={hero}
@@ -26,7 +26,7 @@ export function HomeContainer() {
       }
       onPhoto={openPhoto}
       onAlbum={(id) => router.push(`/album?id=${encodeURIComponent(id)}`)}
-      onAlbums={() => router.push("/albums")}
+      onAlbums={() => router.push('/albums')}
     />
   );
 }

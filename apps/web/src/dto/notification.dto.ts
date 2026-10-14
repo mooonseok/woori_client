@@ -1,5 +1,5 @@
-export type NotificationType = "photos" | "comment" | "reaction";
-export type NotificationGroupMode = "default" | "mine" | "off";
+export type NotificationType = 'photos' | 'comment' | 'reaction';
+export type NotificationGroupMode = 'default' | 'mine' | 'off';
 export interface NotificationItem {
   id: string;
   type: NotificationType;
@@ -22,9 +22,9 @@ export interface NotificationPreferences {
   preview: boolean;
   groups: Record<string, NotificationGroupMode>;
 }
-export type NotificationSaveStatus = "idle" | "saving" | "saved" | "error";
+export type NotificationSaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 export interface NotificationSettingRow {
-  key: "master" | "photos" | "comments" | "reactions" | "quiet" | "preview";
+  key: 'master' | 'photos' | 'comments' | 'reactions' | 'quiet' | 'preview';
   label: string;
   description: string;
 }

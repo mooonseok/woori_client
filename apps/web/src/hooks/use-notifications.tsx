@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   createContext,
@@ -8,20 +8,20 @@ import {
   useMemo,
   useRef,
   useState,
-} from "react";
-import type { ReactNode } from "react";
+} from 'react';
+import type { ReactNode } from 'react';
 import type {
   NotificationItem,
   NotificationType,
-} from "../dto/notification.dto";
-import { DEMO_MODE } from "@/constants/app-mode";
-import { createNotificationFixtures } from "../content/notification-content";
+} from '../dto/notification.dto';
+import { DEMO_MODE } from '@/constants/app-mode';
+import { createNotificationFixtures } from '../content/notification-content';
 import {
   insertNotification,
   notificationDecision,
   notificationKstTime,
-} from "../utils/notification-policy";
-import { useNotificationPreferences } from "./use-notification-preferences";
+} from '../utils/notification-policy';
+import { useNotificationPreferences } from './use-notification-preferences';
 
 type PreferencesApi = ReturnType<typeof useNotificationPreferences>;
 interface NotificationsApi extends PreferencesApi {
@@ -38,7 +38,7 @@ const NotificationContext = createContext<NotificationsApi | null>(null);
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [now, setNow] = useState(0);
-  const [latestDecision, setLatestDecision] = useState("");
+  const [latestDecision, setLatestDecision] = useState('');
   const counter = useRef(0);
   const settings = useNotificationPreferences();
   const settingsRef = useRef(settings.savedPreferences);
@@ -68,7 +68,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         id: `incoming-${timestamp}-${++counter.current}`,
         type,
         photoId,
-        groupId: "g1",
+        groupId: 'g1',
         title,
         timestamp,
         createdAt: timestamp,
@@ -81,27 +81,25 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         type,
         settingsRef.current,
         item.groupId,
-        notificationKstTime(new Date(timestamp)),
+        notificationKstTime(new Date(timestamp))
       );
       setLatestDecision(
-        `${decision.reason} 기기 푸시는 아직 연결하지 않았어요.`,
+        `${decision.reason} 기기 푸시는 아직 연결하지 않았어요.`
       );
     },
-    [],
+    []
   );
   const markRead = useCallback(
     (id: string) =>
       setItems((current) =>
-        current.map((item) =>
-          item.id === id ? { ...item, read: true } : item,
-        ),
+        current.map((item) => (item.id === id ? { ...item, read: true } : item))
       ),
-    [],
+    []
   );
   const markAllRead = useCallback(
     () =>
       setItems((current) => current.map((item) => ({ ...item, read: true }))),
-    [],
+    []
   );
   const value = useMemo(
     () => ({
@@ -114,7 +112,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       markRead,
       markAllRead,
     }),
-    [settings, items, now, latestDecision, notify, markRead, markAllRead],
+    [settings, items, now, latestDecision, notify, markRead, markAllRead]
   );
   return (
     <NotificationContext.Provider value={value}>
@@ -125,6 +123,6 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 export function useNotifications(): NotificationsApi {
   const value = useContext(NotificationContext);
   if (!value)
-    throw new Error("NotificationProvider 안에서 알림 기능을 사용해 주세요.");
+    throw new Error('NotificationProvider 안에서 알림 기능을 사용해 주세요.');
   return value;
 }

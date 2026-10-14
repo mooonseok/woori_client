@@ -1,17 +1,17 @@
-"use client";
-import { useRouter } from "next/navigation";
-import { GalleryStatus } from "@/components/organisms/gallery-status/gallery-status";
-import { useGallery } from "@/hooks/use-gallery";
-import { useAlbumSearch } from "@/hooks/use-albums";
-import { listAlbums } from "@/lib/gallery";
-import { EntryDialog } from "@/components/organisms/entry-dialog/entry-dialog";
-import { AlbumsView } from "./albums-view";
+'use client';
+import { useRouter } from 'next/navigation';
+import { GalleryStatus } from '@/components/organisms/gallery-status/gallery-status';
+import { useGallery } from '@/hooks/use-gallery';
+import { useAlbumSearch } from '@/hooks/use-albums';
+import { listAlbums } from '@/lib/gallery';
+import { EntryDialog } from '@/components/organisms/entry-dialog/entry-dialog';
+import { AlbumsView } from './albums-view';
 export function AlbumsContainer() {
   const gallery = useGallery(),
     search = useAlbumSearch(),
     router = useRouter();
   if (
-    gallery.mode === "live" &&
+    gallery.mode === 'live' &&
     (gallery.loading || gallery.error || !gallery.groupId)
   )
     return <GalleryStatus />;
@@ -19,7 +19,7 @@ export function AlbumsContainer() {
     gallery.data,
     gallery.groupId,
     search.query,
-    search.sort,
+    search.sort
   );
   return (
     <>
@@ -31,13 +31,13 @@ export function AlbumsContainer() {
       />
       {search.creating && (
         <EntryDialog
-          title="앨범 만들기"
+          title='앨범 만들기'
           maxLength={160}
-          label="앨범 제목"
+          label='앨범 제목'
           onClose={() => search.setCreating(false)}
           note={
-            gallery.mode === "live"
-              ? "그룹 구성원과 함께 보는 앨범이에요."
+            gallery.mode === 'live'
+              ? '그룹 구성원과 함께 보는 앨범이에요.'
               : undefined
           }
           onSubmit={async (title) => {

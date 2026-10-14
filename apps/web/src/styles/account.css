@@ -144,7 +144,7 @@
   border-bottom: 1px solid var(--line);
   text-align: left;
 }
-.group-list-row[aria-pressed="true"] {
+.group-list-row[aria-pressed='true'] {
   color: var(--accent);
   font-weight: 650;
 }

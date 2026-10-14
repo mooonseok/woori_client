@@ -1,7 +1,7 @@
 ---
 paths:
-  - "apps/**/src/**"
-  - "apps/**/.env*"
+  - 'apps/**/src/**'
+  - 'apps/**/.env*'
 ---
 
 HttpOnly 세션 쿠키를 사용하고 요청에 필요한 credentials를 포함한다.

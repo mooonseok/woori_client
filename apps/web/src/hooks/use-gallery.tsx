@@ -1,20 +1,20 @@
-"use client";
-import { createContext, useContext, type ReactNode } from "react";
-import { DEMO_MODE } from "@/constants/app-mode";
-import { useAuth } from "@/hooks/use-auth";
-import { useDemoGalleryState } from "@/hooks/use-demo-gallery";
-import { useLiveGalleryState } from "@/hooks/use-live-gallery";
+'use client';
+import { createContext, useContext, type ReactNode } from 'react';
+import { DEMO_MODE } from '@/constants/app-mode';
+import { useAuth } from '@/hooks/use-auth';
+import { useDemoGalleryState } from '@/hooks/use-demo-gallery';
+import { useLiveGalleryState } from '@/hooks/use-live-gallery';
 type GalleryStore = Omit<
   ReturnType<typeof useDemoGalleryState>,
-  "mode" | "createAlbum" | "setGroupId"
+  'mode' | 'createAlbum' | 'setGroupId'
 > & {
-  mode: "demo" | "live";
+  mode: 'demo' | 'live';
   setGroupId: (id: string) => void;
   createAlbum: (title: string) => string | null | Promise<string>;
   loadPhotos?: (
     albumId: string,
-    cursor?: string | null,
-  ) => Promise<import("@/dto/album.dto").Photo[]>;
+    cursor?: string | null
+  ) => Promise<import('@/dto/album.dto').Photo[]>;
   photoLoading?: boolean;
   photoError?: string;
   nextCursor?: string | null;
@@ -22,8 +22,8 @@ type GalleryStore = Omit<
   cancelUploads?: () => void;
   renameAlbum?: (albumId: string, title: string) => Promise<void>;
   deleteAlbum?: (albumId: string) => Promise<void>;
-  deletePhoto?: (photo: import("@/dto/album.dto").Photo) => Promise<void>;
-  downloadOriginal?: (photo: import("@/dto/album.dto").Photo) => Promise<void>;
+  deletePhoto?: (photo: import('@/dto/album.dto').Photo) => Promise<void>;
+  downloadOriginal?: (photo: import('@/dto/album.dto').Photo) => Promise<void>;
 };
 const GalleryContext = createContext<GalleryStore | null>(null);
 function DemoProvider({ children }: { children: ReactNode }) {
@@ -43,11 +43,11 @@ export function GalleryProvider({ children }: { children: ReactNode }) {
   return DEMO_MODE ? (
     <DemoProvider>{children}</DemoProvider>
   ) : (
-    <LiveProvider key={user?.id || "anonymous"}>{children}</LiveProvider>
+    <LiveProvider key={user?.id || 'anonymous'}>{children}</LiveProvider>
   );
 }
 export function useGallery() {
   const ctx = useContext(GalleryContext);
-  if (!ctx) throw new Error("GalleryProvider required");
+  if (!ctx) throw new Error('GalleryProvider required');
   return ctx;
 }

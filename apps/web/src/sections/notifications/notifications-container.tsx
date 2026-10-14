@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { useEffect, useRef, useState } from "react";
-import { useNotifications } from "../../hooks/use-notifications";
+import { useEffect, useRef, useState } from 'react';
+import { useNotifications } from '../../hooks/use-notifications';
 import {
   notificationDateLabel,
   notificationRelativeTime,
-} from "../../utils/notification-policy";
-import { NotificationsView } from "./notifications-view";
-import type { NotificationRowViewModel } from "./notifications-view";
-import "../../styles/notifications.css";
+} from '../../utils/notification-policy';
+import { NotificationsView } from './notifications-view';
+import type { NotificationRowViewModel } from './notifications-view';
+import '../../styles/notifications.css';
 
 interface Props {
   onOpenPhoto: (id: string) => void;
@@ -22,7 +22,7 @@ export function NotificationsContainer({
 }: Props) {
   const { items, unreadCount, markRead, markAllRead, now } = useNotifications();
   const [shownIds, setShownIds] = useState<string[]>(() =>
-    items.map((item) => item.id),
+    items.map((item) => item.id)
   );
   const initialized = useRef(items.length > 0);
   useEffect(() => {
@@ -31,7 +31,7 @@ export function NotificationsContainer({
     queueMicrotask(() => setShownIds(items.map((item) => item.id)));
   }, [items, now]);
   const pendingCount = items.filter(
-    (item) => !shownIds.includes(item.id),
+    (item) => !shownIds.includes(item.id)
   ).length;
   const groups: { label: string; rows: NotificationRowViewModel[] }[] = [];
   for (const id of shownIds) {
@@ -47,7 +47,7 @@ export function NotificationsContainer({
       id: item.id,
       title: item.title,
       image: `/photos/${item.photoId}.jpg`,
-      group: "윤슬네 가족",
+      group: '윤슬네 가족',
       when: notificationRelativeTime(item.timestamp, now),
       read: item.read,
       count: item.count,
