@@ -1,3 +1,4 @@
+import type { PushDeviceView } from './web-push.dto';
 import type {
   NotificationGroupMode,
   NotificationPreferences,
@@ -6,6 +7,7 @@ import type {
 } from './notification.dto';
 
 export interface NotificationSettingsViewProps {
+  devicePush: PushDeviceView;
   preferences: NotificationPreferences;
   status: NotificationSaveStatus;
   ready: boolean;

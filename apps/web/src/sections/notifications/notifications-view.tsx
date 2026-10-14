@@ -74,8 +74,8 @@ export function NotificationsView({
       </Header>
       <Text className='notification-demo-note'>
         {live
-          ? '가족의 사진과 이야기를 확인해 보세요. 기기 푸시 발송은 준비 중이에요.'
-          : '지금은 예시 소식이에요. 실제 계정의 푸시 연결은 준비 중이에요.'}
+          ? '가족의 사진과 이야기를 확인해 보세요. 기기 알림은 알림 설정에서 켤 수 있어요.'
+          : '지금은 예시 소식이에요. 데모에서는 기기 알림을 보내지 않아요.'}
       </Text>
       {live && (
         <Box className='notification-list-tools'>

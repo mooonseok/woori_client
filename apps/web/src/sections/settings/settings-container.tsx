@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useWebPush } from '@/hooks/use-web-push';
 import { useNotifications } from '../../hooks/use-notifications';
 import {
   notificationPreviewRow,
@@ -33,6 +34,7 @@ export function SettingsContainer({ onBack, groups = [] }: Props) {
     reloadSettings,
     discardChanges,
   } = useNotifications();
+  const devicePush = useWebPush(!!live);
   useEffect(() => {
     void reloadSettings?.();
   }, [reloadSettings]);
@@ -57,6 +59,7 @@ export function SettingsContainer({ onBack, groups = [] }: Props) {
     change({ groups: { ...preferences.groups, [groupId]: mode } });
   return (
     <SettingsView
+      devicePush={devicePush}
       preferences={preferences}
       status={status}
       ready={ready && status !== 'saving' && status !== 'error'}

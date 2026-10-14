@@ -9,8 +9,17 @@ export function safeReturnTo(value: string | null | undefined): string {
   try {
     const url = new URL(value, 'https://woori.invalid');
     if (url.origin !== 'https://woori.invalid') return '/';
-    // Only the group invitation journey survives authentication.
+    // Only explicit invitation and notification targets survive authentication.
     const route = url.pathname.replace(/\/$/, '');
+    if (route === '/notifications') {
+      const id = url.searchParams.get('notificationId');
+      return id &&
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          id
+        )
+        ? `/notifications?notificationId=${id}`
+        : '/notifications';
+    }
     if (route !== '/invite' && route !== '/verify-email') return '/';
     const result = new URLSearchParams();
     const token = url.searchParams.get('token'),

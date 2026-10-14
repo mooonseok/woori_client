@@ -1,4 +1,6 @@
 'use client';
+import { useEffect, useState } from 'react';
+import { safeReturnTo, authDestination } from '@/utils/auth-navigation';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { DEMO_MODE } from '@/constants/app-mode';
@@ -8,6 +10,12 @@ import type { ReactNode } from 'react';
 export function AccountGate({ children }: { children: ReactNode }) {
   const auth = useAuth(),
     path = usePathname();
+  const [next, setNext] = useState('/');
+  useEffect(() => {
+    queueMicrotask(() =>
+      setNext(safeReturnTo(window.location.pathname + window.location.search))
+    );
+  }, [path]);
   if (
     DEMO_MODE ||
     ['/login', '/signup', '/invite', '/verify-email'].includes(
@@ -38,10 +46,16 @@ export function AccountGate({ children }: { children: ReactNode }) {
         <Heading>우리의 순간을, 가까운 사람들과.</Heading>
         <Text>초대받은 가족과 친구만 볼 수 있는 사진 공간.</Text>
         <Box className='inline-actions'>
-          <Link className='primary-button' href='/login'>
+          <Link
+            className='primary-button'
+            href={authDestination('/login', next)}
+          >
             로그인
           </Link>
-          <Link className='secondary-button' href='/signup'>
+          <Link
+            className='secondary-button'
+            href={authDestination('/signup', next)}
+          >
             회원가입
           </Link>
         </Box>
