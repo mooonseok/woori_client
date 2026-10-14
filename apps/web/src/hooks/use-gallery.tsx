@@ -20,6 +20,10 @@ type GalleryStore = Omit<
   nextCursor?: string | null;
   failedFiles?: File[];
   cancelUploads?: () => void;
+  renameAlbum?: (albumId: string, title: string) => Promise<void>;
+  deleteAlbum?: (albumId: string) => Promise<void>;
+  deletePhoto?: (photo: import("@/dto/album.dto").Photo) => Promise<void>;
+  downloadOriginal?: (photo: import("@/dto/album.dto").Photo) => Promise<void>;
 };
 const GalleryContext = createContext<GalleryStore | null>(null);
 function DemoProvider({ children }: { children: ReactNode }) {

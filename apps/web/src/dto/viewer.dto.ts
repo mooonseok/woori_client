@@ -1,6 +1,8 @@
 import type { Photo, PhotoComment, Point, Reaction } from "@/dto/album.dto";
 export interface PhotoViewerProps {
   interactionsEnabled?: boolean;
+  onDownloadOriginal?: (photo: Photo) => Promise<void>;
+  onDeletePhoto?: (photo: Photo) => Promise<void>;
   photos: Photo[];
   initialPhotoId: string;
   comments: PhotoComment[];

@@ -171,3 +171,102 @@ test("an already canceled upload never reserves or sends a file", async (t) => {
   );
   assert.equal(calls, 0);
 });
+
+test("album edits and media deletion send authenticated scoped mutations and accept 204", async (t) => {
+  const { renameAlbum, deleteAlbum, deletePhoto } =
+    await import("../src/services/media-client.ts");
+  const calls: { path: string; method: string }[] = [];
+  setup(t, async (input, init) => {
+    const url = new URL(String(input));
+    calls.push({ path: url.pathname, method: init?.method || "GET" });
+    assert.equal(init?.credentials, "include");
+    assert.equal(new Headers(init?.headers).get("X-Woori-Request"), "1");
+    if (init?.method === "PATCH") {
+      assert.deepEqual(JSON.parse(String(init.body)), { title: "새 제목" });
+      return Response.json({
+        album: { id: "album", title: "새 제목", canManage: true },
+      });
+    }
+    return new Response(null, { status: 204 });
+  });
+  const signal = new AbortController().signal;
+  assert.equal(
+    (await renameAlbum("g/1", "a/1", " 새 제목 ", signal)).album.title,
+    "새 제목",
+  );
+  assert.equal(await deletePhoto("g/1", "a/1", "p/1", signal), undefined);
+  assert.equal(await deleteAlbum("g/1", "a/1", signal), undefined);
+  assert.deepEqual(calls, [
+    { path: "/v1/groups/g%2F1/albums/a%2F1", method: "PATCH" },
+    { path: "/v1/groups/g%2F1/albums/a%2F1/photos/p%2F1", method: "DELETE" },
+    { path: "/v1/groups/g%2F1/albums/a%2F1", method: "DELETE" },
+  ]);
+});
+
+test("original download preserves bytes and derives safe filename from actual MIME", async (t) => {
+  const { originalPhoto } = await import("../src/services/media-client.ts");
+  const bytes = new Uint8Array([0, 1, 127, 255]);
+  setup(t, async (input, init) => {
+    assert.equal(
+      new URL(String(input)).searchParams.get("variant"),
+      "original",
+    );
+    assert.equal(init?.credentials, "include");
+    assert.equal(init?.cache, "no-store");
+    return new Response(bytes, { headers: { "Content-Type": "image/png" } });
+  });
+  const result = await originalPhoto(
+    "g",
+    "a",
+    "../unsafe/사진",
+    new AbortController().signal,
+  );
+  assert.equal(result.filename, "woori-unsafe.png");
+  assert.deepEqual(new Uint8Array(await result.blob.arrayBuffer()), bytes);
+});
+
+test("failed mutation or expired access is surfaced instead of reporting success", async (t) => {
+  const { deletePhoto, originalPhoto } =
+    await import("../src/services/media-client.ts");
+  setup(t, async () =>
+    Response.json({ message: "볼 수 없는 사진이에요." }, { status: 404 }),
+  );
+  const signal = new AbortController().signal;
+  await assert.rejects(deletePhoto("g", "a", "p", signal), /볼 수 없는/);
+  await assert.rejects(originalPhoto("g", "a", "p", signal), /볼 수 없는/);
+});
+
+test("an original arriving after scope cancellation cannot start a download", async (t) => {
+  const { originalPhoto } = await import("../src/services/media-client.ts");
+  const controller = new AbortController();
+  setup(t, async () => {
+    controller.abort();
+    return new Response("old private image", {
+      headers: { "Content-Type": "image/webp" },
+    });
+  });
+  await assert.rejects(originalPhoto("g", "a", "p", controller.signal), {
+    name: "AbortError",
+  });
+});
+
+test("original downloads use supported MIME extensions and reject unknown media", async (t) => {
+  const { originalPhoto } = await import("../src/services/media-client.ts");
+  let mime = "image/jpeg";
+  setup(
+    t,
+    async () => new Response("pixels", { headers: { "Content-Type": mime } }),
+  );
+  const signal = new AbortController().signal;
+  assert.equal(
+    (await originalPhoto("g", "a", "p", signal)).filename,
+    "woori-p.jpg",
+  );
+  mime = "image/webp";
+  assert.equal(
+    (await originalPhoto("g", "a", "p", signal)).filename,
+    "woori-p.webp",
+  );
+  mime = "text/html";
+  await assert.rejects(originalPhoto("g", "a", "p", signal), /원본 사진 형식/);
+});

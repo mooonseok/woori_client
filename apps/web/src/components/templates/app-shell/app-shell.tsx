@@ -144,6 +144,8 @@ function Shell({ children }: { children: ReactNode }) {
           onAddComment={gallery.addComment}
           onReact={gallery.react}
           onClose={gallery.closeViewer}
+          onDownloadOriginal={gallery.downloadOriginal}
+          onDeletePhoto={gallery.deletePhoto}
         />
       )}
       {gallery.toast && (

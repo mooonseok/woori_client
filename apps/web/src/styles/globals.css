@@ -835,3 +835,81 @@ svg {
     scroll-behavior: auto !important;
   }
 }
+
+.album-management {
+  flex: 0 0 auto;
+  min-width: 0;
+  position: relative;
+}
+.album-management-menu {
+  position: absolute;
+  z-index: 8;
+  right: 0;
+  top: calc(100% + 6px);
+  min-width: 150px;
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #ddd);
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: 0 6px 24px #0001;
+}
+.album-management-menu button {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 6px;
+}
+.album-management-menu button:hover {
+  background: #f3f3f3;
+}
+.danger-text {
+  color: #b3261e;
+}
+.management-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+.management-confirm .danger-button {
+  background: #b3261e;
+  color: white;
+}
+.management-confirm p {
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.viewer-menu .danger-text {
+  color: #ffb4ab;
+}
+.viewer-download-error {
+  max-width: 230px;
+  padding: 10px;
+  font-size: 0.875rem;
+}
+
+.album-heading > .album-heading-info {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.album-heading > .album-heading-actions {
+  flex: 0 0 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+.album-heading-actions .primary {
+  white-space: nowrap;
+}
+@media (max-width: 600px) {
+  .album-heading-actions .primary {
+    padding: 10px 12px;
+    font-size: 0.8125rem;
+  }
+  .album-heading > .icon-button {
+    flex-shrink: 0;
+  }
+}

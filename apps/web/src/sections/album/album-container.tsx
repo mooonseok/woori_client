@@ -65,6 +65,14 @@ export function AlbumContainer() {
   return (
     <AlbumView
       album={album}
+      onRename={async (title) => {
+        if (album) await gallery.renameAlbum?.(album.id, title);
+      }}
+      onDelete={async () => {
+        const current = revision.current;
+        if (album) await gallery.deleteAlbum?.(album.id);
+        if (current === revision.current) router.replace("/albums");
+      }}
       live={gallery.mode === "live"}
       loading={gallery.photoLoading || false}
       error={gallery.photoError || ""}

@@ -11,6 +11,7 @@ export interface Album {
   date: string;
   coverId: string;
   photoCount?: number;
+  canManage?: boolean;
   createdAt: string;
 }
 export interface Photo {
@@ -22,6 +23,7 @@ export interface Photo {
   alt: string;
   capturedAt: string;
   authorId: string;
+  canDelete?: boolean;
 }
 export interface Point {
   x: number;
