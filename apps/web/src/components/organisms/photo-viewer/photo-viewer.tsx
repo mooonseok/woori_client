@@ -75,6 +75,7 @@ function PhotoViewerContainer(props: PhotoViewerProps) {
         <ViewerToolbarView
           model={m}
           gestures={g}
+          interactionsEnabled={props.interactionsEnabled !== false}
           count={props.photos.length}
           comments={comments.length}
           reactions={reactions}

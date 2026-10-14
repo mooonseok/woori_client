@@ -1,5 +1,6 @@
 import type { Photo, PhotoComment, Point, Reaction } from "@/dto/album.dto";
 export interface PhotoViewerProps {
+  interactionsEnabled?: boolean;
   photos: Photo[];
   initialPhotoId: string;
   comments: PhotoComment[];

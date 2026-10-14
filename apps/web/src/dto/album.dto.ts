@@ -10,6 +10,7 @@ export interface Album {
   title: string;
   date: string;
   coverId: string;
+  photoCount?: number;
   createdAt: string;
 }
 export interface Photo {

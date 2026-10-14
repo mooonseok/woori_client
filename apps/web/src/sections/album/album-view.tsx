@@ -14,6 +14,15 @@ import {
 import { Icon } from "@/components/atoms/icon";
 import { EmptyState } from "@/components/molecules/empty-state";
 interface Props {
+  live: boolean;
+  loading: boolean;
+  error: string;
+  hasMore: boolean;
+  canRetry: boolean;
+  onRetryUpload: () => void;
+  onCancelUpload: () => void;
+  onReload: () => void;
+  onMore: () => void;
   album?: Album;
   photos: Photo[];
   busy: boolean;
@@ -25,6 +34,15 @@ interface Props {
   onBack: () => void;
 }
 export function AlbumView({
+  live,
+  loading,
+  error,
+  hasMore,
+  canRetry,
+  onRetryUpload,
+  onCancelUpload,
+  onReload,
+  onMore,
   album,
   photos,
   busy,
@@ -53,12 +71,13 @@ export function AlbumView({
         <Box>
           <Heading>{album.title}</Heading>
           <Text className="muted">
-            {album.date.replaceAll("-", ".")} · 사진 {photos.length}장
+            {album.date.replaceAll("-", ".")} · 사진{" "}
+            {album.photoCount ?? photos.length}장
           </Text>
         </Box>
         <Button className="primary" onClick={onUpload} disabled={busy}>
           <Icon name="upload" size={20} />
-          {busy ? "사진 읽는 중…" : "사진 추가"}
+          {busy ? (live ? "사진 저장 중…" : "사진 읽는 중…") : "사진 추가"}
         </Button>
       </Header>
       <Input
@@ -69,20 +88,44 @@ export function AlbumView({
         multiple
         accept="image/jpeg,image/png,image/webp"
         onChange={(e) => onFiles(e.target.files)}
-        aria-label="미리볼 사진 선택"
+        aria-label={live ? "업로드할 사진 선택" : "미리볼 사진 선택"}
       />
       <Text className="preview-note">
-        선택한 사진은 이 기기에서만 미리 볼 수 있어요. 실제 업로드는 서버 연결
-        후 제공됩니다.
+        {live
+          ? "JPG · PNG · WebP, 한 장당 30MB · 한 번에 30장까지 올릴 수 있어요."
+          : "선택한 사진은 이 기기에서만 미리 볼 수 있어요. 실제 업로드는 서버 연결 후 제공됩니다."}
       </Text>
+      {busy && live && (
+        <Button className="text-button" onClick={onCancelUpload}>
+          업로드 중단
+        </Button>
+      )}
+      {loading && <Text role="status">사진을 불러오고 있어요…</Text>}
+      {error && (
+        <Box className="error-notice" role="alert">
+          <Text>{error}</Text>
+          <Button className="text-button" onClick={onReload} disabled={loading}>
+            다시 불러오기
+          </Button>
+        </Box>
+      )}
       {failures.length > 0 && (
         <Box className="error-notice" role="alert">
-          <Text>일부 사진을 읽지 못했어요. 다시 선택해 주세요.</Text>
+          <Text>일부 사진을 저장하지 못했어요.</Text>
           <Ul>
             {failures.map((f) => (
               <Li key={f}>{f}</Li>
             ))}
           </Ul>
+          {canRetry && (
+            <Button
+              className="text-button"
+              onClick={onRetryUpload}
+              disabled={busy}
+            >
+              실패한 사진 다시 시도
+            </Button>
+          )}
         </Box>
       )}
       {photos.length ? (
@@ -98,13 +141,22 @@ export function AlbumView({
             </Button>
           ))}
         </Box>
-      ) : (
+      ) : !loading && !error ? (
         <EmptyState
           title="첫 사진을 기다리고 있어요"
           body="함께 간 여행, 평범한 하루도 좋아요."
           action="사진 추가"
           onAction={onUpload}
         />
+      ) : null}
+      {hasMore && (
+        <Button
+          className="secondary-button"
+          onClick={onMore}
+          disabled={loading}
+        >
+          사진 더 보기
+        </Button>
       )}
     </Box>
   );

@@ -10,10 +10,10 @@ export class ApiError extends Error {
     this.status = status;
   }
 }
-export async function apiRequest<T>(
+async function request(
   path: string,
   init: RequestInit = {},
-): Promise<T> {
+): Promise<Response> {
   const requestRevision = sessionRevision;
   const base = process.env.NEXT_PUBLIC_API_BASE_URL;
   if (!base)
@@ -37,7 +37,8 @@ export async function apiRequest<T>(
       cache: "no-store",
       headers,
     });
-  } catch {
+  } catch (error) {
+    if (init.signal?.aborted) throw error;
     throw new ApiError(
       0,
       "서버에 연결할 수 없어요. 잠시 후 다시 시도해 주세요.",
@@ -66,8 +67,21 @@ export async function apiRequest<T>(
             : "요청을 처리하지 못했어요."),
     );
   }
+  return response;
+}
+export async function apiRequest<T>(
+  path: string,
+  init: RequestInit = {},
+): Promise<T> {
+  const response = await request(path, init);
   if (response.status === 204) return undefined as T;
   return response.json() as Promise<T>;
+}
+export async function apiBlob(
+  path: string,
+  signal?: AbortSignal,
+): Promise<Blob> {
+  return (await request(path, { signal })).blob();
 }
 export function post<T>(path: string, body: unknown = {}) {
   return apiRequest<T>(path, { method: "POST", body: JSON.stringify(body) });

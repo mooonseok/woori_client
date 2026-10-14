@@ -4,8 +4,22 @@ import { DEMO_MODE } from "@/constants/app-mode";
 import { useAuth } from "@/hooks/use-auth";
 import { useDemoGalleryState } from "@/hooks/use-demo-gallery";
 import { useLiveGalleryState } from "@/hooks/use-live-gallery";
-type GalleryStore = Omit<ReturnType<typeof useDemoGalleryState>, "mode"> & {
+type GalleryStore = Omit<
+  ReturnType<typeof useDemoGalleryState>,
+  "mode" | "createAlbum" | "setGroupId"
+> & {
   mode: "demo" | "live";
+  setGroupId: (id: string) => void;
+  createAlbum: (title: string) => string | null | Promise<string>;
+  loadPhotos?: (
+    albumId: string,
+    cursor?: string | null,
+  ) => Promise<import("@/dto/album.dto").Photo[]>;
+  photoLoading?: boolean;
+  photoError?: string;
+  nextCursor?: string | null;
+  failedFiles?: File[];
+  cancelUploads?: () => void;
 };
 const GalleryContext = createContext<GalleryStore | null>(null);
 function DemoProvider({ children }: { children: ReactNode }) {

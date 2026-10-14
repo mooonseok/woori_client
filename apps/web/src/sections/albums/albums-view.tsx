@@ -98,7 +98,9 @@ export function AlbumsView({ albums, photos, search: s, onOpen }: Props) {
               key={a.id}
               album={a}
               cover={photos.find((p) => p.id === a.coverId)}
-              count={photos.filter((p) => p.albumId === a.id).length}
+              count={
+                a.photoCount ?? photos.filter((p) => p.albumId === a.id).length
+              }
               onOpen={() => onOpen(a.id)}
             />
           ))}

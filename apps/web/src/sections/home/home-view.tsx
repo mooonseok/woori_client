@@ -13,6 +13,7 @@ import { AlbumCard } from "@/components/molecules/album-card";
 import { EmptyState } from "@/components/molecules/empty-state";
 import type { Album, Photo } from "@/dto/album.dto";
 interface Props {
+  demo?: boolean;
   albums: Album[];
   photos: Photo[];
   hero?: Photo;
@@ -22,6 +23,7 @@ interface Props {
   onAlbums: () => void;
 }
 export function HomeView({
+  demo = true,
   albums,
   photos,
   hero,
@@ -63,9 +65,11 @@ export function HomeView({
           <Text className="muted">
             {albums[0].date.replaceAll("-", ".")} · 사진 {count}장
           </Text>
-          <Text className="memory-quote">
-            “이날 바닷바람이 참 시원했지.<Span> 다 같이 걸어서 좋았다.”</Span>
-          </Text>
+          {demo && (
+            <Text className="memory-quote">
+              “이날 바닷바람이 참 시원했지.<Span> 다 같이 걸어서 좋았다.”</Span>
+            </Text>
+          )}
           <Button className="text-button" onClick={() => onAlbum(albums[0].id)}>
             사진 {count}장 보기 <Icon name="chevron-right" size={18} />
           </Button>
@@ -88,7 +92,10 @@ export function HomeView({
                 key={a.id}
                 album={a}
                 cover={photos.find((p) => p.id === a.coverId)}
-                count={photos.filter((p) => p.albumId === a.id).length}
+                count={
+                  a.photoCount ??
+                  photos.filter((p) => p.albumId === a.id).length
+                }
                 onOpen={() => onAlbum(a.id)}
               />
             ))}
