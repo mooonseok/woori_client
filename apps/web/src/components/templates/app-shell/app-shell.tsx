@@ -135,8 +135,8 @@ function Shell({ children }: { children: ReactNode }) {
       )}
       {gallery.viewer && (
         <PhotoViewer
-          key={gallery.viewer.id}
-          interactionsEnabled={gallery.mode === 'demo'}
+          key={`${user?.id || 'demo'}:${gallery.groupId}:${gallery.viewer.id}`}
+          live={gallery.mode === 'live'}
           photos={gallery.viewer.photos}
           initialPhotoId={gallery.viewer.id}
           comments={gallery.data.comments}

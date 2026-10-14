@@ -1,7 +1,7 @@
 {
   "name": "woori_client",
   "product": "우리",
-  "status": "album-photo-management-implemented",
+  "status": "photo-interactions-implemented",
   "plans": "/Users/parkmoonseok/.Codex/projects/woori_client/plans",
   "sharedPlan": "/Users/parkmoonseok/.Codex/projects/woori/plans/00-product-plan.md",
   "implemented": [
@@ -14,11 +14,12 @@
     "live album creation, protected photo browsing and multipart-free direct R2 PUT upload flow",
     "partial upload retry and cancellation, session-scoped photo Blob cleanup",
     "actual R2 browser upload and authenticated viewing verified with PNG/JPEG/WebP in an isolated local test environment",
-    "authenticated original downloads with MIME-correct filenames, owner album rename/deletion, owner/uploader photo deletion with confirmation and scoped refresh"
+    "authenticated original downloads with MIME-correct filenames, owner album rename/deletion, owner/uploader photo deletion with confirmation and scoped refresh",
+    "live general and normalized-position comments with edit/delete permissions, pagination and retry; one emoji reaction per member with aggregate counts and scoped async cleanup"
   ],
   "notImplemented": [
     "username/password recovery, profile edits and account deletion",
-    "persisted comments/reactions/notification preferences and real push delivery",
+    "persisted notification preferences and real push delivery",
     "admin operations and native token authentication",
     "production cloud deployment",
     "HEIC conversion"

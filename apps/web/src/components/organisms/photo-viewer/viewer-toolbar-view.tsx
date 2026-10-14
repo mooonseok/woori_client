@@ -9,6 +9,7 @@ import {
   Text,
 } from '@/components/atoms/ui';
 import { Icon } from '@/components/atoms/icon';
+import type { ReactionSummary } from '@/dto/photo-interactions.dto';
 import type { Reaction } from '@/dto/album.dto';
 import type { PhotoViewerModel, PhotoGestureModel } from '@/dto/viewer-ui.dto';
 interface Props {
@@ -23,7 +24,12 @@ interface Props {
   count: number;
   comments: number;
   reactions: Reaction[];
-  onReact(emoji: string): void;
+  reactionSummary?: ReactionSummary;
+  reactionPending?: boolean;
+  reactionError?: string;
+  interactionError?: string;
+  onRetryInteractions?: () => void;
+  onReact(emoji: string): Promise<boolean>;
 }
 const EMOJI = [
   { emoji: '❤️', label: '좋아요' },
@@ -45,9 +51,17 @@ export function ViewerToolbarView({
   comments,
   reactions,
   onReact,
+  reactionSummary,
+  reactionPending,
+  reactionError,
+  interactionError,
+  onRetryInteractions,
 }: Props) {
   const active = m.chrome || m.mode !== 'browse';
-  const mine = reactions.find((reaction) => reaction.userId === 'me');
+  const mine = reactionSummary
+    ? reactionSummary.myReaction
+    : reactions.find((reaction) => reaction.userId === 'me')?.emoji;
+  const total = reactionSummary ? reactionSummary.total : reactions.length;
   return (
     <>
       <Header
@@ -105,9 +119,9 @@ export function ViewerToolbarView({
               aria-expanded={m.reacting}
             >
               <Span className={mine ? 'viewer-my-reaction' : ''}>
-                {mine ? mine.emoji : <Icon name='heart' />}
+                {mine ? mine : <Icon name='heart' />}
               </Span>
-              <Span>{reactions.length || '반응'}</Span>
+              <Span>{total || '반응'}</Span>
             </Button>
             <Button onClick={() => m.setPanel(!m.panel)}>
               <Icon name='comment' />
@@ -131,20 +145,46 @@ export function ViewerToolbarView({
           </Anchor>
         )}
       </Footer>
+      {interactionError && (
+        <Box className='viewer-interaction-status' role='alert'>
+          <Text>{interactionError}</Text>
+          <Button onClick={onRetryInteractions}>다시 불러오기</Button>
+        </Box>
+      )}
+      {reactionError && (
+        <Box className='viewer-interaction-status' role='alert'>
+          <Text>{reactionError}</Text>
+          <Button onClick={() => m.setReacting(true)}>반응 다시 선택</Button>
+        </Box>
+      )}
       {m.reacting && (
         <Box className='viewer-reactions' role='group' aria-label='반응 선택'>
+          <Text className='viewer-reaction-hint'>
+            {reactionPending
+              ? '저장 중…'
+              : '선택한 반응을 다시 누르면 취소돼요.'}
+          </Text>
           {EMOJI.map((item) => (
             <Button
               key={item.emoji}
               aria-label={item.label}
-              aria-pressed={mine?.emoji === item.emoji}
+              aria-pressed={mine === item.emoji}
+              disabled={reactionPending}
               onClick={() => {
-                onReact(item.emoji);
-                m.setReacting(false);
+                void onReact(item.emoji).then((saved) => {
+                  if (saved) m.setReacting(false);
+                });
               }}
             >
               <Span>{item.emoji}</Span>
               <Text>{item.label}</Text>
+              <Span className='viewer-reaction-count'>
+                {reactionSummary
+                  ? reactionSummary.reactions.find(
+                      (r) => r.emoji === item.emoji
+                    )?.count || 0
+                  : reactions.filter((r) => r.emoji === item.emoji).length}
+              </Span>
             </Button>
           ))}
         </Box>
