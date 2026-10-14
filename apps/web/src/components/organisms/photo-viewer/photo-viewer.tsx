@@ -45,6 +45,25 @@ function PhotoViewerContainer(props: PhotoViewerProps) {
     }),
     dialog = useRef<HTMLDialogElement>(null);
   const interactions = usePhotoInteractions(m.photo.id, !!props.live);
+  const commentTargetOpened = useRef(false);
+  useEffect(() => {
+    if (
+      !props.initialCommentId ||
+      commentTargetOpened.current ||
+      interactions.loading
+    )
+      return;
+    commentTargetOpened.current = true;
+    const comment = interactions.comments.find(
+      (item) => item.id === props.initialCommentId
+    );
+    queueMicrotask(() => {
+      if (comment?.point) {
+        m.setSelectedPin(comment.id);
+        m.setPins(true);
+      } else m.setPanel(true);
+    });
+  }, [props.initialCommentId, interactions.loading, interactions.comments, m]);
   const g = usePhotoGestures({
     photo: m.photo,
     canPrevious: m.index > 0,

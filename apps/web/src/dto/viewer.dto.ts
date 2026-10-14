@@ -5,6 +5,7 @@ export interface PhotoViewerProps {
   onDeletePhoto?: (photo: Photo) => Promise<void>;
   photos: Photo[];
   initialPhotoId: string;
+  initialCommentId?: string;
   comments: PhotoComment[];
   reactions: Reaction[];
   onAddComment: (

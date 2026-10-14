@@ -1,98 +1,164 @@
 'use client';
-
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type {
   NotificationPreferences,
   NotificationSaveStatus,
-} from '../dto/notification.dto';
-import {
-  loadNotificationPreferences,
-  saveNotificationPreferences,
-} from '../services/notification-storage';
-import { notificationDefaults } from '../utils/notification-policy';
+} from '@/dto/notification.dto';
+import type { NotificationPreferencesResponse } from '@/dto/notification-api.dto';
+import * as api from '@/services/notifications';
+import { ApiError } from '@/services/api-client';
+import { notificationDefaults } from '@/utils/notification-policy';
+import { preferenceModel, preferencePatch } from '@/utils/notification-model';
 
-export function useNotificationPreferences() {
-  const [preferences, setPreferences] = useState(notificationDefaults);
+export function useNotificationPreferences(enabled: boolean) {
+  const initial = () => ({ ...notificationDefaults(), groups: {} });
+  const [preferences, setPreferences] =
+    useState<NotificationPreferences>(initial);
   const [savedPreferences, setSavedPreferences] =
-    useState(notificationDefaults);
+    useState<NotificationPreferences>(initial);
   const [status, setStatus] = useState<NotificationSaveStatus>('idle');
-  const [ready, setReady] = useState(false);
+  const [ready, setReady] = useState(false),
+    [settingsError, setError] = useState('');
+  const [settingsGroups, setGroups] = useState<{ id: string; name: string }[]>(
+    []
+  );
+  const controller = useRef<AbortController | null>(null);
+  const stored = useRef<NotificationPreferencesResponse | null>(null);
   const draft = useRef(preferences);
-  const saved = useRef(savedPreferences);
-  const failed = useRef<NotificationPreferences | null>(null);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pending = useRef(false);
-
-  const flush = useCallback(() => {
-    if (!pending.current) return true;
-    const snapshot = draft.current;
-    pending.current = false;
-    try {
-      saveNotificationPreferences(snapshot);
-      saved.current = snapshot;
-      failed.current = null;
-      setSavedPreferences(snapshot);
-      setStatus('saved');
-      return true;
-    } catch {
-      failed.current = snapshot;
-      draft.current = saved.current;
-      setPreferences(saved.current);
-      setStatus('error');
-      return false;
-    }
+  const saving = useRef<Promise<boolean> | null>(null);
+  const conflict = useRef(false);
+  const loading = useRef(false);
+  const accept = useCallback((result: NotificationPreferencesResponse) => {
+    stored.current = result;
+    draft.current = preferenceModel(result);
+    setPreferences(draft.current);
+    setSavedPreferences(draft.current);
+    setGroups(result.groups.map((g) => ({ id: g.groupId, name: g.groupName })));
+    setReady(true);
   }, []);
-
+  const reloadSettings = useCallback(async () => {
+    const signal = controller.current?.signal;
+    if (
+      !enabled ||
+      !signal ||
+      signal.aborted ||
+      saving.current ||
+      loading.current
+    )
+      return;
+    loading.current = true;
+    setReady(false);
+    setError('');
+    try {
+      const result = await api.getNotificationPreferences(signal);
+      signal.throwIfAborted();
+      accept(result);
+      conflict.current = false;
+      setStatus('idle');
+    } catch (error) {
+      if (!signal.aborted)
+        setError(
+          error instanceof Error ? error.message : '설정을 불러오지 못했어요.'
+        );
+    } finally {
+      loading.current = false;
+    }
+  }, [enabled, accept]);
   useEffect(() => {
-    let active = true;
+    const current = new AbortController();
+    controller.current = current;
     queueMicrotask(() => {
-      if (!active) return;
-      const loaded = loadNotificationPreferences();
-      draft.current = loaded;
-      saved.current = loaded;
-      setPreferences(loaded);
-      setSavedPreferences(loaded);
-      setReady(true);
+      if (!current.signal.aborted) void reloadSettings();
     });
-    const visibility = () => {
-      if (document.visibilityState === 'hidden') flush();
-    };
-    window.addEventListener('pagehide', flush);
-    document.addEventListener('visibilitychange', visibility);
-    return () => {
-      active = false;
-      if (timer.current) clearTimeout(timer.current);
-      if (pending.current) {
+    return () => current.abort();
+  }, [reloadSettings]);
+  const save = useCallback(
+    (snapshot: NotificationPreferences) => {
+      const signal = controller.current?.signal,
+        previous = stored.current;
+      if (
+        !signal ||
+        signal.aborted ||
+        !previous ||
+        saving.current ||
+        conflict.current
+      )
+        return;
+      setStatus('saving');
+      setError('');
+      const groupId = Object.keys(snapshot.groups).find(
+        (id) => snapshot.groups[id] !== preferenceModel(previous).groups[id]
+      );
+      const promise = (async () => {
         try {
-          saveNotificationPreferences(draft.current);
-        } catch {
-          pending.current = false;
+          const result = groupId
+            ? await api.setGroupNotificationPreference(
+                groupId,
+                snapshot.groups[groupId].toUpperCase() as
+                  'DEFAULT' | 'MINE' | 'OFF',
+                previous.preferences.version,
+                signal
+              )
+            : await api.patchNotificationPreferences(
+                preferencePatch(snapshot, previous.preferences.version),
+                signal
+              );
+          signal.throwIfAborted();
+          accept(result);
+          setStatus('saved');
+          return true;
+        } catch (error) {
+          if (!signal.aborted) {
+            conflict.current =
+              error instanceof ApiError && error.status === 409;
+            setError(
+              conflict.current
+                ? '다른 화면에서 설정이 변경됐어요. 최신 설정을 불러온 뒤 다시 선택해 주세요.'
+                : error instanceof Error
+                  ? error.message
+                  : '설정을 저장하지 못했어요.'
+            );
+            setStatus('error');
+          }
+          return false;
+        } finally {
+          saving.current = null;
         }
-      }
-      window.removeEventListener('pagehide', flush);
-      document.removeEventListener('visibilitychange', visibility);
-    };
-  }, [flush]);
-
+      })();
+      saving.current = promise;
+    },
+    [accept]
+  );
   const change = useCallback(
     (patch: Partial<NotificationPreferences>) => {
-      if (!ready) return;
-      const next = { ...draft.current, ...patch };
-      draft.current = next;
-      failed.current = null;
-      pending.current = true;
-      setPreferences(next);
-      setStatus('saving');
-      if (timer.current) clearTimeout(timer.current);
-      timer.current = setTimeout(flush, 450);
+      if (!ready || saving.current || conflict.current) return;
+      draft.current = { ...draft.current, ...patch };
+      setPreferences(draft.current);
+      save(draft.current);
     },
-    [flush, ready]
+    [ready, save]
   );
-
-  const retry = useCallback(() => {
-    const snapshot = failed.current;
-    if (snapshot) change(snapshot);
-  }, [change]);
-
-  return { preferences, savedPreferences, status, ready, change, retry, flush };
+  return {
+    preferences,
+    savedPreferences,
+    status,
+    ready,
+    settingsError,
+    settingsGroups,
+    change,
+    retry: () => {
+      if (conflict.current || !ready) void reloadSettings();
+      else save(draft.current);
+    },
+    reloadSettings,
+    discardChanges: () => {
+      if (saving.current) return;
+      if (stored.current) accept(stored.current);
+      conflict.current = false;
+      setError('');
+      setStatus('idle');
+    },
+    flush: async () =>
+      saving.current ? await saving.current : status !== 'error',
+  };
 }

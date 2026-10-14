@@ -12,17 +12,17 @@ export const notificationRows: NotificationSettingRow[] = [
   {
     key: 'photos',
     label: '새 사진',
-    description: '가족이 앨범에 올린 사진을 모아서 알려드려요.',
+    description: '가족이 앨범에 올린 새 사진 소식이에요.',
   },
   {
     key: 'comments',
     label: '댓글과 위치 댓글',
-    description: '내 사진과 내가 참여한 대화의 새 댓글이에요.',
+    description: '내 사진에 남긴 새 댓글과 위치 댓글을 알려드려요.',
   },
   {
     key: 'reactions',
     label: '좋아요와 다른 반응',
-    description: '내 사진에 달린 반응을 5분 동안 모아요.',
+    description: '내 사진에 남긴 마음과 반응을 알려드려요.',
   },
 ];
 export const notificationQuietRow: NotificationSettingRow = {

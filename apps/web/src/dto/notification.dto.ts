@@ -5,6 +5,10 @@ export interface NotificationItem {
   type: NotificationType;
   photoId: string;
   groupId: string;
+  groupName?: string;
+  albumId?: string;
+  commentId?: string | null;
+  latestSequence?: number;
   title: string;
   timestamp: number;
   createdAt: number;
