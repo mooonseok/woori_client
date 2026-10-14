@@ -37,6 +37,8 @@ export interface PhotoComment {
   body: string;
   createdAt: string;
   point?: Point;
+  canEdit?: boolean;
+  canDelete?: boolean;
 }
 export interface Reaction {
   photoId: string;

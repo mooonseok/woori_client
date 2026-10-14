@@ -8,6 +8,8 @@ import type {
 import type { Photo, Point } from './album.dto';
 type Setter<T> = Dispatch<SetStateAction<T>>;
 export interface PhotoViewerModel {
+  savingComment: boolean;
+  commentError: string;
   photo: Photo;
   index: number;
   chrome: boolean;

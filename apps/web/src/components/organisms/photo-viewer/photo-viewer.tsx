@@ -11,6 +11,7 @@ import {
   Textarea,
 } from '@/components/atoms/ui';
 import { Icon } from '@/components/atoms/icon';
+import { usePhotoInteractions } from '@/hooks/use-photo-interactions';
 import { usePhotoViewer } from '@/hooks/use-photo-viewer';
 import { usePhotoGestures } from '@/hooks/use-photo-gestures';
 import { Guide } from '@/components/organisms/guide/guide';
@@ -35,13 +36,25 @@ function PhotoViewerContainer(props: PhotoViewerProps) {
       mounted.current = false;
     };
   }, []);
-  const m = usePhotoViewer(props),
+  const m = usePhotoViewer({
+      ...props,
+      onAddComment: (photoId, body, point) =>
+        props.live
+          ? interactions.add(body, point)
+          : props.onAddComment(photoId, body, point),
+    }),
     dialog = useRef<HTMLDialogElement>(null);
+  const interactions = usePhotoInteractions(m.photo.id, !!props.live);
   const g = usePhotoGestures({
     photo: m.photo,
     canPrevious: m.index > 0,
     canNext: m.index < props.photos.length - 1,
-    disabled: !!m.guide || !!m.confirm || deleting || m.mode === 'write',
+    disabled:
+      !!m.guide ||
+      !!m.confirm ||
+      deleting ||
+      m.savingComment ||
+      m.mode === 'write',
     placing: m.mode === 'place',
     onTap: m.tap,
     onNavigate: m.navigate,
@@ -61,9 +74,9 @@ function PhotoViewerContainer(props: PhotoViewerProps) {
       });
     };
   }, []);
-  const comments = props.comments.filter(
-    (comment) => comment.photoId === m.photo.id
-  );
+  const comments = props.live
+    ? interactions.comments
+    : props.comments.filter((comment) => comment.photoId === m.photo.id);
   const reactions = props.reactions.filter(
     (reaction) => reaction.photoId === m.photo.id
   );
@@ -94,7 +107,14 @@ function PhotoViewerContainer(props: PhotoViewerProps) {
           model={m}
           gestures={g}
           menuButtonRef={menuButton}
-          interactionsEnabled={props.interactionsEnabled !== false}
+          interactionsEnabled
+          reactionSummary={props.live ? interactions : undefined}
+          reactionPending={
+            props.live && (interactions.pending || interactions.loading)
+          }
+          reactionError={props.live ? interactions.reactionError : ''}
+          interactionError={props.live ? interactions.error : ''}
+          onRetryInteractions={props.live ? interactions.reload : undefined}
           count={props.photos.length}
           downloading={downloading}
           downloadError={downloadError}
@@ -129,9 +149,13 @@ function PhotoViewerContainer(props: PhotoViewerProps) {
                 }
               : undefined
           }
-          comments={comments.length}
+          comments={props.live ? interactions.commentTotal : comments.length}
           reactions={reactions}
-          onReact={(emoji) => props.onReact(m.photo.id, emoji)}
+          onReact={async (emoji) => {
+            if (props.live) return interactions.react(emoji);
+            props.onReact(m.photo.id, emoji);
+            return true;
+          }}
         />
         {pin && (
           <Box className='viewer-pin-bubble' data-viewer-interactive='true'>
@@ -162,13 +186,23 @@ function PhotoViewerContainer(props: PhotoViewerProps) {
               placeholder='어떤 순간이었나요?'
               rows={2}
               value={m.pinText}
+              disabled={m.savingComment}
               onChange={(event) => m.setPinText(event.target.value)}
-              maxLength={1000}
+              maxLength={2000}
             />
+            {m.commentError && <Text role='alert'>{m.commentError}</Text>}
             <Box>
               <Text>사진에서 선택한 위치에 남겨져요.</Text>
-              <Button type='submit' disabled={!m.pinText.trim()}>
-                등록
+              <Button
+                type='submit'
+                disabled={
+                  m.savingComment ||
+                  interactions.loading ||
+                  interactions.pending ||
+                  !m.pinText.trim()
+                }
+              >
+                {m.savingComment ? '저장 중…' : '등록'}
               </Button>
             </Box>
           </Form>
@@ -176,7 +210,20 @@ function PhotoViewerContainer(props: PhotoViewerProps) {
       </Box>
       {m.panel && (
         <PhotoCommentsView
+          key={m.photo.id}
           comments={comments}
+          loading={props.live ? interactions.loading : false}
+          pending={
+            m.savingComment || (props.live ? interactions.pending : false)
+          }
+          error={props.live ? interactions.error : ''}
+          submitError={m.commentError}
+          total={props.live ? interactions.commentTotal : comments.length}
+          hasMore={props.live ? !!interactions.nextCursor : false}
+          onReload={props.live ? interactions.reload : undefined}
+          onMore={props.live ? interactions.more : undefined}
+          onEdit={props.live ? interactions.edit : undefined}
+          onDelete={props.live ? interactions.remove : undefined}
           draft={m.drafts[m.photo.id] || ''}
           onChange={(value) =>
             m.setDrafts((current) => ({ ...current, [m.photo.id]: value }))

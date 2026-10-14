@@ -1,9 +1,19 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Point } from '@/dto/album.dto';
 import type { PhotoViewerModel } from '@/dto/viewer-ui.dto';
 import type { PhotoViewerProps } from '@/dto/viewer.dto';
 export function usePhotoViewer(props: PhotoViewerProps): PhotoViewerModel {
+  const saving = useRef(false),
+    mounted = useRef(true);
+  const [savingComment, setSavingComment] = useState(false),
+    [commentError, setCommentError] = useState('');
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
   const [failedPhoto, setFailedPhoto] = useState<string | null>(null),
     [imageRetry, setImageRetry] = useState(0);
   const retryImage = () => {
@@ -83,10 +93,12 @@ export function usePhotoViewer(props: PhotoViewerProps): PhotoViewerModel {
     Object.values(drafts).filter((text) => text.trim()).length +
     (pinText.trim() ? 1 : 0);
   const requestClose = () => {
+    if (saving.current) return;
     if (draftCount) setConfirm('close');
     else props.onClose();
   };
   const cancelPin = () => {
+    if (saving.current) return;
     if (pinText.trim()) {
       setConfirm('pin');
       return;
@@ -106,7 +118,9 @@ export function usePhotoViewer(props: PhotoViewerProps): PhotoViewerModel {
     }
   };
   const navigate = (direction: -1 | 1) => {
+    if (saving.current || mode !== 'browse') return;
     const next = props.photos[index + direction];
+    setCommentError('');
     if (!next) return;
     setPhotoId(next.id);
     setSelectedPin(null);
@@ -127,20 +141,43 @@ export function usePhotoViewer(props: PhotoViewerProps): PhotoViewerModel {
     else if (panel) setPanel(false);
     else setChrome((value) => !value);
   };
+  const saveComment = async (isPin: boolean) => {
+    if (!photo) return;
+    const body = isPin ? pinText.trim() : drafts[photo.id]?.trim();
+    if (saving.current || !photo || !body || (isPin && !point)) return;
+    saving.current = true;
+    setSavingComment(true);
+    setCommentError('');
+    try {
+      await props.onAddComment(photo.id, body, isPin ? point : undefined);
+      if (!mounted.current) return;
+      if (isPin) {
+        setPinText('');
+        setPoint(undefined);
+        setMode('browse');
+        setPanel(true);
+      } else setDrafts((current) => ({ ...current, [photo.id]: '' }));
+    } catch (error) {
+      if (mounted.current)
+        setCommentError(
+          error instanceof Error
+            ? error.message
+            : '댓글을 저장하지 못했어요. 다시 시도해 주세요.'
+        );
+    } finally {
+      saving.current = false;
+      if (mounted.current) setSavingComment(false);
+    }
+  };
   const submitComment = () => {
-    if (!photo || !drafts[photo.id]?.trim()) return;
-    props.onAddComment(photo.id, drafts[photo.id].trim());
-    setDrafts((current) => ({ ...current, [photo.id]: '' }));
+    void saveComment(false);
   };
   const submitPin = () => {
-    if (!photo || !point || !pinText.trim()) return;
-    props.onAddComment(photo.id, pinText.trim(), point);
-    setPinText('');
-    setPoint(undefined);
-    setMode('browse');
-    setPanel(true);
+    void saveComment(true);
   };
   return {
+    savingComment,
+    commentError,
     failedPhoto,
     setFailedPhoto,
     imageRetry,

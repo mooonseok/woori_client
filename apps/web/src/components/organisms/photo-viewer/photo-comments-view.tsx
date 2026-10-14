@@ -5,10 +5,10 @@ import {
   Form,
   Header,
   Heading,
-  Span,
   Text,
   Textarea,
 } from '@/components/atoms/ui';
+import { PhotoCommentItem } from './photo-comment';
 import { Icon } from '@/components/atoms/icon';
 interface Props {
   comments: PhotoComment[];
@@ -18,6 +18,16 @@ interface Props {
   onClose(): void;
   onPin(id: string): void;
   photoDescription: string;
+  loading: boolean;
+  pending: boolean;
+  error: string;
+  submitError: string;
+  total: number;
+  hasMore: boolean;
+  onReload?: () => void;
+  onMore?: () => void;
+  onEdit?: (id: string, body: string) => Promise<void>;
+  onDelete?: (id: string) => Promise<void>;
 }
 export function PhotoCommentsView({
   comments,
@@ -27,6 +37,16 @@ export function PhotoCommentsView({
   onClose,
   onPin,
   photoDescription,
+  loading,
+  pending,
+  error,
+  submitError,
+  total,
+  hasMore,
+  onReload,
+  onMore,
+  onEdit,
+  onDelete,
 }: Props) {
   return (
     <Box
@@ -37,15 +57,38 @@ export function PhotoCommentsView({
     >
       <Header>
         <Box>
-          <Heading>사진 속 이야기</Heading>
+          <Heading>사진 속 이야기 {total > 0 ? total : ''}</Heading>
           <Text>{photoDescription}</Text>
         </Box>
         <Button aria-label='댓글 닫기' onClick={onClose}>
           <Icon name='close' />
         </Button>
       </Header>
-      <Box className='viewer-comment-list'>
-        {!comments.length && (
+      <Box className='viewer-comment-list' aria-busy={loading}>
+        {onReload && (
+          <Button
+            className='viewer-comment-refresh'
+            disabled={loading || pending}
+            onClick={onReload}
+          >
+            새로고침
+          </Button>
+        )}
+        {loading && <Text role='status'>이야기를 불러오는 중…</Text>}
+        {error && (
+          <Box>
+            <Text role='alert' className='viewer-interaction-error'>
+              {error}
+            </Text>
+            <Button
+              disabled={loading || pending}
+              onClick={hasMore ? onMore : onReload}
+            >
+              다시 시도
+            </Button>
+          </Box>
+        )}
+        {!loading && !error && !comments.length && (
           <Box className='viewer-no-comments'>
             <Icon name='comment' size={32} />
             <Text>아직 이야기가 없어요.</Text>
@@ -53,29 +96,26 @@ export function PhotoCommentsView({
           </Box>
         )}
         {comments.map((comment) => (
-          <Box key={comment.id} className='viewer-comment'>
-            <Box className='viewer-comment-meta'>
-              <Span className='viewer-avatar'>
-                {comment.authorName.slice(0, 1)}
-              </Span>
-              <Span>{comment.authorName}</Span>
-              <Span className='viewer-comment-date'>
-                {comment.createdAt.slice(0, 10)}
-              </Span>
-            </Box>
-            <Text>{comment.body}</Text>
-            {comment.point && (
-              <Button
-                className='viewer-comment-pin-link'
-                onClick={() => onPin(comment.id)}
-              >
-                <Icon name='pin' size={16} />
-                사진 속 위치 보기
-              </Button>
-            )}
-          </Box>
+          <PhotoCommentItem
+            key={comment.id}
+            comment={comment}
+            disabled={pending || loading}
+            onPin={onPin}
+            onEdit={onEdit}
+            onDelete={onDelete}
+          />
         ))}
+        {hasMore && (
+          <Button disabled={loading || pending} onClick={onMore}>
+            이전 댓글 더 보기
+          </Button>
+        )}
       </Box>
+      {submitError && (
+        <Text role='alert' className='viewer-interaction-error'>
+          {submitError}
+        </Text>
+      )}
       <Form
         className='viewer-comment-form'
         onSubmit={(event) => {
@@ -87,12 +127,13 @@ export function PhotoCommentsView({
           aria-label='일반 댓글'
           placeholder='사진에 한마디 남겨 주세요'
           rows={2}
+          disabled={pending}
           value={draft}
-          maxLength={1000}
+          maxLength={2000}
           onChange={(event) => onChange(event.target.value)}
         />
-        <Button type='submit' disabled={!draft.trim()}>
-          등록
+        <Button type='submit' disabled={pending || loading || !draft.trim()}>
+          {pending ? '저장 중…' : '등록'}
         </Button>
       </Form>
     </Box>
