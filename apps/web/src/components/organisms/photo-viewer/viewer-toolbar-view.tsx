@@ -11,6 +11,7 @@ import { Icon } from "@/components/atoms/icon";
 import type { Reaction } from "@/dto/album.dto";
 import type { PhotoViewerModel, PhotoGestureModel } from "@/dto/viewer-ui.dto";
 interface Props {
+  interactionsEnabled: boolean;
   model: PhotoViewerModel;
   gestures: PhotoGestureModel;
   count: number;
@@ -26,6 +27,7 @@ const EMOJI = [
   { emoji: "😮", label: "놀라워요" },
 ];
 export function ViewerToolbarView({
+  interactionsEnabled,
   model: m,
   gestures: g,
   count,
@@ -49,12 +51,14 @@ export function ViewerToolbarView({
             <Text aria-live="polite">
               {m.index + 1} / {count}
             </Text>
-            <Button
-              aria-label="사진 정보와 댓글"
-              onClick={() => m.setPanel(!m.panel)}
-            >
-              <Icon name="info" />
-            </Button>
+            {interactionsEnabled && (
+              <Button
+                aria-label="사진 정보와 댓글"
+                onClick={() => m.setPanel(!m.panel)}
+              >
+                <Icon name="info" />
+              </Button>
+            )}
             <Button
               aria-label="사진 메뉴"
               aria-expanded={m.more}
@@ -78,31 +82,35 @@ export function ViewerToolbarView({
         className={`viewer-toolbar viewer-bottom ${active && m.mode === "browse" ? "is-visible" : ""}`}
         inert={!active || m.mode !== "browse"}
       >
-        <Button
-          onClick={() => {
-            m.setReacting(!m.reacting);
-            m.setMore(false);
-          }}
-          aria-label="반응 고르기"
-          aria-expanded={m.reacting}
-        >
-          <Span className={mine ? "viewer-my-reaction" : ""}>
-            {mine ? mine.emoji : <Icon name="heart" />}
-          </Span>
-          <Span>{reactions.length || "반응"}</Span>
-        </Button>
-        <Button onClick={() => m.setPanel(!m.panel)}>
-          <Icon name="comment" />
-          <Span>{comments || "댓글"}</Span>
-        </Button>
-        <Button onClick={m.startPin}>
-          <Icon name="pin" />
-          <Span>위치 댓글</Span>
-        </Button>
+        {interactionsEnabled && (
+          <>
+            <Button
+              onClick={() => {
+                m.setReacting(!m.reacting);
+                m.setMore(false);
+              }}
+              aria-label="반응 고르기"
+              aria-expanded={m.reacting}
+            >
+              <Span className={mine ? "viewer-my-reaction" : ""}>
+                {mine ? mine.emoji : <Icon name="heart" />}
+              </Span>
+              <Span>{reactions.length || "반응"}</Span>
+            </Button>
+            <Button onClick={() => m.setPanel(!m.panel)}>
+              <Icon name="comment" />
+              <Span>{comments || "댓글"}</Span>
+            </Button>
+            <Button onClick={m.startPin}>
+              <Icon name="pin" />
+              <Span>위치 댓글</Span>
+            </Button>
+          </>
+        )}
         <Anchor
           href={m.photo.src}
           download={`woori-${m.photo.id}.jpg`}
-          aria-label="사진 다운로드"
+          aria-label={interactionsEnabled ? "사진 다운로드" : "화면 사진 저장"}
         >
           <Icon name="download" />
         </Anchor>
@@ -136,17 +144,21 @@ export function ViewerToolbarView({
             축소
           </Button>
           <Button onClick={() => g.reset()}>화면에 맞추기</Button>
-          <Button
-            onClick={() => {
-              m.setPins(!m.pins);
-              m.setMore(false);
-            }}
-          >
-            <Icon name={m.pins ? "eye-off" : "eye"} />
-            위치 댓글 핀 {m.pins ? "숨기기" : "보이기"}
-          </Button>
+          {interactionsEnabled && (
+            <Button
+              onClick={() => {
+                m.setPins(!m.pins);
+                m.setMore(false);
+              }}
+            >
+              <Icon name={m.pins ? "eye-off" : "eye"} />
+              위치 댓글 핀 {m.pins ? "숨기기" : "보이기"}
+            </Button>
+          )}
           <Button onClick={() => m.openGuide("view")}>사진 감상 사용법</Button>
-          <Button onClick={() => m.openGuide("pin")}>위치 댓글 사용법</Button>
+          {interactionsEnabled && (
+            <Button onClick={() => m.openGuide("pin")}>위치 댓글 사용법</Button>
+          )}
         </Box>
       )}
       {active && m.mode === "browse" && (
