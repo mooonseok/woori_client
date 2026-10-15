@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { authDestination, safeReturnTo } from '@/utils/auth-navigation';
 import { rememberInvite } from '@/services/invite-return';
+import { loginFailure } from '@/utils/auth-errors';
 import { AuthView } from './auth-view';
 export function AuthContainer({ signup = false }: { signup?: boolean }) {
   const auth = useAuth(),
@@ -11,13 +12,15 @@ export function AuthContainer({ signup = false }: { signup?: boolean }) {
     search = useSearchParams();
   const next = safeReturnTo(search.get('next'));
   const [pending, setPending] = useState(false),
-    [error, setError] = useState('');
+    [error, setError] = useState(''),
+    [suspended, setSuspended] = useState(false);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (pending) return;
     const data = new FormData(event.currentTarget);
     setPending(true);
     setError('');
+    setSuspended(false);
     rememberInvite(next);
     try {
       const credentials = {
@@ -37,9 +40,11 @@ export function AuthContainer({ signup = false }: { signup?: boolean }) {
           : authDestination('/verify-email', next)
       );
     } catch (error) {
-      setError(
-        error instanceof Error ? error.message : '요청을 처리하지 못했어요.'
-      );
+      // No automatic retry: a suspended account stays refused until the
+      // operator lifts it, so the member only sees one clear message.
+      const failure = loginFailure(error);
+      setError(failure.message);
+      setSuspended(failure.suspended);
     } finally {
       setPending(false);
     }
@@ -49,6 +54,7 @@ export function AuthContainer({ signup = false }: { signup?: boolean }) {
       signup={signup}
       pending={pending}
       error={error}
+      suspended={suspended}
       passwordReset={search.get('passwordReset') === '1'}
       emailChanged={search.get('emailChanged') === '1'}
       recoveryNext={next}

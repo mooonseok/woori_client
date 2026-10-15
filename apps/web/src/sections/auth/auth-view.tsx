@@ -13,6 +13,8 @@ interface Props {
   signup: boolean;
   pending: boolean;
   error: string;
+  // 403 ACCOUNT_SUSPENDED: shown as its own notice, not a field error.
+  suspended?: boolean;
   alternate: string;
   recoveryNext: string;
   passwordReset: boolean;
@@ -24,6 +26,7 @@ export function AuthView({
   signup,
   pending,
   error,
+  suspended,
   alternate,
   recoveryNext,
   passwordReset,
@@ -119,11 +122,16 @@ export function AuthView({
             </Text>
           </>
         )}
-        {error && (
-          <Text role='alert' className='form-error'>
-            {error}
-          </Text>
-        )}
+        {error &&
+          (suspended ? (
+            <Text role='alert' className='notice-panel suspended-notice'>
+              {error}
+            </Text>
+          ) : (
+            <Text role='alert' className='form-error'>
+              {error}
+            </Text>
+          ))}
         <Button type='submit' className='primary-button' disabled={pending}>
           {pending ? '잠시만 기다려 주세요…' : signup ? '회원가입' : '로그인'}
         </Button>

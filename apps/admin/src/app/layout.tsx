@@ -1,9 +1,14 @@
 import type { Metadata } from 'next';
-import './globals.css';
+import { AdminShell } from '@/components/templates/admin-shell/admin-shell';
+import '@/styles/globals.css';
+import '@/styles/admin.css';
 
 export const metadata: Metadata = {
-  title: '우리 관리자',
-  description: '우리 가족의 사진을 모으는 공간',
+  title: { default: '우리 관리자', template: '%s · 우리 관리자' },
+  description: '우리 서비스 운영자 전용 관리 화면',
+  // No admin URL (including the MFA setup screen) is sent as a Referer.
+  referrer: 'no-referrer',
+  robots: { index: false, follow: false },
 };
 
 export default function RootLayout({
@@ -11,7 +16,9 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang='ko'>
-      <body>{children}</body>
+      <body>
+        <AdminShell>{children}</AdminShell>
+      </body>
     </html>
   );
 }
