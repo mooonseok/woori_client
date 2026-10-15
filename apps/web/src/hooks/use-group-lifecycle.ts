@@ -5,6 +5,8 @@ import { useNotifications } from '@/hooks/use-notifications';
 import { useAuth } from '@/hooks/use-auth';
 import type { GroupAction, GroupMember } from '@/dto/group.dto';
 import * as api from '@/services/group-management';
+import { BLOCKS_CHANGED } from '@/services/blocks';
+import { clearsRosterBeforeLoad, mergeRosterPage } from '@/utils/group-members';
 export function useGroupLifecycle() {
   const gallery = useGallery(),
     notifications = useNotifications(),
@@ -21,13 +23,13 @@ export function useGroupLifecycle() {
     revision = useRef(0),
     locked = useRef(false);
   const loadMembers = useCallback(
-    async (after: string | null = null) => {
+    async (after: string | null = null, keepVisible = false) => {
       const signal = scope.current.signal,
         current = ++revision.current;
       if (!groupId || signal.aborted) return;
       setLoading(true);
       setError('');
-      if (!after) {
+      if (clearsRosterBeforeLoad(after, keepVisible)) {
         setMembers([]);
         setNextCursor(null);
       }
@@ -35,14 +37,7 @@ export function useGroupLifecycle() {
         const page = await api.listGroupMembers(groupId, after, signal);
         if (signal.aborted || current !== revision.current) return;
         setMembers((previous) =>
-          after
-            ? [
-                ...previous.filter(
-                  (m) => !page.members.some((n) => n.userId === m.userId)
-                ),
-                ...page.members,
-              ]
-            : page.members
+          mergeRosterPage(previous, page.members, !!after)
         );
         setNextCursor(page.nextCursor);
       } catch (e) {
@@ -67,6 +62,15 @@ export function useGroupLifecycle() {
       controller.abort();
       counter.current++;
     };
+  }, [loadMembers]);
+  useEffect(() => {
+    // blockedByMe changes with a block/unblock; the revision guard drops older pages.
+    const changed = () => {
+      // Keep the rows (and the focused 차단 button) until the new page lands.
+      if (!scope.current.signal.aborted) void loadMembers(null, true);
+    };
+    window.addEventListener(BLOCKS_CHANGED, changed);
+    return () => window.removeEventListener(BLOCKS_CHANGED, changed);
   }, [loadMembers]);
   async function submit(value = '') {
     if (!group || !action || locked.current) return;

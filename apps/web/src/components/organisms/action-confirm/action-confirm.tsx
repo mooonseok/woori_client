@@ -15,6 +15,7 @@ export function ActionConfirm({
   onConfirm,
   onClose,
   returnFocus,
+  fallbackFocus,
   confirmLabel = '삭제',
   exactText,
 }: {
@@ -24,7 +25,9 @@ export function ActionConfirm({
   description: string;
   onConfirm: () => Promise<void>;
   onClose: () => void;
-  returnFocus?: RefObject<HTMLButtonElement | null>;
+  returnFocus?: RefObject<HTMLElement | null>;
+  // Used when the element to return to was removed while the dialog was open.
+  fallbackFocus?: () => HTMLElement | null | undefined;
 }) {
   const dialog = useRef<HTMLDialogElement>(null),
     cancel = useRef<HTMLButtonElement>(null),
@@ -34,16 +37,22 @@ export function ActionConfirm({
     [confirmation, setConfirmation] = useState('');
   const titleId = useId(),
     bodyId = useId();
+  const fallback = useRef(fallbackFocus);
+  useEffect(() => {
+    fallback.current = fallbackFocus;
+  });
   useEffect(() => {
     const previous =
         returnFocus?.current || (document.activeElement as HTMLElement | null),
-      el = dialog.current;
+      el = dialog.current,
+      latest = fallback;
     el?.showModal();
     cancel.current?.focus();
     return () => {
       el?.close();
       queueMicrotask(() => {
-        if (previous?.isConnected) previous.focus({ preventScroll: true });
+        const target = previous?.isConnected ? previous : latest.current?.();
+        target?.focus({ preventScroll: true });
       });
     };
   }, [returnFocus]);

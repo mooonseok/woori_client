@@ -249,3 +249,8 @@
   overflow-wrap: anywhere;
   min-width: 0;
 }
+.suspended-notice {
+  border-color: #f0c7c2;
+  background: #fff4f2;
+  color: #92271f;
+}

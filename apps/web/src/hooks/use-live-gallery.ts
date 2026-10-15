@@ -16,6 +16,14 @@ import {
 } from '@/services/api-client';
 import * as media from '@/services/media-client';
 import { MEMORIES_CHANGED, updateCaptureDate } from '@/services/memories';
+import { BLOCKS_CHANGED } from '@/services/blocks';
+import {
+  blockChangeOf,
+  purgeOnBlock,
+  uploaderOf,
+  viewerAfterBlock,
+} from '@/utils/blocks';
+import type { BlockChange } from '@/dto/block.dto';
 const EMPTY: GalleryData = {
   groups: [],
   albums: [],
@@ -52,7 +60,8 @@ export function useLiveGalleryState() {
   const albumRequest = useRef(0),
     viewerRequest = useRef(0);
   const photoRequest = useRef(0),
-    loadedAlbum = useRef('');
+    loadedAlbum = useRef(''),
+    requestedAlbum = useRef('');
   const dataRef = useRef(data);
   useEffect(() => {
     dataRef.current = data;
@@ -294,13 +303,14 @@ export function useLiveGalleryState() {
       effectiveDate: p.effectiveDate,
       dateSource: p.dateSource,
       canEditCaptureDate: p.canEditCaptureDate,
-      authorId: '',
+      ...uploaderOf(p),
       canDelete: p.canDelete,
     };
   }
   async function loadPhotos(albumId: string, cursor: string | null = null) {
     const signal = scope.current.signal,
       current = ++photoRequest.current;
+    requestedAlbum.current = albumId;
     setPhotoLoading(true);
     setPhotoError('');
     if (loadedAlbum.current !== albumId) {
@@ -652,6 +662,67 @@ export function useLiveGalleryState() {
         : '사진에 기록된 원래 날짜로 되돌렸어요. 기록이 없으면 업로드일을 사용해요.'
     );
   }
+  // A block/unblock changes what this member may see: drop in-flight
+  // responses from before it, hide known photos at once, then refetch.
+  function applyBlockChange({ userId, blocked }: BlockChange) {
+    const signal = scope.current.signal;
+    photoRequest.current++;
+    albumRequest.current++;
+    viewerRequest.current++;
+    if (blocked) {
+      // Their photos and every cover of unknown uploader go now; fetchAlbums
+      // below reloads the covers that are still visible to me.
+      const { kept, removed } = purgeOnBlock(dataRef.current.photos, userId);
+      removed.forEach((p) => {
+        // An open viewer may still show it; closeViewer revokes those later.
+        if (viewer?.photos.some((shown) => shown.src === p.src)) return;
+        URL.revokeObjectURL(p.src);
+        urls.current.delete(p.src);
+      });
+      if (removed.length) {
+        // Update the ref now so fetchAlbums does not skip the purged covers.
+        dataRef.current = { ...dataRef.current, photos: kept };
+        setData((d) => ({ ...d, photos: purgeOnBlock(d.photos, userId).kept }));
+      }
+      const next = viewerAfterBlock(viewer, userId);
+      // The photo on screen was theirs: close; focus returns via the viewer.
+      if (viewer && !next) closeViewer();
+      else if (next !== viewer) setViewer(next);
+    }
+    if (!groupId || signal.aborted) {
+      setPhotoLoading(false);
+      return;
+    }
+    void fetchAlbums(groupId, signal).catch((e) => {
+      if (!signal.aborted)
+        setError(e instanceof Error ? e.message : '앨범을 불러오지 못했어요.');
+    });
+    const albumId = loadedAlbum.current || requestedAlbum.current;
+    if (albumId) void loadPhotos(albumId);
+    else setPhotoLoading(false);
+  }
+  const blockHandler = useRef(applyBlockChange);
+  useEffect(() => {
+    blockHandler.current = applyBlockChange;
+  });
+  useEffect(() => {
+    const changed = (event: Event) => {
+      const change = blockChangeOf(event);
+      if (change) blockHandler.current(change);
+    };
+    window.addEventListener(BLOCKS_CHANGED, changed);
+    return () => window.removeEventListener(BLOCKS_CHANGED, changed);
+  }, []);
+  function closeViewer() {
+    viewerRequest.current++;
+    setViewer(null);
+    urls.current.forEach((src) => {
+      if (!dataRef.current.photos.some((p) => p.src === src)) {
+        URL.revokeObjectURL(src);
+        urls.current.delete(src);
+      }
+    });
+  }
   return {
     data,
     groupId,
@@ -683,16 +754,7 @@ export function useLiveGalleryState() {
     openPhoto,
     openMemoryPhoto,
     setCaptureDate,
-    closeViewer: () => {
-      viewerRequest.current++;
-      setViewer(null);
-      urls.current.forEach((src) => {
-        if (!dataRef.current.photos.some((p) => p.src === src)) {
-          URL.revokeObjectURL(src);
-          urls.current.delete(src);
-        }
-      });
-    },
+    closeViewer,
     addComment: () => setToast('댓글 저장 기능을 준비하고 있어요.'),
     react: () => setToast('반응 저장 기능을 준비하고 있어요.'),
     createAlbum,
@@ -712,8 +774,10 @@ export function useLiveGalleryState() {
       const signal = scope.current.signal;
       await loadPhotos(albumId);
       if (!signal.aborted) {
+        const current = albumRequest.current;
         const { albums } = await media.listAlbums(groupId, signal);
-        if (!signal.aborted)
+        // A block (or newer album fetch) in between makes this page stale.
+        if (!signal.aborted && current === albumRequest.current)
           setData((d) => ({ ...d, albums: albums.map(albumModel) }));
       }
     },

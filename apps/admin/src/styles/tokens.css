@@ -1,0 +1,19 @@
+/* Same palette as the member web (apps/web/src/styles/tokens.css). */
+:root {
+  --paper: #fff;
+  --ink: #1e2023;
+  --muted: #61656d;
+  --line: #e8e8e6;
+  --line-strong: #c8cbce;
+  --wash: #f5f5f3;
+  --accent: #244f9b;
+  --accent-wash: #eef2fa;
+  --danger: #a82424;
+  --danger-wash: #fff4f2;
+  --warning-ink: #6b4500;
+  --warning-wash: #fff7e6;
+  --radius: 12px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  color-scheme: light;
+}

@@ -49,6 +49,8 @@ export function MemoriesView(props: Props) {
             key={key}
             className='text-button'
             aria-pressed={kind === key}
+            // Focus lands here if a viewer closes after its photo was hidden.
+            data-photo-viewer-return={kind === key || undefined}
             disabled={!!pending || props.opening}
             onClick={() => props.onKind(key)}
           >

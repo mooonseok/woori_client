@@ -61,6 +61,7 @@ const paths: Record<string, string[]> = {
   shield: ['m12 2 8 4v6c0 6-8 10-8 10S4 18 4 12V6Z', 'm8 12 3 3 5-6'],
   'check-all': ['m2 12 4 4L16 6', 'm12 16 10-10'],
   error: ['m12 3 10 18H2Z', 'M12 9v5M12 17h.01'],
+  flag: ['M5 21V4', 'M5 4h12l-2.5 4.5L17 13H5'],
 };
 const aliases: Record<string, string> = {
   albums: 'album',

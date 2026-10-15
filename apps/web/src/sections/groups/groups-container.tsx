@@ -1,4 +1,5 @@
 'use client';
+import { useRef, useState } from 'react';
 import { useGroupManagement } from '@/hooks/use-group-management';
 import { useGroupLifecycle } from '@/hooks/use-group-lifecycle';
 import { useGallery } from '@/hooks/use-gallery';
@@ -6,10 +7,30 @@ import { GroupsView } from './groups-view';
 import { GroupMembersView } from './group-members-view';
 import { EntryDialog } from '@/components/organisms/entry-dialog/entry-dialog';
 import { ActionConfirm } from '@/components/organisms/action-confirm/action-confirm';
+import { ReportDialog } from '@/components/organisms/report-dialog/report-dialog';
+import type { GroupMember } from '@/dto/group.dto';
+import { DEMO_MODE } from '@/constants/app-mode';
+import { BlockConfirm } from '@/components/organisms/block-confirm/block-confirm';
+import { BlockOffer } from '@/components/molecules/block-offer';
+import { ROSTER_TITLE_ID, rosterBlockButtonId } from '@/utils/group-members';
 function GroupContent() {
   const model = useGroupManagement(),
     lifecycle = useGroupLifecycle();
   const { group, action, setAction, submit } = lifecycle;
+  const [reporting, setReporting] = useState<GroupMember | null>(null);
+  // Report/block flows return focus to the roster button that started them.
+  const trigger = useRef<HTMLElement | null>(null);
+  const remember = () => {
+    trigger.current = document.activeElement as HTMLElement | null;
+  };
+  // If that button is gone, use the same member's 차단 button, else the title.
+  const rosterFallback = (userId: string) => () =>
+    document.getElementById(rosterBlockButtonId(userId)) ??
+    document.getElementById(ROSTER_TITLE_ID);
+  const [blocking, setBlocking] = useState<{
+    member: GroupMember;
+    blocked: boolean;
+  } | null>(null);
   const title =
     action?.kind === 'leave'
       ? '그룹에서 나갈까요?'
@@ -43,6 +64,22 @@ function GroupContent() {
           <GroupMembersView
             {...lifecycle}
             busy={model.pending || lifecycle.busy}
+            onReport={
+              DEMO_MODE
+                ? undefined
+                : (member) => {
+                    remember();
+                    setReporting(member);
+                  }
+            }
+            onBlock={
+              DEMO_MODE
+                ? undefined
+                : (member, blocked) => {
+                    remember();
+                    setBlocking({ member, blocked });
+                  }
+            }
           />
         }
       />
@@ -56,6 +93,45 @@ function GroupContent() {
           note=''
           onSubmit={submit}
           onClose={() => setAction(null)}
+        />
+      )}
+      {group && reporting && (
+        <ReportDialog
+          key={`${group.id}:${reporting.userId}`}
+          target={{
+            targetType: 'USER',
+            targetId: reporting.userId,
+            groupId: group.id,
+            name: `${reporting.displayName}님`,
+          }}
+          returnFocus={trigger}
+          fallbackFocus={rosterFallback(reporting.userId)}
+          onTargetGone={() => void lifecycle.loadMembers()}
+          onClose={() => setReporting(null)}
+          followUp={(_, close) =>
+            reporting.blockedByMe ? null : (
+              <BlockOffer
+                name={reporting.displayName}
+                onBlock={() => {
+                  close();
+                  setBlocking({ member: reporting, blocked: true });
+                }}
+              />
+            )
+          }
+        />
+      )}
+      {blocking && (
+        <BlockConfirm
+          key={`${blocking.member.userId}:${blocking.blocked}`}
+          person={{
+            id: blocking.member.userId,
+            name: blocking.member.displayName,
+          }}
+          blocking={blocking.blocked}
+          returnFocus={trigger}
+          fallbackFocus={rosterFallback(blocking.member.userId)}
+          onClose={() => setBlocking(null)}
         />
       )}
       {group && action && action.kind !== 'rename' && (

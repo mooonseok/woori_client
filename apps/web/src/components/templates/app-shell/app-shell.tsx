@@ -26,6 +26,7 @@ import { AccountGate } from '@/components/organisms/account-gate/account-gate';
 import { DEMO_MODE } from '@/constants/app-mode';
 import { ROUTES } from '@/constants/routes';
 import { forgetEmailChangeToken } from '@/services/email-change-token';
+import { currentTab } from '@/utils/auth-navigation';
 function Shell({ children }: { children: ReactNode }) {
   const path = usePathname(),
     gallery = useGallery(),
@@ -58,7 +59,11 @@ function Shell({ children }: { children: ReactNode }) {
             <Link
               key={t.href}
               href={t.href}
-              aria-current={path === t.href ? 'page' : undefined}
+              aria-current={
+                currentTab(path, DEMO_MODE || !!user) === t.href
+                  ? 'page'
+                  : undefined
+              }
             >
               {t.label}
             </Link>
@@ -118,8 +123,7 @@ function Shell({ children }: { children: ReactNode }) {
             key={t.href}
             href={t.href}
             aria-current={
-              path === t.href ||
-              (t.href === ROUTES.ALBUMS && path === ROUTES.ALBUM)
+              currentTab(path, DEMO_MODE || !!user) === t.href
                 ? 'page'
                 : undefined
             }

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { AppShell } from '@/components/templates/app-shell/app-shell';
 import '@/styles/globals.css';
 import '@/styles/account.css';
+import '@/styles/service.css';
 export const metadata: Metadata = {
   referrer: 'no-referrer',
   manifest: '/manifest.webmanifest',

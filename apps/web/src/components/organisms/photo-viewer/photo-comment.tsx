@@ -9,6 +9,8 @@ interface Props {
   onPin(id: string): void;
   onEdit?: (id: string, body: string) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
+  onReport?: () => void;
+  onBlock?: () => void;
 }
 export function PhotoCommentItem({
   comment,
@@ -16,6 +18,8 @@ export function PhotoCommentItem({
   onPin,
   onEdit,
   onDelete,
+  onReport,
+  onBlock,
 }: Props) {
   const [editing, setEditing] = useState(false),
     [deleting, setDeleting] = useState(false),
@@ -138,6 +142,24 @@ export function PhotoCommentItem({
               }}
             >
               삭제
+            </Button>
+          )}
+          {onReport && (
+            <Button
+              disabled={disabled}
+              aria-label={`${comment.authorName}님의 댓글 신고`}
+              onClick={onReport}
+            >
+              신고
+            </Button>
+          )}
+          {onBlock && (
+            <Button
+              disabled={disabled}
+              aria-label={`${comment.authorName}님 차단`}
+              onClick={onBlock}
+            >
+              차단
             </Button>
           )}
         </Box>

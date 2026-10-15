@@ -1,3 +1,4 @@
+import type { PhotoUploader } from './media.dto';
 export interface InboxNotification {
   id: string;
   kind: 'PHOTOS' | 'COMMENT' | 'PIN' | 'REACTION';
@@ -24,6 +25,8 @@ export interface NotificationTarget {
   albumId: string;
   photoId: string;
   commentId: string | null;
+  // OpenAPI 0.15.0 (additive): who uploaded the target photo.
+  uploader?: PhotoUploader;
 }
 export interface StoredNotificationPreferences {
   enabled: boolean;

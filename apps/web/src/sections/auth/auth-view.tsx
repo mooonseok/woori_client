@@ -13,20 +13,25 @@ interface Props {
   signup: boolean;
   pending: boolean;
   error: string;
+  // 403 ACCOUNT_SUSPENDED: shown as its own notice, not a field error.
+  suspended?: boolean;
   alternate: string;
   recoveryNext: string;
   passwordReset: boolean;
   emailChanged: boolean;
+  privacyHref?: string;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }
 export function AuthView({
   signup,
   pending,
   error,
+  suspended,
   alternate,
   recoveryNext,
   passwordReset,
   emailChanged,
+  privacyHref,
   onSubmit,
 }: Props) {
   return (
@@ -117,11 +122,16 @@ export function AuthView({
             </Text>
           </>
         )}
-        {error && (
-          <Text role='alert' className='form-error'>
-            {error}
-          </Text>
-        )}
+        {error &&
+          (suspended ? (
+            <Text role='alert' className='notice-panel suspended-notice'>
+              {error}
+            </Text>
+          ) : (
+            <Text role='alert' className='form-error'>
+              {error}
+            </Text>
+          ))}
         <Button type='submit' className='primary-button' disabled={pending}>
           {pending ? '잠시만 기다려 주세요…' : signup ? '회원가입' : '로그인'}
         </Button>
@@ -137,6 +147,12 @@ export function AuthView({
             비밀번호 찾기
           </Link>
         </Box>
+      )}
+      {signup && privacyHref && (
+        <Text className='field-help auth-privacy'>
+          회원 정보와 사진을 다루는 방식은{' '}
+          <Link href={privacyHref}>개인정보 안내</Link>에서 확인할 수 있어요.
+        </Text>
       )}
       <Text className='auth-alternate'>
         {signup ? '이미 계정이 있나요?' : '처음 오셨나요?'}{' '}

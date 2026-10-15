@@ -27,6 +27,15 @@ export function Text(props: ComponentPropsWithRef<'p'>) {
 export function Heading(props: ComponentPropsWithRef<'h2'>) {
   return <h2 {...props} />;
 }
+export function Subheading(props: ComponentPropsWithRef<'h3'>) {
+  return <h3 {...props} />;
+}
+export function Article(props: ComponentPropsWithRef<'article'>) {
+  return <article {...props} />;
+}
+export function Time(props: ComponentPropsWithRef<'time'>) {
+  return <time {...props} />;
+}
 export function Button({
   type = 'button',
   ...props
@@ -62,6 +71,12 @@ export function Li(props: ComponentPropsWithRef<'li'>) {
 }
 export function Form(props: ComponentPropsWithRef<'form'>) {
   return <form {...props} />;
+}
+export function Fieldset(props: ComponentPropsWithRef<'fieldset'>) {
+  return <fieldset {...props} />;
+}
+export function Legend(props: ComponentPropsWithRef<'legend'>) {
+  return <legend {...props} />;
 }
 export function Anchor(props: ComponentPropsWithRef<'a'>) {
   return <a {...props} />;

@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
+import { loginFailure } from '@/utils/auth-errors';
 import {
   emailChangeToken,
   forgetEmailChangeToken,
@@ -72,10 +73,7 @@ export function EmailChangeContainer() {
         });
       }
     } catch (cause) {
-      if (mounted.current)
-        setError(
-          cause instanceof Error ? cause.message : '요청을 처리하지 못했어요.'
-        );
+      if (mounted.current) setError(loginFailure(cause).message);
     } finally {
       if (mounted.current) {
         busy.current = false;

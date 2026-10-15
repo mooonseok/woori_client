@@ -37,6 +37,7 @@ export function notificationModel(item: InboxNotification): NotificationItem {
     read: !item.unread,
     count: 1,
     latestSequence: item.latestSequence,
+    actorId: item.actor.id,
   };
 }
 export const minuteTime = (minute: number) =>

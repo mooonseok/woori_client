@@ -26,7 +26,9 @@ export interface Photo {
   effectiveDate?: string;
   dateSource?: PhotoDateSource;
   canEditCaptureDate?: boolean;
+  // Uploader id; '' when the response did not say who uploaded it.
   authorId: string;
+  authorName?: string;
   canDelete?: boolean;
 }
 export interface Point {

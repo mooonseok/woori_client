@@ -8,6 +8,7 @@ import {
 } from '@/components/atoms/ui';
 import type { Group } from '@/dto/album.dto';
 import type { GroupAction, GroupMember } from '@/dto/group.dto';
+import { ROSTER_TITLE_ID, rosterBlockButtonId } from '@/utils/group-members';
 interface Props {
   group?: Group;
   currentUserId?: string;
@@ -17,7 +18,9 @@ interface Props {
   error: string;
   busy: boolean;
   setAction: (action: GroupAction) => void;
-  loadMembers: (after?: string | null) => Promise<void>;
+  loadMembers: (after?: string | null, keepVisible?: boolean) => Promise<void>;
+  onReport?: (member: GroupMember) => void;
+  onBlock?: (member: GroupMember, blocked: boolean) => void;
 }
 export function GroupMembersView(p: Props) {
   if (!p.group) return null;
@@ -25,7 +28,9 @@ export function GroupMembersView(p: Props) {
   return (
     <Section className='settings-card' aria-label='그룹 관리'>
       <Box className='section-heading'>
-        <Heading>{p.group.name} 구성원</Heading>
+        <Heading id={ROSTER_TITLE_ID} tabIndex={-1}>
+          {p.group.name} 구성원
+        </Heading>
         {owner && (
           <Button
             className='text-button'
@@ -64,28 +69,56 @@ export function GroupMembersView(p: Props) {
               </Text>
               <Text className='muted'>
                 {member.role === 'OWNER' ? '그룹장' : '멤버'}
+                {member.blockedByMe && ' · 차단함'}
               </Text>
             </Box>
-            {owner &&
-              member.role === 'MEMBER' &&
-              member.userId !== p.currentUserId && (
+            {member.userId !== p.currentUserId &&
+              ((owner && member.role === 'MEMBER') ||
+                ((p.onReport || p.onBlock) && p.currentUserId)) && (
                 <Box className='inline-actions'>
-                  <Button
-                    className='text-button'
-                    disabled={p.busy}
-                    aria-label={`${member.displayName} 님에게 그룹장 넘기기`}
-                    onClick={() => p.setAction({ kind: 'transfer', member })}
-                  >
-                    그룹장 넘기기
-                  </Button>
-                  <Button
-                    className='text-button danger-text'
-                    disabled={p.busy}
-                    aria-label={`${member.displayName} 님 내보내기`}
-                    onClick={() => p.setAction({ kind: 'remove', member })}
-                  >
-                    내보내기
-                  </Button>
+                  {owner && member.role === 'MEMBER' && (
+                    <>
+                      <Button
+                        className='text-button'
+                        disabled={p.busy}
+                        aria-label={`${member.displayName} 님에게 그룹장 넘기기`}
+                        onClick={() =>
+                          p.setAction({ kind: 'transfer', member })
+                        }
+                      >
+                        그룹장 넘기기
+                      </Button>
+                      <Button
+                        className='text-button danger-text'
+                        disabled={p.busy}
+                        aria-label={`${member.displayName} 님 내보내기`}
+                        onClick={() => p.setAction({ kind: 'remove', member })}
+                      >
+                        내보내기
+                      </Button>
+                    </>
+                  )}
+                  {p.onReport && p.currentUserId && (
+                    <Button
+                      className='text-button muted'
+                      disabled={p.busy}
+                      aria-label={`${member.displayName}님 신고`}
+                      onClick={() => p.onReport?.(member)}
+                    >
+                      신고
+                    </Button>
+                  )}
+                  {p.onBlock && p.currentUserId && (
+                    <Button
+                      id={rosterBlockButtonId(member.userId)}
+                      className='text-button muted'
+                      disabled={p.busy}
+                      aria-label={`${member.displayName}님 ${member.blockedByMe ? '차단 해제' : '차단'}`}
+                      onClick={() => p.onBlock?.(member, !member.blockedByMe)}
+                    >
+                      {member.blockedByMe ? '차단 해제' : '차단'}
+                    </Button>
+                  )}
                 </Box>
               )}
           </Box>

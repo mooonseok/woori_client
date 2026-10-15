@@ -28,6 +28,9 @@ interface Props {
   onMore?: () => void;
   onEdit?: (id: string, body: string) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
+  currentUserId?: string;
+  onReport?: (comment: PhotoComment) => void;
+  onBlock?: (comment: PhotoComment) => void;
 }
 export function PhotoCommentsView({
   comments,
@@ -47,12 +50,16 @@ export function PhotoCommentsView({
   onMore,
   onEdit,
   onDelete,
+  currentUserId,
+  onReport,
+  onBlock,
 }: Props) {
   return (
     <Box
       className='viewer-comments'
       role='region'
       aria-label='사진 정보와 댓글'
+      tabIndex={-1}
       data-viewer-interactive='true'
     >
       <Header>
@@ -95,16 +102,25 @@ export function PhotoCommentsView({
             <Text>이 사진에 첫 한마디를 남겨 보세요.</Text>
           </Box>
         )}
-        {comments.map((comment) => (
-          <PhotoCommentItem
-            key={comment.id}
-            comment={comment}
-            disabled={pending || loading}
-            onPin={onPin}
-            onEdit={onEdit}
-            onDelete={onDelete}
-          />
-        ))}
+        {comments.map((comment) => {
+          // Only other people's comments can be reported or their author blocked.
+          const other =
+            !!currentUserId &&
+            !!comment.authorId &&
+            comment.authorId !== currentUserId;
+          return (
+            <PhotoCommentItem
+              key={comment.id}
+              comment={comment}
+              disabled={pending || loading}
+              onPin={onPin}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onReport={other && onReport ? () => onReport(comment) : undefined}
+              onBlock={other && onBlock ? () => onBlock(comment) : undefined}
+            />
+          );
+        })}
         {hasMore && (
           <Button disabled={loading || pending} onClick={onMore}>
             이전 댓글 더 보기
