@@ -16,11 +16,18 @@ import type { Album, Photo } from '@/dto/album.dto';
 import type { AlbumSearch } from '@/dto/album-search.dto';
 interface Props {
   albums: Album[];
+  live?: boolean;
   photos: Photo[];
   search: AlbumSearch;
   onOpen: (id: string) => void;
 }
-export function AlbumsView({ albums, photos, search: s, onOpen }: Props) {
+export function AlbumsView({
+  albums,
+  photos,
+  search: s,
+  onOpen,
+  live = false,
+}: Props) {
   const { input, trigger } = s;
   return (
     <Box>
@@ -83,7 +90,7 @@ export function AlbumsView({ albums, photos, search: s, onOpen }: Props) {
             onChange={(e) => s.setSort(e.target.value)}
           >
             <Option value='recent'>최신순</Option>
-            <Option value='taken'>촬영일순</Option>
+            {!live && <Option value='taken'>촬영일순</Option>}
           </Select>
           <Button className='primary' onClick={() => s.setCreating(true)}>
             <Icon name='plus' size={20} />

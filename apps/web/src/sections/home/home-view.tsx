@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import {
   Box,
   Section,
@@ -14,6 +15,7 @@ import { EmptyState } from '@/components/molecules/empty-state';
 import type { Album, Photo } from '@/dto/album.dto';
 interface Props {
   demo?: boolean;
+  memories?: ReactNode;
   albums: Album[];
   photos: Photo[];
   hero?: Photo;
@@ -24,6 +26,7 @@ interface Props {
 }
 export function HomeView({
   demo = true,
+  memories,
   albums,
   photos,
   hero,
@@ -32,7 +35,7 @@ export function HomeView({
   onAlbum,
   onAlbums,
 }: Props) {
-  if (!hero)
+  if (!hero && !memories)
     return (
       <EmptyState
         title={
@@ -51,30 +54,37 @@ export function HomeView({
     );
   return (
     <Box className='home-layout'>
-      <Section className='memory-section'>
-        <Button
-          className='hero-photo'
-          onClick={() => onPhoto(hero.id)}
-          aria-label='추억 사진 크게 보기'
-        >
-          <Image src={hero.src} alt={hero.alt} fetchPriority='high' />
-        </Button>
-        <Box className='memory-caption'>
-          <Text className='muted'>다시 꺼내 보는 우리</Text>
-          <Heading className='memory-title'>{albums[0].title}</Heading>
-          <Text className='muted'>
-            {albums[0].date.replaceAll('-', '.')} · 사진 {count}장
-          </Text>
-          {demo && (
-            <Text className='memory-quote'>
-              “이날 바닷바람이 참 시원했지.<Span> 다 같이 걸어서 좋았다.”</Span>
-            </Text>
-          )}
-          <Button className='text-button' onClick={() => onAlbum(albums[0].id)}>
-            사진 {count}장 보기 <Icon name='chevron-right' size={18} />
-          </Button>
-        </Box>
-      </Section>
+      {memories ||
+        (hero && (
+          <Section className='memory-section'>
+            <Button
+              className='hero-photo'
+              onClick={() => onPhoto(hero.id)}
+              aria-label='추억 사진 크게 보기'
+            >
+              <Image src={hero.src} alt={hero.alt} fetchPriority='high' />
+            </Button>
+            <Box className='memory-caption'>
+              <Text className='muted'>다시 꺼내 보는 우리</Text>
+              <Heading className='memory-title'>{albums[0].title}</Heading>
+              <Text className='muted'>
+                {albums[0].date.replaceAll('-', '.')} · 사진 {count}장
+              </Text>
+              {demo && (
+                <Text className='memory-quote'>
+                  “이날 바닷바람이 참 시원했지.
+                  <Span> 다 같이 걸어서 좋았다.”</Span>
+                </Text>
+              )}
+              <Button
+                className='text-button'
+                onClick={() => onAlbum(albums[0].id)}
+              >
+                사진 {count}장 보기 <Icon name='chevron-right' size={18} />
+              </Button>
+            </Box>
+          </Section>
+        ))}
       <Section className='recent-section'>
         <Header className='section-header'>
           <Heading>최근 앨범</Heading>
@@ -82,6 +92,14 @@ export function HomeView({
             전체 보기 <Icon name='chevron-right' size={18} />
           </Button>
         </Header>
+        {!albums.length && (
+          <EmptyState
+            title='첫 앨범을 만들어 보세요'
+            body='가족과 함께 나눌 사진을 한곳에 모아요.'
+            action='앨범 만들러 가기'
+            onAction={onAlbums}
+          />
+        )}
         <Box className='recent-grid'>
           {albums
             .slice()

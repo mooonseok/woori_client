@@ -20,10 +20,13 @@ import { PhotoCommentsView } from './photo-comments-view';
 import { ViewerToolbarView } from './viewer-toolbar-view';
 import { ActionConfirm } from '@/components/organisms/action-confirm/action-confirm';
 import { ViewerConfirm } from './viewer-confirm';
+import { CaptureDateDialog } from './capture-date-dialog';
+import { photoDateLabel } from '@/utils/photo-date';
 export function PhotoViewer(props: PhotoViewerProps) {
   return props.photos.length ? <PhotoViewerContainer {...props} /> : null;
 }
 function PhotoViewerContainer(props: PhotoViewerProps) {
+  const [editingDate, setEditingDate] = useState(false);
   const [deleting, setDeleting] = useState(false),
     [downloading, setDownloading] = useState(false),
     [downloadError, setDownloadError] = useState('');
@@ -72,6 +75,7 @@ function PhotoViewerContainer(props: PhotoViewerProps) {
       !!m.guide ||
       !!m.confirm ||
       deleting ||
+      editingDate ||
       m.savingComment ||
       m.mode === 'write',
     placing: m.mode === 'place',
@@ -168,6 +172,14 @@ function PhotoViewerContainer(props: PhotoViewerProps) {
                 }
               : undefined
           }
+          onEditCaptureDate={
+            props.onSetCaptureDate && m.photo.canEditCaptureDate
+              ? () => {
+                  m.setMore(false);
+                  setEditingDate(true);
+                }
+              : undefined
+          }
           comments={props.live ? interactions.commentTotal : comments.length}
           reactions={reactions}
           onReact={async (emoji) => {
@@ -255,7 +267,14 @@ function PhotoViewerContainer(props: PhotoViewerProps) {
             m.setPins(true);
             m.setPanel(false);
           }}
-          photoDescription={`${m.photo.capturedAt} · ${m.photo.alt}`}
+          photoDescription={`${photoDateLabel(m.photo.effectiveDate || m.photo.capturedAt, m.photo.dateSource)} · ${m.photo.alt}`}
+        />
+      )}
+      {editingDate && props.onSetCaptureDate && (
+        <CaptureDateDialog
+          photo={m.photo}
+          onSave={(date) => props.onSetCaptureDate!(m.photo, date)}
+          onClose={() => setEditingDate(false)}
         />
       )}
       {deleting && props.onDeletePhoto && (

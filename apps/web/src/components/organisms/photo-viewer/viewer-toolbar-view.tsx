@@ -9,6 +9,7 @@ import {
   Text,
 } from '@/components/atoms/ui';
 import { Icon } from '@/components/atoms/icon';
+import { photoDateLabel } from '@/utils/photo-date';
 import type { ReactionSummary } from '@/dto/photo-interactions.dto';
 import type { Reaction } from '@/dto/album.dto';
 import type { PhotoViewerModel, PhotoGestureModel } from '@/dto/viewer-ui.dto';
@@ -18,6 +19,7 @@ interface Props {
   downloadError: string;
   onDownloadOriginal?: () => Promise<void>;
   onDelete?: () => void;
+  onEditCaptureDate?: () => void;
   interactionsEnabled: boolean;
   model: PhotoViewerModel;
   gestures: PhotoGestureModel;
@@ -45,6 +47,7 @@ export function ViewerToolbarView({
   downloadError,
   onDownloadOriginal,
   onDelete,
+  onEditCaptureDate,
   model: m,
   gestures: g,
   count,
@@ -191,6 +194,14 @@ export function ViewerToolbarView({
       )}
       {m.more && (
         <Box className='viewer-menu' role='group' aria-label='사진 메뉴'>
+          {m.photo.capturedAt && (
+            <Text className='muted memory-date-note'>
+              {photoDateLabel(
+                m.photo.effectiveDate || m.photo.capturedAt,
+                m.photo.dateSource
+              )}
+            </Text>
+          )}
           {onDownloadOriginal && (
             <Button
               disabled={downloading}
@@ -204,6 +215,11 @@ export function ViewerToolbarView({
             <Text role='alert' className='viewer-download-error'>
               {downloadError}
             </Text>
+          )}
+          {onEditCaptureDate && (
+            <Button disabled={downloading} onClick={onEditCaptureDate}>
+              촬영일 수정
+            </Button>
           )}
           {onDelete && (
             <Button

@@ -1,7 +1,7 @@
 {
   "name": "woori_client",
   "product": "우리",
-  "status": "group-lifecycle-management",
+  "status": "photo-dates-and-memories",
   "plans": "/Users/parkmoonseok/.Codex/projects/woori_client/plans",
   "sharedPlan": "/Users/parkmoonseok/.Codex/projects/woori/plans/00-product-plan.md",
   "implemented": [
@@ -20,14 +20,18 @@
     "explicit per-browser Web Push subscriptions with authenticated display authorization, logout cleanup, installable manifest and safe notification deep links",
     "live username recovery, one-time password reset and current-user profile name editing; recovery token kept only in memory after URL removal",
     "live group roster and owner rename/remove/ownership-transfer/delete; member leave and exact-name deletion confirmation",
-    "membership revalidation on focus/visibility and denied group/photo requests; confirmed revocation clears photo blobs, viewer, invitations and notification state without treating network failure as membership loss"
+    "membership revalidation on focus/visibility and denied group/photo requests; confirmed revocation clears photo blobs, viewer, invitations and notification state without treating network failure as membership loss",
+    "membership-scoped today/month memories with fixed Korean UTC+09 calendar, leap-day policy, bounded cursor pagination and per-user hide/restore",
+    "manual capture date above validated EXIF above upload date; owner/uploader editing with date-source labels and restore",
+    "real R2 EXIF upload and bounded existing-photo backfill verified with synthetic images; manual date preserved during concurrent backfill"
   ],
   "notImplemented": [
     "account deletion and email/password changes while logged in",
     "admin operations and native token authentication",
     "production cloud deployment",
     "HEIC conversion",
-    "native FCM/APNs push subscriptions and delivery"
+    "native FCM/APNs push subscriptions and delivery",
+    "automatic memory push notifications"
   ],
   "deployment": {
     "api": "Railway paid; Serverless off",
@@ -50,5 +54,14 @@
     "retention": "group/album/photo tombstones and comment metadata retained; this is not an account-data purge",
     "cleanupDelay": "existing upload/processing expiry grace preserved; requires running API and separate worker",
     "databaseChanges": "no new migration or runtime grants required"
+  },
+  "photoMemories": {
+    "datePriority": "manual calendar date > EXIF DateTimeOriginal > upload date",
+    "calendar": "fixed UTC+09:00; today/month use previous years; February 29 appears February 28 in non-leap years; today excluded from month",
+    "exif": "explicit offset honored; missing offset assumes +09:00; malformed/future dates fall back to upload",
+    "permissions": "current active member reads/hides own memories; uploader or active owner edits shared capture date",
+    "hiding": "personal and reversible; album content and other members unaffected",
+    "push": "no automatic memory push",
+    "verification": "isolated PostgreSQL, real private R2 synthetic JPEGs, Chrome owner/member and 390px responsive viewport"
   }
 }

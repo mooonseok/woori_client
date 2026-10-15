@@ -1,3 +1,4 @@
+import type { PhotoDateSource } from './memories.dto';
 export interface AlbumResponse {
   id: string;
   groupId: string;
@@ -15,6 +16,9 @@ export interface PhotoResponse {
   height: number;
   createdAt: string;
   capturedAt: string | null;
+  effectiveDate?: string;
+  dateSource?: PhotoDateSource;
+  canEditCaptureDate?: boolean;
   status: 'READY';
   canDelete: boolean;
 }

@@ -146,6 +146,7 @@ function Shell({ children }: { children: ReactNode }) {
           onClose={gallery.closeViewer}
           onDownloadOriginal={gallery.downloadOriginal}
           onDeletePhoto={gallery.deletePhoto}
+          onSetCaptureDate={gallery.setCaptureDate}
         />
       )}
       {gallery.toast && (
