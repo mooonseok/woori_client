@@ -1,7 +1,7 @@
 {
   "name": "woori_client",
   "product": "우리",
-  "status": "photo-dates-and-memories",
+  "status": "mobile-photo-stability-device-validation-pending",
   "plans": "/Users/parkmoonseok/.Codex/projects/woori_client/plans",
   "sharedPlan": "/Users/parkmoonseok/.Codex/projects/woori/plans/00-product-plan.md",
   "implemented": [
@@ -23,7 +23,10 @@
     "membership revalidation on focus/visibility and denied group/photo requests; confirmed revocation clears photo blobs, viewer, invitations and notification state without treating network failure as membership loss",
     "membership-scoped today/month memories with fixed Korean UTC+09 calendar, leap-day policy, bounded cursor pagination and per-user hide/restore",
     "manual capture date above validated EXIF above upload date; owner/uploader editing with date-source labels and restore",
-    "real R2 EXIF upload and bounded existing-photo backfill verified with synthetic images; manual date preserved during concurrent backfill"
+    "real R2 EXIF upload and bounded existing-photo backfill verified with synthetic images; manual date preserved during concurrent backfill",
+    "batch preflight deduplication and limits, scoped transfer/acceptance progress, permanent-file errors separated from retryable transfer failures",
+    "durable own-upload status recovery after reload, bounded visibility-aware polling and READY gallery refresh",
+    "shared original-download EXIF/GPS notice in gallery and notification viewers"
   ],
   "notImplemented": [
     "account deletion and email/password changes while logged in",
@@ -44,7 +47,8 @@
     "web": "http://localhost:3210",
     "api": "http://localhost:3001",
     "appMode": "live",
-    "demoMode": "NEXT_PUBLIC_APP_MODE=demo; isolated sample data only"
+    "demoMode": "NEXT_PUBLIC_APP_MODE=demo; isolated sample data only",
+    "photoWorker": "Server must run pnpm start:worker separately after pnpm build; API alone only accepts queued processing."
   },
   "groupManagement": {
     "albumTitlePermission": "active group owner only",
@@ -63,5 +67,14 @@
     "hiding": "personal and reversible; album content and other members unaffected",
     "push": "no automatic memory push",
     "verification": "isolated PostgreSQL, real private R2 synthetic JPEGs, Chrome owner/member and 390px responsive viewport"
+  },
+  "photoProcessing": {
+    "limits": "30MiB per file, 30 unique files and 300MiB per browser selection; 60,000,000 decoded pixels. Exact selection duplicates removed before reservation.",
+    "queue": "Direct staging PUT then POST process returns 202; durable Photo queue is handled by the separate worker. Accepted processing survives page close; client-to-R2 transfer does not.",
+    "recovery": "Five attempts, five-minute fenced lease and 24-hour acceptance deadline; bounded exponential retry. Failed terminal jobs require selecting the file again.",
+    "originals": "Original bytes and EXIF/GPS preserved; display/thumbnail metadata removed. Download menu warns about original location metadata.",
+    "heic": "Unsupported: official synthetic HEVC HEIC metadata was readable but installed sharp/libvips could not decode pixels. Deployment-compatible decoder remains a separate decision.",
+    "verification": "Actual private R2 synthetic 48MP JPEG and oriented JPEG, Chrome member upload and owner viewing, reload job recovery, invalid JPEG failure, HEIC/31-file preflight, original byte equality and metadata-stripped oriented display verified.",
+    "remaining": "Physical iPhone/Android photo picker, save/share behavior, EXIF orientation with pin comments and deployment memory/load measurement remain unverified; W04 stays in_progress."
   }
 }

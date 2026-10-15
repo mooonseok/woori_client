@@ -13,8 +13,12 @@ import {
 } from '@/components/atoms/ui';
 import { Icon } from '@/components/atoms/icon';
 import { EmptyState } from '@/components/molecules/empty-state';
+import type { UploadProgress, UploadJobsView } from '@/dto/media.dto';
+import { UploadStatus } from '@/components/organisms/upload-status/upload-status';
 import { AlbumManagement } from '@/components/organisms/album-management/album-management';
 interface Props {
+  uploads: UploadJobsView;
+  uploadProgress: UploadProgress | null;
   onRename: (title: string) => Promise<void>;
   onDelete: () => Promise<void>;
   live: boolean;
@@ -37,6 +41,8 @@ interface Props {
   onBack: () => void;
 }
 export function AlbumView({
+  uploads,
+  uploadProgress,
   live,
   onRename,
   onDelete,
@@ -113,12 +119,13 @@ export function AlbumView({
       />
       <Text className='preview-note'>
         {live
-          ? 'JPG · PNG · WebP, 한 장당 30MB · 한 번에 30장까지 올릴 수 있어요.'
+          ? 'JPG · PNG · WebP, 한 장당 30MB · 한 번에 30장·합계 300MB까지 올릴 수 있어요. 같은 선택 안의 중복 파일은 한 번만 전송해요. HEIC는 JPG로 변환해 주세요.'
           : '선택한 사진은 이 기기에서만 미리 볼 수 있어요. 실제 업로드는 서버 연결 후 제공됩니다.'}
       </Text>
+      {live && <UploadStatus progress={uploadProgress} jobs={uploads} />}
       {busy && live && (
         <Button className='text-button' onClick={onCancelUpload}>
-          업로드 중단
+          이 기기 전송 중단
         </Button>
       )}
       {loading && <Text role='status'>사진을 불러오고 있어요…</Text>}
@@ -132,7 +139,11 @@ export function AlbumView({
       )}
       {failures.length > 0 && (
         <Box className='error-notice' role='alert'>
-          <Text>일부 사진을 저장하지 못했어요.</Text>
+          <Text>
+            {live
+              ? '일부 사진을 전송하거나 접수하지 못했어요.'
+              : '일부 사진을 미리 볼 수 없어요.'}
+          </Text>
           <Ul>
             {failures.map((f) => (
               <Li key={f}>{f}</Li>

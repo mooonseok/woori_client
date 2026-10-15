@@ -28,6 +28,8 @@ type GalleryStore = Omit<
   photoError?: string;
   nextCursor?: string | null;
   failedFiles?: File[];
+  uploadProgress?: import('@/dto/media.dto').UploadProgress | null;
+  refreshProcessedPhotos?: (albumId: string) => Promise<void>;
   cancelUploads?: () => void;
   renameAlbum?: (albumId: string, title: string) => Promise<void>;
   deleteAlbum?: (albumId: string) => Promise<void>;

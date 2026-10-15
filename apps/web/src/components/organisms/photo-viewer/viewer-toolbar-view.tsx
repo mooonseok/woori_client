@@ -211,6 +211,12 @@ export function ViewerToolbarView({
               {downloading ? '원본 받는 중…' : '원본 다운로드'}
             </Button>
           )}
+          {onDownloadOriginal && (
+            <Text className='muted memory-date-note'>
+              원본에는 촬영 위치(GPS) 등 사진 정보가 포함될 수 있어요. 다른 곳에
+              공유할 때 확인해 주세요.
+            </Text>
+          )}
           {downloadError && (
             <Text role='alert' className='viewer-download-error'>
               {downloadError}

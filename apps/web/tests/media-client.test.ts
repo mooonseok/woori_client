@@ -270,3 +270,200 @@ test('original downloads use supported MIME extensions and reject unknown media'
   mime = 'text/html';
   await assert.rejects(originalPhoto('g', 'a', 'p', signal), /원본 사진 형식/);
 });
+
+test('selection checks the entire deduplicated batch before any upload reservation', async () => {
+  const { photoSelection } = await import('../src/services/media-client.ts');
+  const duplicate = new File(['image'], file.name, {
+    type: file.type,
+    lastModified: file.lastModified,
+  });
+  assert.equal(photoSelection([file, duplicate]).files.length, 1);
+  assert.equal(photoSelection([file, duplicate]).duplicates, 1);
+  // File identity is not used and equal names with changed size/date/type are distinct.
+  const variants = [
+    duplicate,
+    new File(['different'], file.name, {
+      type: file.type,
+      lastModified: file.lastModified,
+    }),
+    new File(['image'], file.name, {
+      type: file.type,
+      lastModified: file.lastModified + 1,
+    }),
+    new File(['image'], file.name, {
+      type: 'image/png',
+      lastModified: file.lastModified,
+    }),
+  ];
+  assert.equal(photoSelection(variants).files.length, 4);
+  const files = Array.from(
+    { length: 31 },
+    (_, index) => new File(['x'], `${index}.jpg`, { type: 'image/jpeg' })
+  );
+  assert.equal(photoSelection(files.slice(0, 30)).files.length, 30);
+  assert.throws(() => photoSelection(files), /30장/);
+  const large = Array.from(
+    { length: 11 },
+    (_, index) =>
+      ({
+        name: `${index}.jpg`,
+        type: 'image/jpeg',
+        size: 30 * 1024 * 1024,
+        lastModified: 0,
+      }) as File
+  );
+  assert.equal(photoSelection(large.slice(0, 10)).files.length, 10);
+  assert.throws(() => photoSelection(large), /300MB/);
+  assert.deepEqual(photoSelection([]), { files: [], duplicates: 0 });
+});
+
+test('queue acceptance does not claim a READY photo and uncertain responses retry the same job', async (t) => {
+  const { queuePhoto } = await import('../src/services/media-client.ts');
+  const calls: string[] = [];
+  const phases: string[] = [];
+  let fail = true;
+  setup(t, async (input) => {
+    const url = String(input);
+    calls.push(url);
+    if (url.endsWith('/uploads')) return Response.json(ticket);
+    if (url === ticket.uploadUrl) return new Response(null, { status: 200 });
+    assert.ok(url.endsWith('/photos/photo-1/process'));
+    if (fail) {
+      fail = false;
+      throw new Error('response lost');
+    }
+    return Response.json(
+      {
+        photoId: 'photo-1',
+        status: 'PROCESSING',
+        phase: 'QUEUED',
+        retryAfterSeconds: 4,
+        errorCode: null,
+      },
+      { status: 202 }
+    );
+  });
+  const pending: PendingUpload = { uploaded: false },
+    signal = new AbortController().signal;
+  await assert.rejects(
+    queuePhoto('g', 'a', file, pending, signal, (phase) => phases.push(phase))
+  );
+  const job = await queuePhoto('g', 'a', file, pending, signal);
+  assert.equal(job.status, 'PROCESSING');
+  assert.equal(job.photo, undefined);
+  assert.deepEqual(phases, ['RESERVING', 'UPLOADING', 'QUEUING']);
+  assert.equal(calls.filter((url) => url.endsWith('/uploads')).length, 1);
+  assert.equal(calls.filter((url) => url === ticket.uploadUrl).length, 1);
+});
+
+test('queue cancellation after PUT never calls process and status queries stay authenticated and scoped', async (t) => {
+  const { queuePhoto, listUploads, processingPhoto } =
+    await import('../src/services/media-client.ts');
+  const controller = new AbortController();
+  let processCalled = false;
+  setup(t, async (input, init) => {
+    const url = String(input);
+    if (url.endsWith('/uploads')) return Response.json(ticket);
+    if (url === ticket.uploadUrl) {
+      controller.abort();
+      return new Response(null, { status: 200 });
+    }
+    if (url.endsWith('/process')) processCalled = true;
+    assert.equal(init?.credentials, 'include');
+    assert.equal(init?.cache, 'no-store');
+    assert.match(url, /groups\/g%2F1\/albums\/a%2F1/);
+    if (url.includes('/uploads?')) {
+      assert.match(url, /activeOnly=true/);
+      assert.match(url, /limit=100/);
+      return Response.json({ uploads: [], nextCursor: null });
+    }
+    return Response.json({
+      photoId: 'p/1',
+      status: 'READY',
+      phase: 'READY',
+      retryAfterSeconds: null,
+      errorCode: null,
+      photo,
+    });
+  });
+  await assert.rejects(
+    queuePhoto('g', 'a', file, { uploaded: false }, controller.signal),
+    { name: 'AbortError' }
+  );
+  assert.equal(processCalled, false);
+  const signal = new AbortController().signal;
+  assert.deepEqual(await listUploads('g/1', 'a/1', null, signal, true), {
+    uploads: [],
+    nextCursor: null,
+  });
+  assert.equal(
+    (await processingPhoto('g/1', 'a/1', 'p/1', signal)).status,
+    'READY'
+  );
+});
+
+test('job recovery includes active jobs outside the recent page and resolves disappeared processing jobs', async (t) => {
+  const { recoverUploads } = await import('../src/services/media-client.ts');
+  const working = {
+    photoId: 'older',
+    status: 'PROCESSING' as const,
+    phase: 'PROCESSING' as const,
+    retryAfterSeconds: 4,
+    errorCode: null,
+  };
+  setup(t, async (input) => {
+    const url = String(input);
+    if (url.includes('activeOnly=true'))
+      return Response.json({
+        uploads: [{ ...working, photoId: 'active-old' }],
+        nextCursor: null,
+      });
+    if (url.endsWith('/older/processing'))
+      return Response.json({
+        ...working,
+        status: 'READY',
+        phase: 'READY',
+        photo,
+      });
+    return Response.json({
+      uploads: [
+        {
+          ...working,
+          photoId: 'newest',
+          status: 'FAILED',
+          phase: 'FAILED',
+          errorCode: 'INVALID_PHOTO_FILE',
+        },
+      ],
+      nextCursor: 'other-page',
+    });
+  });
+  const jobs = await recoverUploads(
+    'g',
+    'a',
+    [working],
+    new AbortController().signal
+  );
+  assert.equal(jobs.length, 3);
+  assert.equal(
+    jobs.find((job) => job.photoId === 'active-old')?.status,
+    'PROCESSING'
+  );
+  assert.equal(jobs.find((job) => job.photoId === 'older')?.status, 'READY');
+  assert.equal(
+    jobs.find((job) => job.photoId === 'newest')?.errorCode,
+    'INVALID_PHOTO_FILE'
+  );
+});
+
+test('a cancelled recovery cannot publish stale account jobs even if a fetch ignores abort', async (t) => {
+  const { recoverUploads } = await import('../src/services/media-client.ts');
+  const controller = new AbortController();
+  setup(t, async () => {
+    controller.abort();
+    return Response.json({ uploads: [], nextCursor: null });
+  });
+  await assert.rejects(recoverUploads('g', 'a', [], controller.signal), {
+    name: 'AbortError',
+  });
+});
