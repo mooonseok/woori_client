@@ -1,5 +1,7 @@
 import { apiRequest } from './api-client.ts';
 import type {
+  AccountDeletionInput,
+  AccountDeletionPreview,
   EmailChangeInput,
   PasswordChangeInput,
 } from '../dto/account-settings.dto.ts';
@@ -29,5 +31,17 @@ export function confirmEmailChange(token: string, signal?: AbortSignal) {
     method: 'POST',
     body: JSON.stringify({ token }),
     signal,
+  });
+}
+
+export function getAccountDeletionPreview(signal?: AbortSignal) {
+  return apiRequest<AccountDeletionPreview>('/v1/auth/account-deletion', {
+    signal,
+  });
+}
+export function deleteAccount(input: AccountDeletionInput) {
+  return apiRequest<void>('/v1/auth/account-deletion', {
+    method: 'POST',
+    body: JSON.stringify(input),
   });
 }

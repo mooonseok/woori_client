@@ -240,3 +240,12 @@
   flex-wrap: wrap;
   gap: 16px;
 }
+
+.account-deletion-form .danger-button {
+  background: #a82424;
+  color: white;
+}
+.account-settings .group-list-row > p {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
