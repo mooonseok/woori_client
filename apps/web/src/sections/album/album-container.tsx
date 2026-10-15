@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useGallery } from '@/hooks/use-gallery';
 import { GalleryStatus } from '@/components/organisms/gallery-status/gallery-status';
+import { useUploadJobs } from '@/hooks/use-upload-jobs';
 import { AlbumView } from './album-view';
 export function AlbumContainer() {
   const params = useSearchParams(),
@@ -10,11 +11,21 @@ export function AlbumContainer() {
     gallery = useGallery();
   const fileRef = useRef<HTMLInputElement>(null),
     [busy, setBusy] = useState(false),
-    [failures, setFailures] = useState<string[]>([]);
+    [failures, setFailures] = useState<string[]>([]),
+    [uploadRevision, setUploadRevision] = useState(0);
   const id = params.get('id'),
     album = gallery.data.albums.find(
       (a) => a.id === id && a.groupId === gallery.groupId
     );
+  const uploads = useUploadJobs(
+    gallery.groupId,
+    album?.id || '',
+    gallery.mode === 'live',
+    async () => {
+      if (album) await gallery.refreshProcessedPhotos?.(album.id);
+    },
+    uploadRevision
+  );
   const photos = gallery.data.photos.filter((p) => p.albumId === album?.id);
   const mediaRef = useRef(gallery),
     revision = useRef(0);
@@ -46,13 +57,16 @@ export function AlbumContainer() {
       if (current !== revision.current) return;
       setFailures(result.failures);
       gallery.setToast(
-        gallery.mode === 'demo'
-          ? `${result.added}장을 이 기기에서 미리보고 있어요. 서버에는 업로드되지 않았어요.`
-          : `${result.added}장의 사진을 저장했어요.`
+        result.added > 0
+          ? gallery.mode === 'demo'
+            ? `${result.added}장을 이 기기에서 미리보고 있어요. 서버에는 업로드되지 않았어요.`
+            : `${result.added}장의 사진을 처리하도록 접수했어요.`
+          : ''
       );
     } finally {
       if (current === revision.current) {
         setBusy(false);
+        setUploadRevision((n) => n + 1);
         if (fileRef.current) fileRef.current.value = '';
       }
     }
@@ -77,6 +91,12 @@ export function AlbumContainer() {
       loading={gallery.photoLoading || false}
       error={gallery.photoError || ''}
       hasMore={!!gallery.nextCursor}
+      uploads={uploads}
+      uploadProgress={
+        gallery.uploadProgress?.albumId === album?.id
+          ? gallery.uploadProgress || null
+          : null
+      }
       canRetry={!!gallery.failedFiles?.length}
       onRetryUpload={() => void add(gallery.failedFiles || [])}
       onCancelUpload={() => gallery.cancelUploads?.()}

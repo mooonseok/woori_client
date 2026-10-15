@@ -32,3 +32,28 @@ export interface PendingUpload {
   ticket?: UploadTicket;
   uploaded: boolean;
 }
+
+export interface UploadJobResponse {
+  photoId: string;
+  status: 'PROCESSING' | 'READY' | 'FAILED';
+  phase: 'QUEUED' | 'PROCESSING' | 'RETRY_WAIT' | 'READY' | 'FAILED';
+  retryAfterSeconds: number | null;
+  errorCode: string | null;
+  photo?: PhotoResponse;
+}
+export interface UploadProgress {
+  groupId: string;
+  albumId: string;
+  current: number;
+  total: number;
+  filename: string;
+  phase: 'RESERVING' | 'UPLOADING' | 'QUEUING';
+}
+
+export interface UploadJobsView {
+  jobs: UploadJobResponse[];
+  error: string;
+  paused: boolean;
+  loading: boolean;
+  reload: () => void;
+}

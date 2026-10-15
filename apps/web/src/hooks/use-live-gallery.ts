@@ -6,6 +6,7 @@ import type {
   AlbumResponse,
   PendingUpload,
   PhotoResponse,
+  UploadProgress,
 } from '@/dto/media.dto';
 import {
   apiRequest,
@@ -41,6 +42,9 @@ export function useLiveGalleryState() {
   const [photoLoading, setPhotoLoading] = useState(false),
     [photoError, setPhotoError] = useState('');
   const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(
+    null
+  );
   const [failedFiles, setFailedFiles] = useState<File[]>([]);
   const scope = useRef(new AbortController()),
     urls = useRef(new Set<string>()),
@@ -483,6 +487,17 @@ export function useLiveGalleryState() {
         added: 0,
         failures: ['사진을 저장하고 있어요. 잠시 기다려 주세요.'],
       };
+    let selection: ReturnType<typeof media.photoSelection>;
+    try {
+      selection = media.photoSelection(files);
+    } catch (error) {
+      return {
+        added: 0,
+        failures: [
+          error instanceof Error ? error.message : '사진을 선택하지 못했어요.',
+        ],
+      };
+    }
     const parent = scope.current.signal,
       controller = new AbortController();
     uploadController.current = controller;
@@ -495,38 +510,47 @@ export function useLiveGalleryState() {
       failed: File[] = [];
     let added = 0;
     try {
-      const selected = files.slice(0, 30);
+      const selected = selection.files;
       for (let index = 0; index < selected.length; index++) {
         const file = selected[index];
         if (controller.signal.aborted) {
           failed.push(...selected.slice(index));
           break;
         }
+        // Invalid files need replacement/conversion, not a network retry.
+        try {
+          media.validatePhoto(file);
+        } catch (error) {
+          pending.current.delete(file);
+          failures.push(
+            `${file.name}: ${error instanceof Error ? error.message : '지원하는 사진인지 확인해 주세요.'}`
+          );
+          continue;
+        }
         const state = pending.current.get(file) || { uploaded: false };
         pending.current.set(file, state);
         try {
-          const photo = await media.uploadPhoto(
+          await media.queuePhoto(
             groupId,
             albumId,
             file,
             state,
-            controller.signal
+            controller.signal,
+            (phase) => {
+              if (!controller.signal.aborted)
+                setUploadProgress({
+                  groupId,
+                  albumId,
+                  current: index + 1,
+                  total: selected.length,
+                  filename: file.name,
+                  phase,
+                });
+            }
           );
           controller.signal.throwIfAborted();
           pending.current.delete(file);
           added++;
-          setData((d) => ({
-            ...d,
-            albums: d.albums.map((a) =>
-              a.id === albumId
-                ? {
-                    ...a,
-                    photoCount: (a.photoCount || 0) + 1,
-                    coverId: a.coverId || photo.id,
-                  }
-                : a
-            ),
-          }));
         } catch (e) {
           if (controller.signal.aborted) {
             failed.push(...selected.slice(index));
@@ -534,21 +558,16 @@ export function useLiveGalleryState() {
           }
           failed.push(file);
           failures.push(
-            `${file.name}: ${e instanceof Error ? e.message : '저장하지 못했어요.'}`
+            `${file.name}: ${e instanceof Error ? e.message : '사진을 접수하지 못했어요.'}`
           );
         }
       }
-      if (files.length > 30)
-        failures.push(
-          '한 번에 30장까지 올릴 수 있어요. 나머지는 다시 선택해 주세요.'
-        );
       if (!parent.aborted && loadedAlbum.current === albumId) {
         setFailedFiles(failed);
-        if (added) await loadPhotos(albumId);
       }
       if (controller.signal.aborted && !parent.aborted)
         failures.push(
-          '업로드를 중단했어요. 이미 저장된 사진은 앨범에 남아 있어요. 완료를 확인하지 못한 사진은 다시 시도할 수 있어요.'
+          '이 기기의 전송을 중단했어요. 서버에 접수된 사진은 계속 처리돼요. 접수를 확인하지 못한 사진은 다시 시도할 수 있어요.'
         );
       if (added && !parent.aborted)
         window.dispatchEvent(new Event(MEMORIES_CHANGED));
@@ -556,6 +575,7 @@ export function useLiveGalleryState() {
     } finally {
       parent.removeEventListener('abort', cancel);
       uploadController.current = null;
+      if (!parent.aborted) setUploadProgress(null);
     }
   }
   async function openPhoto(id: string) {
@@ -687,6 +707,16 @@ export function useLiveGalleryState() {
     nextCursor,
     loadPhotos,
     failedFiles,
+    uploadProgress: uploadProgress?.groupId === groupId ? uploadProgress : null,
+    refreshProcessedPhotos: async (albumId: string) => {
+      const signal = scope.current.signal;
+      await loadPhotos(albumId);
+      if (!signal.aborted) {
+        const { albums } = await media.listAlbums(groupId, signal);
+        if (!signal.aborted)
+          setData((d) => ({ ...d, albums: albums.map(albumModel) }));
+      }
+    },
     cancelUploads: () => uploadController.current?.abort(),
     toast,
     setToast,

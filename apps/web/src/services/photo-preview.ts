@@ -5,7 +5,7 @@ export async function readPhotoPreview(
 ): Promise<Photo> {
   if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type))
     throw new Error(
-      'JPEG, PNG, WebP 사진을 선택해 주세요. HEIC는 서버 연결 후 지원합니다.'
+      'JPEG, PNG, WebP 사진을 선택해 주세요. HEIC는 JPG로 변환해 주세요.'
     );
   if (file.size > 20 * 1024 * 1024)
     throw new Error('사진 한 장은 20MB 이하로 선택해 주세요.');

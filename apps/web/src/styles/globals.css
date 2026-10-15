@@ -972,3 +972,21 @@ svg {
     grid-template-columns: 1fr;
   }
 }
+
+.upload-status {
+  margin-block: 12px;
+  overflow-wrap: anywhere;
+}
+.upload-status p {
+  margin-block: 6px;
+}
+.upload-job-list {
+  list-style: none;
+  padding: 0;
+  max-height: 240px;
+  overflow: auto;
+}
+.upload-job-list li {
+  padding-block: 8px;
+  border-bottom: 1px solid var(--border, #e5e7eb);
+}
