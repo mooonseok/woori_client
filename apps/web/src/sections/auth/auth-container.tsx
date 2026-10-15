@@ -50,6 +50,7 @@ export function AuthContainer({ signup = false }: { signup?: boolean }) {
       pending={pending}
       error={error}
       passwordReset={search.get('passwordReset') === '1'}
+      emailChanged={search.get('emailChanged') === '1'}
       recoveryNext={next}
       alternate={authDestination(signup ? '/login' : '/signup', next)}
       onSubmit={submit}

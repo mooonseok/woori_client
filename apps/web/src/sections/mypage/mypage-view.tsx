@@ -53,6 +53,19 @@ export function MypageView({
           프로필 수정
         </Button>
       </Section>
+      {live && (
+        <Section>
+          <Heading className='setting-heading'>계정</Heading>
+          <Button
+            className='menu-row'
+            onClick={() => onNavigate('/account-settings')}
+          >
+            <Icon name='user' />
+            <Span>계정 설정</Span>
+            <Icon name='chevron-right' />
+          </Button>
+        </Section>
+      )}
       <Section>
         <Heading className='setting-heading'>알림</Heading>
         <Button

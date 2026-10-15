@@ -16,6 +16,7 @@ interface Props {
   alternate: string;
   recoveryNext: string;
   passwordReset: boolean;
+  emailChanged: boolean;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }
 export function AuthView({
@@ -25,6 +26,7 @@ export function AuthView({
   alternate,
   recoveryNext,
   passwordReset,
+  emailChanged,
   onSubmit,
 }: Props) {
   return (
@@ -42,6 +44,12 @@ export function AuthView({
         <Text role='status' className='notice-panel'>
           비밀번호를 바꿨어요. 새 비밀번호로 로그인해 주세요. 기존 기기의
           로그인이 해제됐으니 알림도 다시 켜 주세요.
+        </Text>
+      )}
+      {!signup && emailChanged && (
+        <Text role='status' className='notice-panel'>
+          이메일을 바꿨어요. 기존 아이디와 비밀번호로 다시 로그인해 주세요. 모든
+          기기의 로그인이 해제됐으니 알림도 기기마다 다시 켜 주세요.
         </Text>
       )}
       <Form className='stack-form' onSubmit={onSubmit} aria-busy={pending}>
