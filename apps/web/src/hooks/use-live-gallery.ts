@@ -7,7 +7,12 @@ import type {
   PendingUpload,
   PhotoResponse,
 } from '@/dto/media.dto';
-import { apiRequest, post } from '@/services/api-client';
+import {
+  apiRequest,
+  post,
+  GROUP_ACCESS_RECHECK,
+  GROUP_MEMBERSHIP_CHANGED,
+} from '@/services/api-client';
 import * as media from '@/services/media-client';
 const EMPTY: GalleryData = {
   groups: [],
@@ -25,6 +30,7 @@ export function useLiveGalleryState() {
   const { user } = useAuth();
   const [data, setData] = useState<GalleryData>(EMPTY);
   const [groupId, selectGroup] = useState('');
+  const selectedGroup = useRef('');
   const [loading, setLoading] = useState(true),
     [error, setError] = useState(''),
     [toast, setToast] = useState('');
@@ -70,19 +76,38 @@ export function useLiveGalleryState() {
     try {
       const { groups } = await apiRequest<{ groups: Group[] }>('/v1/groups');
       if (current !== request.current) return;
-      setData((d) => ({ ...d, groups }));
-      selectGroup((id) =>
-        groups.some((g) => g.id === id) ? id : groups[0]?.id || ''
+      const previousId = selectedGroup.current;
+      const nextId = groups.some((g) => g.id === previousId)
+        ? previousId
+        : groups[0]?.id || '';
+      const removed = dataRef.current.groups.some(
+        (old) => !groups.some((g) => g.id === old.id)
       );
+      if (previousId && previousId !== nextId) {
+        dispose();
+        setViewer(null);
+        setNextCursor(null);
+        setPhotoError('');
+        setPhotoLoading(false);
+        setFailedFiles([]);
+        dataRef.current = { ...EMPTY, groups };
+        setData(dataRef.current);
+      } else {
+        dataRef.current = { ...dataRef.current, groups };
+        setData((d) => ({ ...d, groups }));
+      }
+      selectedGroup.current = nextId;
+      selectGroup(nextId);
+      if (removed) window.dispatchEvent(new Event(GROUP_MEMBERSHIP_CHANGED));
+      return groups;
     } catch (e) {
       if (current === request.current) {
-        setData(EMPTY);
         setError(e instanceof Error ? e.message : '그룹을 불러오지 못했어요.');
       }
     } finally {
       if (current === request.current) setLoading(false);
     }
-  }, [user]);
+  }, [user, dispose]);
   useEffect(() => {
     let active = true;
     const counter = request;
@@ -149,6 +174,59 @@ export function useLiveGalleryState() {
       }
     }
   }, []);
+  const refresh = useCallback(async () => {
+    const signal = scope.current.signal,
+      id = selectedGroup.current;
+    const groups = await reload();
+    if (!groups || !id || selectedGroup.current !== id || signal.aborted)
+      return;
+    setLoading(true);
+    try {
+      await fetchAlbums(id, signal);
+    } catch (e) {
+      if (!signal.aborted)
+        setError(e instanceof Error ? e.message : '앨범을 불러오지 못했어요.');
+    } finally {
+      if (!signal.aborted) setLoading(false);
+    }
+  }, [reload, fetchAlbums]);
+  useEffect(() => {
+    let active = true,
+      busy = false,
+      recheckPending = false;
+    const check = async (accessOnly: boolean) => {
+      if (!active) return;
+      if (busy) {
+        if (accessOnly) recheckPending = true;
+        return;
+      }
+      busy = true;
+      try {
+        await (accessOnly ? reload() : refresh());
+      } finally {
+        busy = false;
+        if (active && recheckPending) {
+          recheckPending = false;
+          void check(true);
+        }
+      }
+    };
+    const focus = () => {
+      if (document.visibilityState === 'visible') void check(false);
+    };
+    const denied = () => {
+      void check(true);
+    };
+    window.addEventListener('focus', focus);
+    document.addEventListener('visibilitychange', focus);
+    window.addEventListener(GROUP_ACCESS_RECHECK, denied);
+    return () => {
+      active = false;
+      window.removeEventListener('focus', focus);
+      document.removeEventListener('visibilitychange', focus);
+      window.removeEventListener(GROUP_ACCESS_RECHECK, denied);
+    };
+  }, [reload, refresh]);
   useEffect(() => {
     dispose();
     const controller = new AbortController();
@@ -187,6 +265,7 @@ export function useLiveGalleryState() {
     dispose();
     setData((d) => ({ ...EMPTY, groups: d.groups }));
     setViewer(null);
+    selectedGroup.current = id;
     selectGroup(id);
   }
   async function loadPhoto(
@@ -485,22 +564,23 @@ export function useLiveGalleryState() {
     setGroupId,
     loading,
     error,
-    reload: async () => {
-      const signal = scope.current.signal;
-      await reload();
-      if (groupId && !signal.aborted) {
-        setLoading(true);
-        try {
-          await fetchAlbums(groupId, signal);
-        } catch (e) {
-          if (!signal.aborted)
-            setError(
-              e instanceof Error ? e.message : '앨범을 불러오지 못했어요.'
-            );
-        } finally {
-          if (!signal.aborted) setLoading(false);
-        }
-      }
+    reload: refresh,
+    forgetGroup: (id: string) => {
+      request.current++;
+      if (id === groupId) {
+        dispose();
+        setViewer(null);
+        setData((d) => ({
+          ...EMPTY,
+          groups: d.groups.filter((g) => g.id !== id),
+        }));
+        selectedGroup.current = '';
+        selectGroup('');
+        setFailedFiles([]);
+        setNextCursor(null);
+      } else
+        setData((d) => ({ ...d, groups: d.groups.filter((g) => g.id !== id) }));
+      void reload();
     },
     mode: 'live' as const,
     profileName: user?.displayName || '',

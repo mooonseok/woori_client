@@ -103,3 +103,64 @@ test('a stale unauthorized response cannot erase the next authenticated session'
     else process.env.NEXT_PUBLIC_API_BASE_URL = previous;
   }
 });
+
+test('group access failures request membership revalidation without treating photo absence or stale sessions as group removal', async (t) => {
+  const previous = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const originalWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
+  const events = new EventTarget();
+  let checks = 0,
+    removals = 0;
+  events.addEventListener('woori:group-access-recheck', () => checks++);
+  events.addEventListener('woori:group-membership-changed', () => removals++);
+  Object.defineProperty(globalThis, 'window', {
+    value: events,
+    configurable: true,
+  });
+  process.env.NEXT_PUBLIC_API_BASE_URL = 'http://localhost:3001';
+  t.after(() => {
+    if (originalWindow)
+      Object.defineProperty(globalThis, 'window', originalWindow);
+    else Reflect.deleteProperty(globalThis, 'window');
+    if (previous === undefined) delete process.env.NEXT_PUBLIC_API_BASE_URL;
+    else process.env.NEXT_PUBLIC_API_BASE_URL = previous;
+  });
+  let respond!: (response: Response) => void;
+  t.mock.method(
+    globalThis,
+    'fetch',
+    () =>
+      new Promise<Response>((resolve) => {
+        respond = resolve;
+      })
+  );
+  const absentPhoto = apiRequest('/v1/groups/group/albums/album/photos/photo');
+  respond(new Response(null, { status: 404 }));
+  await assert.rejects(absentPhoto);
+  assert.equal(checks, 1);
+  assert.equal(removals, 0);
+  for (const resource of ['comments', 'reactions']) {
+    const deniedInteraction = apiRequest(`/v1/photos/photo/${resource}`);
+    respond(new Response(null, { status: 403 }));
+    await assert.rejects(deniedInteraction);
+  }
+  assert.equal(checks, 3);
+  assert.equal(removals, 0);
+  const stale = apiRequest('/v1/groups/group/members');
+  advanceSessionRevision();
+  respond(new Response(null, { status: 403 }));
+  await assert.rejects(stale);
+  assert.equal(checks, 3);
+  const controller = new AbortController();
+  const aborted = apiRequest('/v1/groups/group/albums', {
+    signal: controller.signal,
+  });
+  controller.abort();
+  respond(new Response(null, { status: 404 }));
+  await assert.rejects(aborted);
+  assert.equal(checks, 3);
+  const unrelated = apiRequest('/v1/auth/me');
+  respond(new Response(null, { status: 403 }));
+  await assert.rejects(unrelated);
+  assert.equal(checks, 3);
+  assert.equal(removals, 0);
+});

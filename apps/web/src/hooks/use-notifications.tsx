@@ -36,6 +36,7 @@ interface NotificationsApi extends Omit<PreferencesApi, 'flush'> {
   settingsGroups?: { id: string; name: string }[];
   nextCursor?: string | null;
   reload?: () => Promise<void>;
+  invalidateGroups?: () => void;
   more?: () => Promise<void>;
   reloadSettings?: () => Promise<void>;
   discardChanges?: () => void;

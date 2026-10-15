@@ -1,4 +1,6 @@
 export const SESSION_EXPIRED = 'woori:session-expired';
+export const GROUP_ACCESS_RECHECK = 'woori:group-access-recheck';
+export const GROUP_MEMBERSHIP_CHANGED = 'woori:group-membership-changed';
 let sessionRevision = 0;
 export function advanceSessionRevision() {
   return ++sessionRevision;
@@ -45,6 +47,14 @@ async function request(
     );
   }
   if (!response.ok) {
+    if (
+      [403, 404].includes(response.status) &&
+      (path.startsWith('/v1/groups/') || path.startsWith('/v1/photos/')) &&
+      requestRevision === sessionRevision &&
+      !init.signal?.aborted &&
+      typeof window !== 'undefined'
+    )
+      window.dispatchEvent(new Event(GROUP_ACCESS_RECHECK));
     if (
       response.status === 401 &&
       requestRevision === sessionRevision &&

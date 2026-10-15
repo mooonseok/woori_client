@@ -61,7 +61,7 @@ export function useNotificationPreferences(enabled: boolean) {
           error instanceof Error ? error.message : '설정을 불러오지 못했어요.'
         );
     } finally {
-      loading.current = false;
+      if (signal === controller.current?.signal) loading.current = false;
     }
   }, [enabled, accept]);
   useEffect(() => {
@@ -70,7 +70,10 @@ export function useNotificationPreferences(enabled: boolean) {
     queueMicrotask(() => {
       if (!current.signal.aborted) void reloadSettings();
     });
-    return () => current.abort();
+    return () => {
+      current.abort();
+      controller.current?.abort();
+    };
   }, [reloadSettings]);
   const save = useCallback(
     (snapshot: NotificationPreferences) => {
@@ -122,7 +125,7 @@ export function useNotificationPreferences(enabled: boolean) {
           }
           return false;
         } finally {
-          saving.current = null;
+          if (signal === controller.current?.signal) saving.current = null;
         }
       })();
       saving.current = promise;
@@ -149,6 +152,19 @@ export function useNotificationPreferences(enabled: boolean) {
     retry: () => {
       if (conflict.current || !ready) void reloadSettings();
       else save(draft.current);
+    },
+    invalidateGroups: () => {
+      controller.current?.abort();
+      controller.current = new AbortController();
+      loading.current = false;
+      saving.current = null;
+      stored.current = null;
+      draft.current = { ...notificationDefaults(), groups: {} };
+      setGroups([]);
+      setPreferences(draft.current);
+      setSavedPreferences(draft.current);
+      setReady(false);
+      void reloadSettings();
     },
     reloadSettings,
     discardChanges: () => {

@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import {
   Box,
   Section,
@@ -14,6 +15,7 @@ import type { Group } from '@/dto/album.dto';
 import { GroupInvitationsView } from './group-invitations-view';
 import type { Invitation } from '@/dto/invitation.dto';
 export interface GroupsViewProps {
+  management?: ReactNode;
   gallery: {
     data: { groups: Group[] };
     groupId: string;
@@ -80,6 +82,15 @@ export function GroupsView(p: GroupsViewProps) {
           </Button>
         ))}
       </Section>
+      {p.management}
+      {!p.gallery.loading &&
+        !p.gallery.error &&
+        !p.gallery.data.groups.length && (
+          <Text className='muted'>
+            아직 참여한 그룹이 없어요. 새 그룹을 만들거나 초대 코드를 입력해
+            주세요.
+          </Text>
+        )}
       <Section className='settings-card'>
         <Heading>새 그룹 만들기</Heading>
         <Form

@@ -9,6 +9,7 @@ type GalleryStore = Omit<
   'mode' | 'createAlbum' | 'setGroupId'
 > & {
   mode: 'demo' | 'live';
+  forgetGroup?: (id: string) => void;
   setGroupId: (id: string) => void;
   createAlbum: (title: string) => string | null | Promise<string>;
   loadPhotos?: (
