@@ -1,3 +1,4 @@
+import type { PhotoDateSource } from './memories.dto';
 export interface Group {
   id: string;
   name: string;
@@ -22,6 +23,9 @@ export interface Photo {
   height: number;
   alt: string;
   capturedAt: string;
+  effectiveDate?: string;
+  dateSource?: PhotoDateSource;
+  canEditCaptureDate?: boolean;
   authorId: string;
   canDelete?: boolean;
 }

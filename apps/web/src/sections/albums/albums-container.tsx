@@ -25,6 +25,7 @@ export function AlbumsContainer() {
     <>
       <AlbumsView
         albums={albums}
+        live={gallery.mode === 'live'}
         photos={gallery.data.photos}
         search={search}
         onOpen={(id) => router.push(`/album?id=${encodeURIComponent(id)}`)}

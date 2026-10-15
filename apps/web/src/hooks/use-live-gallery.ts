@@ -14,6 +14,7 @@ import {
   GROUP_MEMBERSHIP_CHANGED,
 } from '@/services/api-client';
 import * as media from '@/services/media-client';
+import { MEMORIES_CHANGED, updateCaptureDate } from '@/services/memories';
 const EMPTY: GalleryData = {
   groups: [],
   albums: [],
@@ -44,7 +45,8 @@ export function useLiveGalleryState() {
   const scope = useRef(new AbortController()),
     urls = useRef(new Set<string>()),
     request = useRef(0);
-  const albumRequest = useRef(0);
+  const albumRequest = useRef(0),
+    viewerRequest = useRef(0);
   const photoRequest = useRef(0),
     loadedAlbum = useRef('');
   const dataRef = useRef(data);
@@ -61,6 +63,7 @@ export function useLiveGalleryState() {
     pending.current.clear();
     loadedAlbum.current = '';
     photoRequest.current++;
+    viewerRequest.current++;
     albumRequest.current++;
   }, []);
   useEffect(() => () => dispose(), [dispose]);
@@ -283,7 +286,10 @@ export function useLiveGalleryState() {
       width: p.width,
       height: p.height,
       alt: '함께 나눈 사진',
-      capturedAt: (p.capturedAt || p.createdAt).slice(0, 10),
+      capturedAt: p.effectiveDate || (p.capturedAt || p.createdAt).slice(0, 10),
+      effectiveDate: p.effectiveDate,
+      dateSource: p.dateSource,
+      canEditCaptureDate: p.canEditCaptureDate,
       authorId: '',
       canDelete: p.canDelete,
     };
@@ -363,11 +369,20 @@ export function useLiveGalleryState() {
   }
   function removeLocalPhotos(predicate: (p: Photo) => boolean) {
     photoRequest.current++;
+    viewerRequest.current++;
     albumRequest.current++;
     setPhotoLoading(false);
     setPhotoError('');
     setNextCursor(null);
     setViewer(null);
+    viewer?.photos
+      .filter(
+        (p) => !dataRef.current.photos.some((cached) => cached.src === p.src)
+      )
+      .forEach((p) => {
+        URL.revokeObjectURL(p.src);
+        urls.current.delete(p.src);
+      });
     dataRef.current.photos.filter(predicate).forEach((p) => {
       URL.revokeObjectURL(p.src);
       urls.current.delete(p.src);
@@ -397,6 +412,7 @@ export function useLiveGalleryState() {
       ...d,
       albums: d.albums.filter((a) => a.id !== albumId),
     }));
+    window.dispatchEvent(new Event(MEMORIES_CHANGED));
     setToast('앨범을 삭제했어요.');
   }
   async function deletePhoto(photo: Photo) {
@@ -416,6 +432,7 @@ export function useLiveGalleryState() {
           : a
       ),
     }));
+    window.dispatchEvent(new Event(MEMORIES_CHANGED));
     setToast('사진을 삭제했어요.');
     await loadPhotos(photo.albumId);
     if (!signal.aborted) {
@@ -533,6 +550,8 @@ export function useLiveGalleryState() {
         failures.push(
           '업로드를 중단했어요. 이미 저장된 사진은 앨범에 남아 있어요. 완료를 확인하지 못한 사진은 다시 시도할 수 있어요.'
         );
+      if (added && !parent.aborted)
+        window.dispatchEvent(new Event(MEMORIES_CHANGED));
       return { added, failures };
     } finally {
       parent.removeEventListener('abort', cancel);
@@ -557,6 +576,61 @@ export function useLiveGalleryState() {
         ),
         id,
       });
+  }
+  async function openMemoryPhoto(
+    photo: PhotoResponse,
+    callerSignal?: AbortSignal
+  ) {
+    const groupSignal = scope.current.signal;
+    const signal = callerSignal
+      ? AbortSignal.any([groupSignal, callerSignal])
+      : groupSignal;
+    if (photo.groupId !== selectedGroup.current)
+      throw new Error('현재 그룹의 사진만 열 수 있어요.');
+    const current = ++viewerRequest.current;
+    const loaded = await loadPhoto(photo, signal);
+    if (
+      signal.aborted ||
+      groupSignal !== scope.current.signal ||
+      current !== viewerRequest.current
+    ) {
+      URL.revokeObjectURL(loaded.src);
+      urls.current.delete(loaded.src);
+      return;
+    }
+    setViewer({ photos: [loaded], id: photo.id });
+  }
+  async function setCaptureDate(photo: Photo, date: string | null) {
+    const signal = scope.current.signal;
+    const { photo: updated } = await updateCaptureDate(
+      groupId,
+      photo.albumId,
+      photo.id,
+      date,
+      signal
+    );
+    signal.throwIfAborted();
+    const merge = (p: Photo): Photo =>
+      p.id === photo.id
+        ? {
+            ...p,
+            capturedAt:
+              updated.effectiveDate ||
+              (updated.capturedAt || updated.createdAt).slice(0, 10),
+            effectiveDate: updated.effectiveDate,
+            dateSource: updated.dateSource,
+            canEditCaptureDate: updated.canEditCaptureDate,
+            canDelete: updated.canDelete,
+          }
+        : p;
+    setData((d) => ({ ...d, photos: d.photos.map(merge) }));
+    setViewer((v) => (v ? { ...v, photos: v.photos.map(merge) } : v));
+    window.dispatchEvent(new Event(MEMORIES_CHANGED));
+    setToast(
+      date
+        ? '촬영일을 변경했어요.'
+        : '사진에 기록된 원래 날짜로 되돌렸어요. 기록이 없으면 업로드일을 사용해요.'
+    );
   }
   return {
     data,
@@ -587,7 +661,10 @@ export function useLiveGalleryState() {
     setProfileName: () => setToast('프로필 수정 기능을 준비하고 있어요.'),
     viewer,
     openPhoto,
+    openMemoryPhoto,
+    setCaptureDate,
     closeViewer: () => {
+      viewerRequest.current++;
       setViewer(null);
       urls.current.forEach((src) => {
         if (!dataRef.current.photos.some((p) => p.src === src)) {

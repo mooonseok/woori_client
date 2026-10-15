@@ -913,3 +913,62 @@ svg {
     flex-shrink: 0;
   }
 }
+
+/* Memories share the gallery's photograph-first layout. */
+.memories-home {
+  margin-bottom: 48px;
+}
+.memory-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+.memory-filters [aria-pressed='true'] {
+  text-decoration: underline;
+  text-underline-offset: 8px;
+  font-weight: 700;
+}
+.memories-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  margin: 24px 0;
+}
+.memory-card-photo {
+  display: block;
+  padding: 0;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--wash);
+}
+.memory-card-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.memory-card-title {
+  font-weight: 700;
+  margin-top: 12px;
+}
+.memory-date-note {
+  font-size: 13px;
+  line-height: 1.6;
+}
+.memory-card .text-button {
+  margin-top: 8px;
+}
+@media (max-width: 640px) {
+  .memories-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 12px;
+  }
+}
+@media (max-width: 360px) {
+  .memories-grid {
+    grid-template-columns: 1fr;
+  }
+}

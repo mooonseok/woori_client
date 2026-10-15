@@ -10,6 +10,14 @@ type GalleryStore = Omit<
 > & {
   mode: 'demo' | 'live';
   forgetGroup?: (id: string) => void;
+  openMemoryPhoto?: (
+    photo: import('@/dto/media.dto').PhotoResponse,
+    signal?: AbortSignal
+  ) => Promise<void>;
+  setCaptureDate?: (
+    photo: import('@/dto/album.dto').Photo,
+    date: string | null
+  ) => Promise<void>;
   setGroupId: (id: string) => void;
   createAlbum: (title: string) => string | null | Promise<string>;
   loadPhotos?: (

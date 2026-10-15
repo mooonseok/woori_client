@@ -1,6 +1,7 @@
 import type { Photo, PhotoComment, Point, Reaction } from '@/dto/album.dto';
 export interface PhotoViewerProps {
   live?: boolean;
+  onSetCaptureDate?: (photo: Photo, date: string | null) => Promise<void>;
   onDownloadOriginal?: (photo: Photo) => Promise<void>;
   onDeletePhoto?: (photo: Photo) => Promise<void>;
   photos: Photo[];
