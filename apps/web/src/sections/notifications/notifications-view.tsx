@@ -63,7 +63,10 @@ export function NotificationsView({
         >
           <Icon name='back' />
         </Button>
-        <Heading id='notification-title'>알림</Heading>
+        {/* Focus lands here if a photo viewer closes and its row is gone. */}
+        <Heading id='notification-title' tabIndex={-1} data-photo-viewer-return>
+          알림
+        </Heading>
         <Button
           className='notification-icon-button'
           onClick={onSettings}

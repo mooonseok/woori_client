@@ -7,6 +7,7 @@ import type {
 } from '@/dto/photo-interactions.dto';
 import * as api from '@/services/photo-interactions';
 import { commentModel, mergeComments } from '@/utils/photo-interactions';
+import { BLOCKS_CHANGED } from '@/services/blocks';
 const EMPTY: CommentListState = { comments: [], total: 0, nextCursor: null };
 const NO_REACTIONS: ReactionSummary = {
   reactions: [],
@@ -20,6 +21,15 @@ export function usePhotoInteractions(photoId: string, live: boolean) {
     ...NO_REACTIONS,
     commentTotal: 0,
   });
+  // Bumped by a block/unblock: restarts the scope so in-flight pre-block
+  // comments/reactions are dropped and fresh counts are fetched.
+  const [revision, setRevision] = useState(0);
+  useEffect(() => {
+    if (!live) return;
+    const changed = () => setRevision((value) => value + 1);
+    window.addEventListener(BLOCKS_CHANGED, changed);
+    return () => window.removeEventListener(BLOCKS_CHANGED, changed);
+  }, [live]);
   const [loading, setLoading] = useState(live),
     [error, setError] = useState(''),
     [pending, setPending] = useState(false),
@@ -86,7 +96,7 @@ export function usePhotoInteractions(photoId: string, live: boolean) {
       void load();
     });
     return () => current.controller.abort();
-  }, [photoId, load]);
+  }, [photoId, load, revision]);
   async function mutate<T>(
     operation: (signal: AbortSignal) => Promise<T>,
     commit: (result: T) => void

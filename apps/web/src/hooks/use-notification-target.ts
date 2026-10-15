@@ -4,10 +4,19 @@ import type { Photo } from '@/dto/album.dto';
 import type { NotificationTarget } from '@/dto/notification-api.dto';
 import { notificationTarget, readNotification } from '@/services/notifications';
 import { originalPhoto, photoBlob } from '@/services/media-client';
+import { BLOCKS_CHANGED } from '@/services/blocks';
+import {
+  TARGET_GONE_AFTER_BLOCK,
+  blockChangeOf,
+  targetViewerAfterBlock,
+  uploaderOf,
+} from '@/utils/blocks';
+import { isNotFound } from '@/utils/service-guidance';
 export function useNotificationTarget() {
   const [viewer, setViewer] = useState<{
     photo: Photo;
     target: NotificationTarget;
+    notificationId: string;
   } | null>(null);
   const [opening, setOpening] = useState(false),
     [error, setError] = useState('');
@@ -54,6 +63,7 @@ export function useNotificationTarget() {
       urls.current.add(src);
       setViewer({
         target,
+        notificationId: id,
         photo: {
           id: target.photoId,
           albumId: target.albumId,
@@ -62,7 +72,7 @@ export function useNotificationTarget() {
           height,
           alt: '알림에서 연 사진',
           capturedAt: '',
-          authorId: '',
+          ...uploaderOf(target),
         },
       });
       if (markObserved) {
@@ -90,6 +100,30 @@ export function useNotificationTarget() {
       if (!signal.aborted) setOpening(false);
     }
   }
+  const viewerRef = useRef(viewer);
+  useEffect(() => {
+    viewerRef.current = viewer;
+  });
+  useEffect(() => {
+    // Comments/reactions reload inside the viewer itself; here the uploader
+    // being blocked closes it, and any other block re-checks the target.
+    const changed = (event: Event) => {
+      const change = blockChangeOf(event),
+        open = viewerRef.current,
+        signal = current.current?.signal;
+      if (!change || !open || !signal) return;
+      const action = targetViewerAfterBlock(open.photo.authorId, change);
+      if (action === 'close') close();
+      if (action !== 'recheck') return;
+      notificationTarget(open.notificationId, signal).catch((cause) => {
+        if (signal.aborted || !isNotFound(cause)) return;
+        close();
+        setError(TARGET_GONE_AFTER_BLOCK);
+      });
+    };
+    window.addEventListener(BLOCKS_CHANGED, changed);
+    return () => window.removeEventListener(BLOCKS_CHANGED, changed);
+  }, []);
   async function download() {
     const signal = current.current?.signal;
     if (!viewer || !signal) return;

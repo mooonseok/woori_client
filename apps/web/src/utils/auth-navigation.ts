@@ -1,3 +1,31 @@
+import { MY_SUB_ROUTES, PUBLIC_ROUTES, ROUTES } from '../constants/routes.ts';
+import { isUuid } from './service-guidance.ts';
+function routeOf(path: string) {
+  return path.replace(/\/$/, '') || '/';
+}
+export function isPublicRoute(path: string) {
+  return PUBLIC_ROUTES.includes(routeOf(path));
+}
+// Which main tab is current: an album belongs to 앨범, and 마이페이지
+// sub-screens stay on 마이페이지 for a signed-in (or demo) member.
+export function currentTab(path: string, member: boolean): string | null {
+  const route = routeOf(path);
+  if (route === ROUTES.ALBUM) return ROUTES.ALBUMS;
+  if (member && MY_SUB_ROUTES.includes(route)) return ROUTES.MY;
+  return (
+    [ROUTES.HOME, ROUTES.ALBUMS, ROUTES.MY].find((tab) => tab === route) ?? null
+  );
+}
+// Service guidance pages keep only their own validated record id across login.
+const serviceReturnRoutes = new Map<string, { list: string; detail: boolean }>([
+  [ROUTES.NOTICES, { list: ROUTES.NOTICES, detail: false }],
+  [ROUTES.NOTICE, { list: ROUTES.NOTICES, detail: true }],
+  [ROUTES.INQUIRIES, { list: ROUTES.INQUIRIES, detail: false }],
+  [ROUTES.INQUIRY_NEW, { list: ROUTES.INQUIRY_NEW, detail: false }],
+  [ROUTES.INQUIRY, { list: ROUTES.INQUIRIES, detail: true }],
+  [ROUTES.REPORTS, { list: ROUTES.REPORTS, detail: false }],
+  [ROUTES.BLOCKS, { list: ROUTES.BLOCKS, detail: false }],
+]);
 export function safeReturnTo(value: string | null | undefined): string {
   if (
     !value ||
@@ -9,7 +37,7 @@ export function safeReturnTo(value: string | null | undefined): string {
   try {
     const url = new URL(value, 'https://woori.invalid');
     if (url.origin !== 'https://woori.invalid') return '/';
-    // Only explicit invitation and notification targets survive authentication.
+    // Only explicit invitation, notification and service-guidance targets survive authentication.
     const route = url.pathname.replace(/\/$/, '');
     if (route === '/notifications') {
       const id = url.searchParams.get('notificationId');
@@ -19,6 +47,11 @@ export function safeReturnTo(value: string | null | undefined): string {
         )
         ? `/notifications?notificationId=${id}`
         : '/notifications';
+    }
+    const service = serviceReturnRoutes.get(route);
+    if (service) {
+      const id = url.searchParams.get('id');
+      return service.detail && isUuid(id) ? `${route}?id=${id}` : service.list;
     }
     if (route !== '/invite' && route !== '/verify-email') return '/';
     const result = new URLSearchParams();

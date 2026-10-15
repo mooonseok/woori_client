@@ -20,6 +20,10 @@ interface Props {
   onDownloadOriginal?: () => Promise<void>;
   onDelete?: () => void;
   onEditCaptureDate?: () => void;
+  onReport?: () => void;
+  onBlockUploader?: () => void;
+  uploaderLabel?: string;
+  blockLabel?: string;
   interactionsEnabled: boolean;
   model: PhotoViewerModel;
   gestures: PhotoGestureModel;
@@ -48,6 +52,10 @@ export function ViewerToolbarView({
   onDownloadOriginal,
   onDelete,
   onEditCaptureDate,
+  onReport,
+  onBlockUploader,
+  uploaderLabel,
+  blockLabel,
   model: m,
   gestures: g,
   count,
@@ -194,6 +202,9 @@ export function ViewerToolbarView({
       )}
       {m.more && (
         <Box className='viewer-menu' role='group' aria-label='사진 메뉴'>
+          {uploaderLabel && (
+            <Text className='muted memory-date-note'>{uploaderLabel}</Text>
+          )}
           {m.photo.capturedAt && (
             <Text className='muted memory-date-note'>
               {photoDateLabel(
@@ -234,6 +245,18 @@ export function ViewerToolbarView({
               onClick={onDelete}
             >
               사진 삭제
+            </Button>
+          )}
+          {onReport && (
+            <Button disabled={downloading} onClick={onReport}>
+              <Icon name='flag' />
+              사진 신고
+            </Button>
+          )}
+          {onBlockUploader && (
+            <Button disabled={downloading} onClick={onBlockUploader}>
+              <Icon name='eye-off' />
+              {blockLabel || '올린 사람 차단'}
             </Button>
           )}
           <Button onClick={() => g.zoom(1.5)}>

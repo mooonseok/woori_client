@@ -22,11 +22,29 @@ import { ActionConfirm } from '@/components/organisms/action-confirm/action-conf
 import { ViewerConfirm } from './viewer-confirm';
 import { CaptureDateDialog } from './capture-date-dialog';
 import { photoDateLabel } from '@/utils/photo-date';
+import { useAuth } from '@/hooks/use-auth';
+import { ReportDialog } from '@/components/organisms/report-dialog/report-dialog';
+import type { ReportTarget } from '@/dto/report.dto';
+import type { BlockSubject } from '@/dto/block.dto';
+import { BlockConfirm } from '@/components/organisms/block-confirm/block-confirm';
+import { BlockOffer } from '@/components/molecules/block-offer';
+import { BLOCKED_MESSAGE, isOtherPerson } from '@/utils/blocks';
 export function PhotoViewer(props: PhotoViewerProps) {
   return props.photos.length ? <PhotoViewerContainer {...props} /> : null;
 }
 function PhotoViewerContainer(props: PhotoViewerProps) {
   const [editingDate, setEditingDate] = useState(false);
+  const [reporting, setReporting] = useState<ReportTarget | null>(null);
+  const [blocking, setBlocking] = useState<BlockSubject | null>(null);
+  const [notice, setNotice] = useState('');
+  // Where focus returns after report/block flows that start from a comment.
+  const flowTrigger = useRef<HTMLElement | null>(null);
+  const { user } = useAuth();
+  useEffect(() => {
+    if (!notice) return;
+    const timer = setTimeout(() => setNotice(''), 4000);
+    return () => clearTimeout(timer);
+  }, [notice]);
   const [deleting, setDeleting] = useState(false),
     [downloading, setDownloading] = useState(false),
     [downloadError, setDownloadError] = useState('');
@@ -76,6 +94,8 @@ function PhotoViewerContainer(props: PhotoViewerProps) {
       !!m.confirm ||
       deleting ||
       editingDate ||
+      !!reporting ||
+      !!blocking ||
       m.savingComment ||
       m.mode === 'write',
     placing: m.mode === 'place',
@@ -104,6 +124,22 @@ function PhotoViewerContainer(props: PhotoViewerProps) {
     (reaction) => reaction.photoId === m.photo.id
   );
   const pin = comments.find((comment) => comment.id === m.selectedPin);
+  // Only a known uploader who is not me can be reported or blocked.
+  const uploader =
+    props.live && isOtherPerson(m.photo.authorId, user?.id)
+      ? { id: m.photo.authorId, name: m.photo.authorName || '올린 사람' }
+      : null;
+  // If the trigger vanished (comments reloaded after a 404), keep focus in the
+  // viewer: the comments panel, else the photo menu button.
+  const flowFallback = () =>
+    dialog.current?.querySelector<HTMLElement>('.viewer-comments') ??
+    menuButton.current;
+  const startFlow = (from: 'photo' | 'comment') => {
+    flowTrigger.current =
+      from === 'photo'
+        ? menuButton.current
+        : (document.activeElement as HTMLElement | null);
+  };
   return (
     <Dialog
       ref={dialog}
@@ -177,6 +213,37 @@ function PhotoViewerContainer(props: PhotoViewerProps) {
               ? () => {
                   m.setMore(false);
                   setEditingDate(true);
+                }
+              : undefined
+          }
+          uploaderLabel={
+            props.live && m.photo.authorName
+              ? m.photo.authorId === user?.id
+                ? '내가 올린 사진'
+                : `올린 사람 · ${m.photo.authorName}`
+              : ''
+          }
+          onReport={
+            uploader
+              ? () => {
+                  startFlow('photo');
+                  m.setMore(false);
+                  setReporting({
+                    targetType: 'PHOTO',
+                    targetId: m.photo.id,
+                    name: '사진',
+                    subject: uploader,
+                  });
+                }
+              : undefined
+          }
+          blockLabel={uploader ? `${uploader.name}님 차단` : undefined}
+          onBlockUploader={
+            uploader
+              ? () => {
+                  startFlow('photo');
+                  m.setMore(false);
+                  setBlocking(uploader);
                 }
               : undefined
           }
@@ -255,6 +322,31 @@ function PhotoViewerContainer(props: PhotoViewerProps) {
           onMore={props.live ? interactions.more : undefined}
           onEdit={props.live ? interactions.edit : undefined}
           onDelete={props.live ? interactions.remove : undefined}
+          currentUserId={user?.id}
+          onReport={
+            props.live
+              ? (comment) => {
+                  startFlow('comment');
+                  setReporting({
+                    targetType: 'COMMENT',
+                    targetId: comment.id,
+                    name: `${comment.authorName}님의 댓글`,
+                    subject: { id: comment.authorId, name: comment.authorName },
+                  });
+                }
+              : undefined
+          }
+          onBlock={
+            props.live
+              ? (comment) => {
+                  startFlow('comment');
+                  setBlocking({
+                    id: comment.authorId,
+                    name: comment.authorName,
+                  });
+                }
+              : undefined
+          }
           draft={m.drafts[m.photo.id] || ''}
           onChange={(value) =>
             m.setDrafts((current) => ({ ...current, [m.photo.id]: value }))
@@ -285,6 +377,45 @@ function PhotoViewerContainer(props: PhotoViewerProps) {
           onConfirm={() => props.onDeletePhoto!(m.photo)}
           onClose={() => setDeleting(false)}
         />
+      )}
+      {reporting && (
+        <ReportDialog
+          key={`${reporting.targetType}:${reporting.targetId}`}
+          target={reporting}
+          returnFocus={flowTrigger}
+          fallbackFocus={flowFallback}
+          onTargetGone={() => void interactions.reload()}
+          onClose={() => setReporting(null)}
+          followUp={(_, close) => {
+            const subject = reporting.subject;
+            return subject && isOtherPerson(subject.id, user?.id) ? (
+              <BlockOffer
+                name={subject.name}
+                onBlock={() => {
+                  close();
+                  setBlocking(subject);
+                }}
+              />
+            ) : null;
+          }}
+        />
+      )}
+      {blocking && (
+        <BlockConfirm
+          key={blocking.id}
+          person={blocking}
+          returnFocus={flowTrigger}
+          fallbackFocus={flowFallback}
+          // If the photo on screen was theirs, the gallery closes the viewer;
+          // otherwise confirm in place (the app toast sits under the viewer).
+          onDone={() => setNotice(BLOCKED_MESSAGE)}
+          onClose={() => setBlocking(null)}
+        />
+      )}
+      {notice && (
+        <Text className='viewer-block-status' role='status'>
+          {notice}
+        </Text>
       )}
       {m.guide && <Guide kind={m.guide} onClose={m.finishGuide} />}
       {m.confirm && (

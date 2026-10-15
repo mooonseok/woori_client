@@ -5,11 +5,18 @@ let sessionRevision = 0;
 export function advanceSessionRevision() {
   return ++sessionRevision;
 }
+// Changes on login, logout and account switch.
+export function currentSessionRevision() {
+  return sessionRevision;
+}
 export class ApiError extends Error {
   status: number;
-  constructor(status: number, message: string) {
+  // Server error code such as REPORT_SELF_NOT_ALLOWED, when the body has one.
+  code?: string;
+  constructor(status: number, message: string, code?: string) {
     super(message);
     this.status = status;
+    if (code) this.code = code;
   }
 }
 async function request(
@@ -64,6 +71,7 @@ async function request(
       window.dispatchEvent(new Event(SESSION_EXPIRED));
     const body = (await response.json().catch(() => null)) as {
       message?: unknown;
+      code?: unknown;
     } | null;
     const message =
       typeof body?.message === 'string' ? body.message : undefined;
@@ -74,7 +82,8 @@ async function request(
           ? '다시 로그인해 주세요.'
           : response.status === 429
             ? '요청이 많아요. 잠시 후 다시 시도해 주세요.'
-            : '요청을 처리하지 못했어요.')
+            : '요청을 처리하지 못했어요.'),
+      typeof body?.code === 'string' ? body.code : undefined
     );
   }
   return response;

@@ -4,6 +4,7 @@ import type { MemoryCard, MemoryKind } from '@/dto/memories.dto';
 import * as memories from '@/services/memories';
 import { photoBlob } from '@/services/media-client';
 import { GROUP_MEMBERSHIP_CHANGED } from '@/services/api-client';
+import { BLOCKS_CHANGED } from '@/services/blocks';
 
 export function useMemories(groupId: string) {
   const [kind, setKind] = useState<MemoryKind>('today');
@@ -100,6 +101,8 @@ export function useMemories(groupId: string) {
     queueMicrotask(reload);
     window.addEventListener(memories.MEMORIES_CHANGED, reload);
     window.addEventListener(GROUP_MEMBERSHIP_CHANGED, reload);
+    // A new load bumps the generation, so pre-block pages cannot land.
+    window.addEventListener(BLOCKS_CHANGED, reload);
     window.addEventListener('focus', focus);
     document.addEventListener('visibilitychange', focus);
     const objects = urls.current,
@@ -114,6 +117,7 @@ export function useMemories(groupId: string) {
       objects.clear();
       window.removeEventListener(memories.MEMORIES_CHANGED, reload);
       window.removeEventListener(GROUP_MEMBERSHIP_CHANGED, reload);
+      window.removeEventListener(BLOCKS_CHANGED, reload);
       window.removeEventListener('focus', focus);
       document.removeEventListener('visibilitychange', focus);
     };

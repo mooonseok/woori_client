@@ -21,6 +21,12 @@ export interface PhotoResponse {
   canEditCaptureDate?: boolean;
   status: 'READY';
   canDelete: boolean;
+  // OpenAPI 0.15.0 (additive): who uploaded the photo.
+  uploader?: PhotoUploader;
+}
+export interface PhotoUploader {
+  id: string;
+  displayName: string;
 }
 export interface UploadTicket {
   photoId: string;

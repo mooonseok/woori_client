@@ -9,6 +9,7 @@ export interface NotificationItem {
   albumId?: string;
   commentId?: string | null;
   latestSequence?: number;
+  actorId?: string;
   title: string;
   timestamp: number;
   createdAt: number;

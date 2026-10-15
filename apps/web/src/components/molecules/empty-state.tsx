@@ -5,15 +5,17 @@ export function EmptyState({
   body,
   action,
   onAction,
+  icon = 'album',
 }: {
   title: string;
   body: string;
   action?: string;
   onAction?: () => void;
+  icon?: string;
 }) {
   return (
     <Box className='empty-state'>
-      <Icon name='album' size={36} />
+      <Icon name={icon} size={36} />
       <Heading>{title}</Heading>
       <Text>{body}</Text>
       {action && (

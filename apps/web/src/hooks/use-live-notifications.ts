@@ -5,6 +5,8 @@ import { useNotificationPreferences } from './use-notification-preferences';
 import type { NotificationItem } from '@/dto/notification.dto';
 import * as api from '@/services/notifications';
 import { GROUP_MEMBERSHIP_CHANGED } from '@/services/api-client';
+import { BLOCKS_CHANGED } from '@/services/blocks';
+import { blockChangeOf, withoutPerson } from '@/utils/blocks';
 import {
   notificationModel,
   mergeNotificationItems,
@@ -73,6 +75,25 @@ export function useLiveNotifications() {
     setPending(false);
     settingsRef.current.invalidateGroups();
     void load();
+  }, [load]);
+  useEffect(() => {
+    // The server deletes my notifications caused by a person I block: hide
+    // them now, restart the scope (dropping in-flight pages and pending
+    // read-all with stale ids) and refetch the list and unread count.
+    const changed = (event: Event) => {
+      const change = blockChangeOf(event);
+      if (!change?.blocked) return;
+      scope.current?.controller.abort();
+      scope.current = { controller: new AbortController(), busy: false };
+      setPending(false);
+      setCursor(null);
+      setItems((previous) =>
+        withoutPerson(previous, (item) => item.actorId, change.userId)
+      );
+      void load();
+    };
+    window.addEventListener(BLOCKS_CHANGED, changed);
+    return () => window.removeEventListener(BLOCKS_CHANGED, changed);
   }, [load]);
   useEffect(() => {
     window.addEventListener(GROUP_MEMBERSHIP_CHANGED, invalidateGroups);

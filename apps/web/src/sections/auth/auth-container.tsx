@@ -53,6 +53,9 @@ export function AuthContainer({ signup = false }: { signup?: boolean }) {
       emailChanged={search.get('emailChanged') === '1'}
       recoveryNext={next}
       alternate={authDestination(signup ? '/login' : '/signup', next)}
+      privacyHref={
+        signup ? `/privacy?next=${encodeURIComponent(next)}` : undefined
+      }
       onSubmit={submit}
     />
   );

@@ -64,6 +64,11 @@ export function MypageView({
             <Span>계정 설정</Span>
             <Icon name='chevron-right' />
           </Button>
+          <Button className='menu-row' onClick={() => onNavigate('/blocks')}>
+            <Icon name='eye-off' />
+            <Span>차단 관리</Span>
+            <Icon name='chevron-right' />
+          </Button>
         </Section>
       )}
       <Section>
@@ -104,6 +109,37 @@ export function MypageView({
       </Section>
       <Section>
         <Heading className='setting-heading'>서비스 안내</Heading>
+        {live && (
+          <Button className='menu-row' onClick={() => onNavigate('/notices')}>
+            <Icon name='info' />
+            <Span>공지사항</Span>
+            <Icon name='chevron-right' />
+          </Button>
+        )}
+        <Button className='menu-row' onClick={() => onNavigate('/help')}>
+          <Icon name='help' />
+          <Span>도움말</Span>
+          <Icon name='chevron-right' />
+        </Button>
+        {live && (
+          <Button className='menu-row' onClick={() => onNavigate('/inquiries')}>
+            <Icon name='comment' />
+            <Span>문의하기</Span>
+            <Icon name='chevron-right' />
+          </Button>
+        )}
+        {live && (
+          <Button className='menu-row' onClick={() => onNavigate('/reports')}>
+            <Icon name='flag' />
+            <Span>신고 내역</Span>
+            <Icon name='chevron-right' />
+          </Button>
+        )}
+        <Button className='menu-row' onClick={() => onNavigate('/privacy')}>
+          <Icon name='shield' />
+          <Span>개인정보 안내</Span>
+          <Icon name='chevron-right' />
+        </Button>
         {live ? (
           <>
             <Text className='muted'>

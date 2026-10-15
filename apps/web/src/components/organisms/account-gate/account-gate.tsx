@@ -1,6 +1,10 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { safeReturnTo, authDestination } from '@/utils/auth-navigation';
+import {
+  safeReturnTo,
+  authDestination,
+  isPublicRoute,
+} from '@/utils/auth-navigation';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { DEMO_MODE } from '@/constants/app-mode';
@@ -16,21 +20,7 @@ export function AccountGate({ children }: { children: ReactNode }) {
       setNext(safeReturnTo(window.location.pathname + window.location.search))
     );
   }, [path]);
-  if (
-    DEMO_MODE ||
-    [
-      '/login',
-      '/signup',
-      '/invite',
-      '/verify-email',
-      '/find-id',
-      '/forgot-password',
-      '/reset-password',
-      '/change-email',
-      '/account-deleted',
-    ].includes(path.replace(/\/$/, ''))
-  )
-    return children;
+  if (DEMO_MODE || isPublicRoute(path)) return children;
   if (auth.status === 'loading')
     return (
       <Text className='state-panel' role='status'>
