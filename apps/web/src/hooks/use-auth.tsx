@@ -24,7 +24,10 @@ import {
 import { updateProfile } from '@/services/recovery';
 import { clearBrowserPush } from '@/services/web-push';
 import * as accountSettings from '@/services/account-settings';
-import type { PasswordChangeInput } from '@/dto/account-settings.dto';
+import type {
+  AccountDeletionInput,
+  PasswordChangeInput,
+} from '@/dto/account-settings.dto';
 import { createCredentialChanges } from '@/services/credential-changes';
 import { DEMO_MODE } from '@/constants/app-mode';
 function useAuthState() {
@@ -176,6 +179,16 @@ function useAuthState() {
     saveProfile,
     logout,
     confirm,
+    deleteAccount: (input: AccountDeletionInput, onChanged: () => void) => {
+      if (DEMO_MODE)
+        return Promise.reject(
+          new Error('미리보기에서는 회원 탈퇴를 할 수 없어요.')
+        );
+      return changeCredentials(
+        () => accountSettings.deleteAccount(input),
+        onChanged
+      );
+    },
     changePassword: (input: PasswordChangeInput, onChanged: () => void) =>
       changeCredentials(() => accountSettings.changePassword(input), onChanged),
     confirmEmailChange: (token: string, onChanged: () => void) =>

@@ -10,6 +10,7 @@ import {
   Span,
   Text,
 } from '@/components/atoms/ui';
+import { Link } from '@/components/molecules/link';
 import { Icon } from '@/components/atoms/icon';
 interface Props {
   username: string;
@@ -60,6 +61,10 @@ export function AccountSettingsView({
             <Span>이메일 변경</Span>
             <Icon name='chevron-right' />
           </Button>
+          <Link className='menu-row danger-text' href='/delete-account'>
+            <Span>회원 탈퇴</Span>
+            <Icon name='chevron-right' />
+          </Link>
         </Section>
       ) : (
         <>
