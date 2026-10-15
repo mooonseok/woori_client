@@ -4,6 +4,7 @@ import { useAuth } from './use-auth';
 import { useNotificationPreferences } from './use-notification-preferences';
 import type { NotificationItem } from '@/dto/notification.dto';
 import * as api from '@/services/notifications';
+import { GROUP_MEMBERSHIP_CHANGED } from '@/services/api-client';
 import {
   notificationModel,
   mergeNotificationItems,
@@ -11,6 +12,10 @@ import {
 export function useLiveNotifications() {
   const { user } = useAuth();
   const settings = useNotificationPreferences(!!user);
+  const settingsRef = useRef(settings);
+  useEffect(() => {
+    settingsRef.current = settings;
+  }, [settings]);
   const [items, setItems] = useState<NotificationItem[]>([]),
     [unreadCount, setUnreadCount] = useState(0),
     [nextCursor, setCursor] = useState<string | null>(null);
@@ -59,6 +64,21 @@ export function useLiveNotifications() {
     },
     [user]
   );
+  const invalidateGroups = useCallback(() => {
+    scope.current?.controller.abort();
+    scope.current = { controller: new AbortController(), busy: false };
+    setItems([]);
+    setUnreadCount(0);
+    setCursor(null);
+    setPending(false);
+    settingsRef.current.invalidateGroups();
+    void load();
+  }, [load]);
+  useEffect(() => {
+    window.addEventListener(GROUP_MEMBERSHIP_CHANGED, invalidateGroups);
+    return () =>
+      window.removeEventListener(GROUP_MEMBERSHIP_CHANGED, invalidateGroups);
+  }, [invalidateGroups]);
   useEffect(() => {
     const current = { controller: new AbortController(), busy: false };
     scope.current = current;
@@ -75,6 +95,7 @@ export function useLiveNotifications() {
     window.addEventListener('focus', focus);
     return () => {
       current.controller.abort();
+      scope.current?.controller.abort();
       clearInterval(timer);
       window.removeEventListener('focus', focus);
     };
@@ -148,6 +169,7 @@ export function useLiveNotifications() {
     markAllRead: () => {
       void mark(items.map((item) => item.id));
     },
+    invalidateGroups,
     reload: load,
     more: () => load(nextCursor),
   };

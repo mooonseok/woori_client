@@ -1,13 +1,25 @@
 'use client';
 import { useEffect, useId, useRef, useState, type RefObject } from 'react';
-import { Box, Button, Dialog, Heading, Text } from '@/components/atoms/ui';
+import {
+  Box,
+  Button,
+  Dialog,
+  Heading,
+  Text,
+  Label,
+  Input,
+} from '@/components/atoms/ui';
 export function ActionConfirm({
   title,
   description,
   onConfirm,
   onClose,
   returnFocus,
+  confirmLabel = '삭제',
+  exactText,
 }: {
+  confirmLabel?: string;
+  exactText?: string;
   title: string;
   description: string;
   onConfirm: () => Promise<void>;
@@ -18,7 +30,8 @@ export function ActionConfirm({
     cancel = useRef<HTMLButtonElement>(null),
     locked = useRef(false);
   const [busy, setBusy] = useState(false),
-    [error, setError] = useState('');
+    [error, setError] = useState(''),
+    [confirmation, setConfirmation] = useState('');
   const titleId = useId(),
     bodyId = useId();
   useEffect(() => {
@@ -35,7 +48,11 @@ export function ActionConfirm({
     };
   }, [returnFocus]);
   async function confirm() {
-    if (locked.current) return;
+    if (
+      locked.current ||
+      (exactText !== undefined && confirmation !== exactText)
+    )
+      return;
     locked.current = true;
     setBusy(true);
     setError('');
@@ -69,6 +86,18 @@ export function ActionConfirm({
     >
       <Heading id={titleId}>{title}</Heading>
       <Text id={bodyId}>{description}</Text>
+      {exactText !== undefined && (
+        <Label className='stack-form'>
+          확인을 위해 그룹 이름을 그대로 입력해 주세요.
+          <Input
+            aria-label='삭제할 그룹 이름'
+            autoComplete='off'
+            value={confirmation}
+            disabled={busy}
+            onChange={(event) => setConfirmation(event.target.value)}
+          />
+        </Label>
+      )}
       {error && (
         <Text className='error-notice' role='alert'>
           {error}
@@ -85,10 +114,16 @@ export function ActionConfirm({
         </Button>
         <Button
           className='primary danger-button'
-          disabled={busy}
+          disabled={
+            busy || (exactText !== undefined && confirmation !== exactText)
+          }
           onClick={() => void confirm()}
         >
-          {busy ? '삭제 중…' : error ? '삭제 다시 시도' : '삭제'}
+          {busy
+            ? '처리 중…'
+            : error
+              ? `${confirmLabel} 다시 시도`
+              : confirmLabel}
         </Button>
       </Box>
     </Dialog>

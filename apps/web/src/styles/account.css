@@ -216,3 +216,21 @@
     padding: 16px;
   }
 }
+
+.group-member-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+}
+.group-member-row > :first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.group-member-row .inline-actions {
+  flex-wrap: wrap;
+  gap: 16px;
+}

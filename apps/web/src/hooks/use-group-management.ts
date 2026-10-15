@@ -19,6 +19,14 @@ export function useGroupManagement() {
     [listLoading, setListLoading] = useState(false);
   const [notice, setNotice] = useState('');
   const revision = useRef(0);
+  const mounted = useRef(false),
+    locked = useRef(false);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
   const load = useCallback(async () => {
     const generation = ++revision.current;
     setInvitations([]);
@@ -55,18 +63,21 @@ export function useGroupManagement() {
     };
   }, [load]);
   async function run(work: () => Promise<void>) {
-    if (pending) return;
+    if (locked.current) return;
+    locked.current = true;
     setPending(true);
     setError('');
     setNotice('');
     try {
       await work();
     } catch (error) {
+      if (!mounted.current) return;
       setError(
         error instanceof Error ? error.message : '요청을 처리하지 못했어요.'
       );
     } finally {
-      setPending(false);
+      locked.current = false;
+      if (mounted.current) setPending(false);
     }
   }
   async function create() {
@@ -85,6 +96,7 @@ export function useGroupManagement() {
         `/v1/groups/${groupId}/invitations`,
         { expiresInHours: 72, maxUses: 10 }
       );
+      if (!mounted.current) return;
       setCreated(result);
       if (result.url)
         setQr(
@@ -104,6 +116,7 @@ export function useGroupManagement() {
         `/v1/groups/${group.id}/invitations/${encodeURIComponent(id)}`,
         { method: 'DELETE' }
       );
+      if (!mounted.current) return;
       if (created?.id === id) {
         setCreated(null);
         setQr('');

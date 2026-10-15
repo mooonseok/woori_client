@@ -1,7 +1,7 @@
 {
   "name": "woori_client",
   "product": "우리",
-  "status": "account-recovery-and-profile",
+  "status": "group-lifecycle-management",
   "plans": "/Users/parkmoonseok/.Codex/projects/woori_client/plans",
   "sharedPlan": "/Users/parkmoonseok/.Codex/projects/woori/plans/00-product-plan.md",
   "implemented": [
@@ -18,7 +18,9 @@
     "live general and normalized-position comments with edit/delete permissions, pagination and retry; one emoji reaction per member with aggregate counts and scoped async cleanup",
     "account-scoped DB notification inbox, observed-sequence read state, protected target viewer and versioned push preferences with group overrides and KST quiet hours",
     "explicit per-browser Web Push subscriptions with authenticated display authorization, logout cleanup, installable manifest and safe notification deep links",
-    "live username recovery, one-time password reset and current-user profile name editing; recovery token kept only in memory after URL removal"
+    "live username recovery, one-time password reset and current-user profile name editing; recovery token kept only in memory after URL removal",
+    "live group roster and owner rename/remove/ownership-transfer/delete; member leave and exact-name deletion confirmation",
+    "membership revalidation on focus/visibility and denied group/photo requests; confirmed revocation clears photo blobs, viewer, invitations and notification state without treating network failure as membership loss"
   ],
   "notImplemented": [
     "account deletion and email/password changes while logged in",
@@ -39,5 +41,14 @@
     "api": "http://localhost:3001",
     "appMode": "live",
     "demoMode": "NEXT_PUBLIC_APP_MODE=demo; isolated sample data only"
+  },
+  "groupManagement": {
+    "albumTitlePermission": "active group owner only",
+    "leaveAndRemoval": "retain contributed photos/comments/reactions; revoke group access immediately; LEFT may rejoin, REMOVED may not rejoin",
+    "ownershipTransfer": "one active owner; atomic role/ownerId change; revoke all previous invitations",
+    "deletion": "owner confirms exact current name; API 202 immediately hides group; independent worker batches 100 photos and 100 albums per pass, verified R2 cleanup before final DELETED",
+    "retention": "group/album/photo tombstones and comment metadata retained; this is not an account-data purge",
+    "cleanupDelay": "existing upload/processing expiry grace preserved; requires running API and separate worker",
+    "databaseChanges": "no new migration or runtime grants required"
   }
 }
