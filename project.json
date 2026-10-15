@@ -1,7 +1,7 @@
 {
   "name": "woori_client",
   "product": "우리",
-  "status": "mobile-photo-stability-device-validation-pending",
+  "status": "account-settings-implemented-mobile-validation-pending",
   "plans": "/Users/parkmoonseok/.Codex/projects/woori_client/plans",
   "sharedPlan": "/Users/parkmoonseok/.Codex/projects/woori/plans/00-product-plan.md",
   "implemented": [
@@ -26,10 +26,11 @@
     "real R2 EXIF upload and bounded existing-photo backfill verified with synthetic images; manual date preserved during concurrent backfill",
     "batch preflight deduplication and limits, scoped transfer/acceptance progress, permanent-file errors separated from retryable transfer failures",
     "durable own-upload status recovery after reload, bounded visibility-aware polling and READY gallery refresh",
-    "shared original-download EXIF/GPS notice in gallery and notification viewers"
+    "shared original-download EXIF/GPS notice in gallery and notification viewers",
+    "authenticated password/email changes with current-password reauthentication, single-use account-bound email confirmation and all-session/push revocation"
   ],
   "notImplemented": [
-    "account deletion and email/password changes while logged in",
+    "account deletion and service guidance",
     "admin operations and native token authentication",
     "production cloud deployment",
     "HEIC conversion",
@@ -76,5 +77,17 @@
     "heic": "Unsupported: official synthetic HEVC HEIC metadata was readable but installed sharp/libvips could not decode pixels. Deployment-compatible decoder remains a separate decision.",
     "verification": "Actual private R2 synthetic 48MP JPEG and oriented JPEG, Chrome member upload and owner viewing, reload job recovery, invalid JPEG failure, HEIC/31-file preflight, original byte equality and metadata-stripped oriented display verified.",
     "remaining": "Physical iPhone/Android photo picker, save/share behavior, EXIF orientation with pin comments and deployment memory/load measurement remain unverified; W04 stays in_progress."
+  },
+  "accountSettings": {
+    "scope": "MyPage settings, authenticated password change and new-email verification; W05 account deletion/service guidance remain pending.",
+    "password": "Current password required; 12+ character new password; success revokes all sessions, push bindings and outstanding email tokens.",
+    "email": "Current password required to request; old email remains until authenticated account confirms a single-use 30-minute token; latest request only. New email becomes verified.",
+    "revocation": "Confirmation revokes all sessions, push bindings and outstanding email tokens; client clears private state and requires login and per-device push reconnection. Already handed-off provider messages cannot be recalled.",
+    "mail": "Resend new-address confirmation and old-address notice; notice is best-effort after commit. Durable mail retries remain W07.",
+    "verification": "Server policy:quality: 18 policy, 73 unit, 75 isolated PostgreSQL integration; client quality: 16 policy, 82 functional, builds/typecheck/lint/boundaries/format. Real Chrome password change/new login and email confirmation verified against DB, including all prior session/push revocation and unaffected member account. Resend new-address verification and old-address notice both delivered.",
+    "database": "Additive nullable email_tokens.targetEmail only; no new runtime grants. Keep column on rollback; completed credential changes and revoked sessions remain.",
+    "localMigration": "20261021000000_account_settings applied to 127.0.0.1:55439/woori_dev with explicit approval; nullable VARCHAR(254) verified, no new grants or existing-data deletion.",
+    "browserLimit": "Desktop Chrome owner/member flows verified. Requested 390px browser viewport remained 1512px, so mobile layout and physical-device validation are not claimed. Changed-email account was confirmed and logged out; no additional post-email login was performed.",
+    "cleanup": "Synthetic accounts/group removed by dropping guarded isolated fixture DB after browser logout. No R2 objects were created. Private fixture mail/session state removed; normal local API restored on 3001 using private .env."
   }
 }

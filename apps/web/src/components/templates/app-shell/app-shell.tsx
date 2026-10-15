@@ -1,5 +1,5 @@
 'use client';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   Box,
@@ -25,6 +25,7 @@ import { AuthProvider, useAuth } from '@/hooks/use-auth';
 import { AccountGate } from '@/components/organisms/account-gate/account-gate';
 import { DEMO_MODE } from '@/constants/app-mode';
 import { ROUTES } from '@/constants/routes';
+import { forgetEmailChangeToken } from '@/services/email-change-token';
 function Shell({ children }: { children: ReactNode }) {
   const path = usePathname(),
     gallery = useGallery(),
@@ -32,6 +33,9 @@ function Shell({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const router = useRouter();
   const [create, setCreate] = useState(false);
+  useEffect(() => {
+    if (path.replace(/\/$/, '') !== '/change-email') forgetEmailChangeToken();
+  }, [path]);
   const group = gallery.data.groups.find((g) => g.id === gallery.groupId);
   const tabs = [
     { href: ROUTES.HOME, label: '홈', icon: 'home' },

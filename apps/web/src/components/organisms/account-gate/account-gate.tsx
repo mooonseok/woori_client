@@ -26,6 +26,7 @@ export function AccountGate({ children }: { children: ReactNode }) {
       '/find-id',
       '/forgot-password',
       '/reset-password',
+      '/change-email',
     ].includes(path.replace(/\/$/, ''))
   )
     return children;

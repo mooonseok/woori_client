@@ -23,6 +23,9 @@ import {
 } from '@/services/api-client';
 import { updateProfile } from '@/services/recovery';
 import { clearBrowserPush } from '@/services/web-push';
+import * as accountSettings from '@/services/account-settings';
+import type { PasswordChangeInput } from '@/dto/account-settings.dto';
+import { createCredentialChanges } from '@/services/credential-changes';
 import { DEMO_MODE } from '@/constants/app-mode';
 function useAuthState() {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -34,6 +37,8 @@ function useAuthState() {
     'sent' | 'unavailable' | null
   >(null);
   const generation = useRef(0);
+  const credentialChanges = useRef(createCredentialChanges(clearBrowserPush));
+  const identityId = useRef<string | null>(null);
   const clear = useCallback(() => {
     generation.current++;
     advanceSessionRevision();
@@ -51,6 +56,10 @@ function useAuthState() {
     try {
       const result = await apiRequest<{ user: AuthUser }>('/v1/auth/me');
       if (request === generation.current) {
+        if (identityId.current !== result.user.id) {
+          credentialChanges.current.identityChanged();
+          identityId.current = result.user.id;
+        }
         setUser(result.user);
         setStatus('authenticated');
       }
@@ -95,22 +104,30 @@ function useAuthState() {
     input: LoginInput | SignupInput
   ) {
     const request = ++generation.current;
+    credentialChanges.current.identityChanged();
     advanceSessionRevision();
+    await credentialChanges.current.waitForCleanup();
+    if (request !== generation.current)
+      throw new Error('계정 상태가 바뀌었어요. 다시 로그인해 주세요.');
     await clearBrowserPush().catch(() => undefined);
+    if (request !== generation.current)
+      throw new Error('계정 상태가 바뀌었어요. 다시 로그인해 주세요.');
     const result = await post<{
       user: AuthUser;
       verificationDelivery?: 'sent' | 'unavailable';
     }>(`/v1/auth/${path}`, input);
-    setVerificationDelivery(result.verificationDelivery || null);
     if (request === generation.current) {
+      identityId.current = result.user.id;
+      setVerificationDelivery(result.verificationDelivery || null);
       setUser(result.user);
       setStatus('authenticated');
       setError('');
-    }
+    } else throw new Error('계정 상태가 바뀌었어요. 다시 로그인해 주세요.');
     return result.user;
   }
   async function logout() {
     const request = ++generation.current;
+    credentialChanges.current.identityChanged();
     advanceSessionRevision();
     await post<void>('/v1/auth/logout');
     await clearBrowserPush().catch(() => undefined);
@@ -118,12 +135,14 @@ function useAuthState() {
   }
   async function confirm(token: string) {
     const request = ++generation.current;
+    credentialChanges.current.identityChanged();
     advanceSessionRevision();
     const result = await post<{ user: AuthUser }>(
       '/v1/auth/email-verification/confirm',
       { token }
     );
     if (request === generation.current) {
+      identityId.current = result.user.id;
       setUser(result.user);
       setStatus('authenticated');
     }
@@ -137,6 +156,17 @@ function useAuthState() {
     setUser(result.user);
     return result.user;
   }
+  async function changeCredentials(
+    action: () => Promise<void>,
+    onChanged: () => void
+  ) {
+    await credentialChanges.current.run(action, () => {
+      // Same-session polling can already have received a 401 after commit.
+      // Still finish cleanup/navigation, unless a different login has started.
+      clear();
+      onChanged();
+    });
+  }
   return {
     user,
     status,
@@ -146,6 +176,13 @@ function useAuthState() {
     saveProfile,
     logout,
     confirm,
+    changePassword: (input: PasswordChangeInput, onChanged: () => void) =>
+      changeCredentials(() => accountSettings.changePassword(input), onChanged),
+    confirmEmailChange: (token: string, onChanged: () => void) =>
+      changeCredentials(
+        () => accountSettings.confirmEmailChange(token),
+        onChanged
+      ),
     login: (input: LoginInput) => authenticate('login', input),
     signup: (input: SignupInput) => authenticate('signup', input),
     resend: () => post('/v1/auth/email-verification/request'),
