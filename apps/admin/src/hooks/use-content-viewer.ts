@@ -4,7 +4,7 @@ import type {
   AdminCommentView,
   ContentViewTarget,
 } from '@/dto/content-view.dto';
-import { viewComment, viewPhoto } from '@/services/content-viewing';
+import { viewComment, viewPhoto, viewVideo } from '@/services/content-viewing';
 import { viewErrorMessage } from '@/utils/admin-errors';
 import { createBlobUrlSlot } from '@/utils/blob-url';
 import { plainTextError, RULES } from '@/utils/plain-text';
@@ -21,6 +21,9 @@ export function useContentViewer(target: ContentViewTarget) {
     [error, setError] = useState(''),
     [loading, setLoading] = useState(false),
     [photoUrl, setPhotoUrl] = useState(''),
+    // A signed URL (not a blob): dropped with the viewer; each fetch is a
+    // new audited view, so an expired URL is not refetched silently.
+    [videoUrl, setVideoUrl] = useState(''),
     [comment, setComment] = useState<AdminCommentView | null>(null);
   const slot = useRef<Slot | null>(null);
   const request = useRef<AbortController | null>(null);
@@ -44,7 +47,12 @@ export function useContentViewer(target: ContentViewTarget) {
     setLoading(true);
     setError('');
     try {
-      if (target.kind === 'photo') {
+      if (target.kind === 'video') {
+        const result = await reauth.run(() =>
+          viewVideo(target.id, text, controller.signal)
+        );
+        if (!controller.signal.aborted) setVideoUrl(result.url);
+      } else if (target.kind === 'photo') {
         const blob = await reauth.run(() =>
           viewPhoto(target.id, text, controller.signal)
         );
@@ -71,8 +79,9 @@ export function useContentViewer(target: ContentViewTarget) {
     error,
     loading,
     photoUrl,
+    videoUrl,
     comment,
-    shown: !!photoUrl || !!comment,
+    shown: !!photoUrl || !!videoUrl || !!comment,
     setReason: (value: string) => {
       setReason(value);
       setReasonError('');

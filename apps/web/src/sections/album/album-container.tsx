@@ -4,6 +4,8 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useGallery } from '@/hooks/use-gallery';
 import { GalleryStatus } from '@/components/organisms/gallery-status/gallery-status';
 import { useUploadJobs } from '@/hooks/use-upload-jobs';
+import { MAX_WINDOW_ROWS } from '@/services/list-window';
+import { isVideoType } from '@/utils/media';
 import { AlbumView } from './album-view';
 export function AlbumContainer() {
   const params = useSearchParams(),
@@ -32,6 +34,21 @@ export function AlbumContainer() {
   useEffect(() => {
     mediaRef.current = gallery;
   }, [gallery]);
+  // A reload or shared link can name an album past the loaded pages; the list
+  // has no detail endpoint, so page on until it appears, as far as a refresh
+  // keeps the list (MAX_WINDOW_ROWS), so a found album is not dropped again.
+  const list = gallery.albumList,
+    loadedAlbums = gallery.data.albums.filter(
+      (a) => a.groupId === gallery.groupId
+    ).length,
+    seeking =
+      !!id && !album && !!list?.hasMore && loadedAlbums < MAX_WINDOW_ROWS;
+  useEffect(() => {
+    if (!seeking || list?.loadingMore || list?.error || gallery.loading) return;
+    void mediaRef.current.loadMoreAlbums?.();
+  }, [seeking, loadedAlbums, list?.loadingMore, list?.error, gallery.loading]);
+  // Uploads belong to the album in the URL: a moment when it is missing from
+  // the list (a refresh) neither cancels them nor drops their results.
   useEffect(() => {
     let active = true;
     const counter = revision;
@@ -39,12 +56,26 @@ export function AlbumContainer() {
       if (!active) return;
       setBusy(false);
       setFailures([]);
-      if (album?.id) void mediaRef.current.loadPhotos?.(album.id);
     });
     return () => {
       active = false;
       counter.current++;
       mediaRef.current.cancelUploads?.();
+    };
+  }, [id, gallery.groupId]);
+  // First visit loads the grid; the same album again refreshes it in the
+  // background, keeping pages loaded with "사진 더 보기".
+  useEffect(() => {
+    const albumId = album?.id;
+    if (!albumId) return;
+    let active = true;
+    queueMicrotask(() => {
+      if (!active) return;
+      const media = mediaRef.current;
+      void (media.showAlbumPhotos ?? media.loadPhotos)?.(albumId);
+    });
+    return () => {
+      active = false;
     };
   }, [album?.id, gallery.groupId]);
   async function add(files: FileList | File[] | null) {
@@ -60,7 +91,7 @@ export function AlbumContainer() {
         result.added > 0
           ? gallery.mode === 'demo'
             ? `${result.added}장을 이 기기에서 미리보고 있어요. 서버에는 업로드되지 않았어요.`
-            : `${result.added}장의 사진을 처리하도록 접수했어요.`
+            : `${result.added}개를 처리하도록 접수했어요.${Array.from(files).some((file) => isVideoType(file.type)) ? ' 동영상은 변환을 마치면 앨범에 보여요.' : ''}`
           : ''
       );
     } finally {
@@ -78,7 +109,11 @@ export function AlbumContainer() {
     return <GalleryStatus />;
   return (
     <AlbumView
+      videoIds={gallery.videoUploads}
       album={album}
+      seeking={seeking}
+      seekError={list?.error || ''}
+      onSeekRetry={() => void gallery.loadMoreAlbums?.()}
       onRename={async (title) => {
         if (album) await gallery.renameAlbum?.(album.id, title);
       }}

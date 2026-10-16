@@ -16,7 +16,8 @@
       "id": "a1",
       "groupId": "g1",
       "title": "가을 단풍 나들이",
-      "date": "2025-10-13",
+      "startDate": "2025-10-13",
+      "endDate": "2025-10-13",
       "coverId": "p129",
       "createdAt": "2025-10-13"
     },
@@ -24,7 +25,8 @@
       "id": "a2",
       "groupId": "g1",
       "title": "바닷가 캠핑",
-      "date": "2026-09-12",
+      "startDate": "2026-09-12",
+      "endDate": "2026-09-13",
       "coverId": "p17",
       "createdAt": "2026-09-12"
     },
@@ -32,7 +34,8 @@
       "id": "a3",
       "groupId": "g1",
       "title": "제주 여름 여행",
-      "date": "2026-07-18",
+      "startDate": "2026-07-18",
+      "endDate": "2026-07-21",
       "coverId": "p468",
       "createdAt": "2026-07-18"
     },
@@ -40,7 +43,8 @@
       "id": "a4",
       "groupId": "g1",
       "title": "봄 소풍",
-      "date": "2026-04-05",
+      "startDate": "2026-04-05",
+      "endDate": "2026-04-05",
       "coverId": "p643",
       "createdAt": "2026-04-05"
     },
@@ -48,7 +52,8 @@
       "id": "a5",
       "groupId": "g1",
       "title": "할머니 팔순 잔치",
-      "date": "2026-03-01",
+      "startDate": "2026-03-01",
+      "endDate": "2026-03-01",
       "coverId": "p156",
       "createdAt": "2026-03-01"
     },
@@ -56,7 +61,8 @@
       "id": "a6",
       "groupId": "g1",
       "title": "추석 연휴, 할머니 댁",
-      "date": "2026-09-24",
+      "startDate": "2026-09-24",
+      "endDate": "2026-09-26",
       "coverId": "p106",
       "createdAt": "2026-09-24"
     }
@@ -109,7 +115,7 @@
       "width": 1400,
       "height": 1046,
       "alt": "바닷가 캠핑의 사진",
-      "capturedAt": "2026-09-12",
+      "capturedAt": "2026-09-13",
       "authorId": "family"
     },
     {
@@ -119,7 +125,7 @@
       "width": 1400,
       "height": 933,
       "alt": "바닷가 캠핑의 사진",
-      "capturedAt": "2026-09-12",
+      "capturedAt": "2026-09-13",
       "authorId": "family"
     },
     {
@@ -139,7 +145,7 @@
       "width": 1400,
       "height": 934,
       "alt": "제주 여름 여행의 사진",
-      "capturedAt": "2026-07-18",
+      "capturedAt": "2026-07-19",
       "authorId": "family"
     },
     {
@@ -149,7 +155,7 @@
       "width": 1400,
       "height": 788,
       "alt": "제주 여름 여행의 사진",
-      "capturedAt": "2026-07-18",
+      "capturedAt": "2026-07-21",
       "authorId": "family"
     },
     {
@@ -229,7 +235,7 @@
       "width": 1400,
       "height": 928,
       "alt": "추석 연휴, 할머니 댁의 사진",
-      "capturedAt": "2026-09-24",
+      "capturedAt": "2026-09-25",
       "authorId": "family"
     },
     {
@@ -239,7 +245,7 @@
       "width": 1400,
       "height": 985,
       "alt": "추석 연휴, 할머니 댁의 사진",
-      "capturedAt": "2026-09-24",
+      "capturedAt": "2026-09-26",
       "authorId": "family"
     }
   ],

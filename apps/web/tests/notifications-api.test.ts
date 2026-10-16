@@ -32,10 +32,13 @@ const row: InboxNotification = {
   albumTitle: '여름',
   photoId: 'photo',
   commentId: 'comment',
+  count: 1,
   createdAt: '2026-10-14T00:00:00Z',
+  latestAt: '2026-10-14T00:00:00Z',
   latestSequence: 3,
   readThroughSequence: 1,
   unread: true,
+  navigation: 'COMMENT',
 };
 const settings: NotificationPreferencesResponse = {
   preferences: {
@@ -62,15 +65,13 @@ test('inbox mapping preserves server unread/sequence, actual group and pin targe
   assert.equal(item.groupName, '가족');
   assert.equal(item.title, '가족님이 위치 댓글을 남겼어요');
   assert.equal(notificationModel({ ...row, unread: false }).read, true);
+  // OpenAPI 0.20.0: the server copy of an id replaces the shown one.
   assert.deepEqual(
     mergeNotificationItems(
       [{ ...item, read: true }],
-      [item, { ...item, id: 'older' }]
+      [item, { ...item, id: 'older', timestamp: item.timestamp - 1 }]
     ),
-    [
-      { ...item, read: true },
-      { ...item, id: 'older' },
-    ]
+    [item, { ...item, id: 'older', timestamp: item.timestamp - 1 }]
   );
 });
 test('preferences map DB minutes and group modes; patch carries optimistic version and omits unsupported switches', () => {

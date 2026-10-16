@@ -2,7 +2,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { initialGallery } from '@/content/gallery';
 import type { GalleryData, Photo, Point } from '@/dto/album.dto';
-import { validPoint } from '@/lib/gallery';
+import { periodWith, validPoint } from '@/lib/gallery';
 import { readPhotoPreview } from '@/services/photo-preview';
 export function useDemoGalleryState() {
   const [data, setData] = useState<GalleryData>(initialGallery);
@@ -77,7 +77,8 @@ export function useDemoGalleryState() {
           id,
           groupId,
           title: title.trim().slice(0, 80),
-          date: date.slice(0, 10),
+          startDate: null,
+          endDate: null,
           createdAt: date,
           coverId: '',
         },
@@ -106,7 +107,13 @@ export function useDemoGalleryState() {
           ...d,
           photos: [...d.photos, photo],
           albums: d.albums.map((a) =>
-            a.id === albumId ? { ...a, coverId: a.coverId || photo.id } : a
+            a.id === albumId
+              ? {
+                  ...a,
+                  ...periodWith(a, photo.capturedAt),
+                  coverId: a.coverId || photo.id,
+                }
+              : a
           ),
         }));
         added++;

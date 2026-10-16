@@ -19,7 +19,14 @@ import {
   resolveReport,
   reviewReport,
 } from '../src/services/reports.ts';
-import { viewComment, viewPhoto } from '../src/services/content-viewing.ts';
+import {
+  viewComment,
+  viewPhoto,
+  viewVideo,
+} from '../src/services/content-viewing.ts';
+import { runWithReauth } from '../src/utils/reauth.ts';
+import { formatDuration } from '../src/utils/format.ts';
+import { auditActionLabel } from '../src/content/audit-actions.ts';
 
 const BASE = 'http://localhost:3001';
 const ID = '0b7c6f2e-1d2a-4c3b-9e8f-7a6b5c4d3e2f';
@@ -187,4 +194,46 @@ test('a non-image photo response and view errors are reported, not shown', async
   next = () => json(200, { id: ID, body: '<b>댓글</b>' });
   const comment = await viewComment(ID, '신고 내용 확인');
   assert.equal(comment.body, '<b>댓글</b>');
+});
+
+test('video view: reason, then re-auth once, then a signed URL (audited ADMIN_VIDEO_VIEWED)', async (t) => {
+  let reauthenticated = false;
+  const http = capture(t, () =>
+    reauthenticated
+      ? json(200, {
+          url: 'https://r2.example/photos/v.mp4?X-Amz-Signature=x',
+          expiresAt: '2026-10-16T00:10:00Z',
+          mime: 'video/mp4',
+          bytes: 1234,
+          durationMs: 42000,
+        })
+      : json(403, { code: 'ADMIN_REAUTH_REQUIRED' })
+  );
+  let prompts = 0;
+  const view = await runWithReauth(
+    () => viewVideo(ID, '신고 내용 확인'),
+    async () => {
+      prompts++;
+      reauthenticated = true;
+      return true;
+    }
+  );
+  assert.equal(prompts, 1);
+  assert.equal(view.url, 'https://r2.example/photos/v.mp4?X-Amz-Signature=x');
+  assert.equal(formatDuration(view.durationMs), '0:42');
+  assert.equal(http.calls.length, 2);
+  for (const request of http.calls) {
+    assert.equal(request.method, 'POST');
+    assert.equal(request.url, `${BASE}/v1/admin/photos/${ID}/video`);
+    assert.deepEqual(await request.json(), { reason: '신고 내용 확인' });
+  }
+  assert.equal(auditActionLabel('ADMIN_VIDEO_VIEWED'), '동영상 열람');
+  // A photo (or anything not a playable video) is not found, not shown.
+  reauthenticated = false;
+  http.mock.mock.mockImplementation(async () =>
+    json(404, { code: 'ADMIN_PHOTO_NOT_FOUND' })
+  );
+  await assert.rejects(viewVideo(ID, '신고 내용 확인'), { status: 404 });
+  for (const bad of ['../x', ''])
+    await assert.rejects(viewVideo(bad, '신고 내용 확인'), { status: 400 });
 });

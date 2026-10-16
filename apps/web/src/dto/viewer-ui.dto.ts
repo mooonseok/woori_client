@@ -60,9 +60,19 @@ export interface PhotoGestureModel {
   onKeyDown(event: KeyboardEvent): void;
   stageEvents: {
     onPointerDown(event: PointerEvent<HTMLDivElement>): void;
-    onPointerMove(event: PointerEvent): void;
+    onPointerMove(event: PointerEvent<HTMLDivElement>): void;
     onPointerUp(event: PointerEvent): void;
     onPointerCancel(event: PointerEvent): void;
     onLostPointerCapture(event: PointerEvent): void;
   };
+}
+
+// The play URL state for a video on screen (hooks/use-video-source).
+export interface VideoSourceView {
+  src: string;
+  attempt: number;
+  status: 'idle' | 'loading' | 'ready' | 'error';
+  failed(): void;
+  retry(): void;
+  played(): void;
 }

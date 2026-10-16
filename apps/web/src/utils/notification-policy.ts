@@ -4,6 +4,7 @@ import type {
   NotificationPreferences,
   NotificationType,
 } from '../dto/notification.dto';
+import { notificationTitle } from './notification-model.ts';
 
 export function notificationDefaults(): NotificationPreferences {
   return {
@@ -99,7 +100,16 @@ export function insertNotification(
           count: item.count + 1,
           timestamp: incoming.timestamp,
           read: false,
-          title: incoming.title,
+          actorName: incoming.actorName,
+          // Same wording as live bundles: "{actor}님 외 N명이 …".
+          title: incoming.actorName
+            ? notificationTitle(
+                'REACTION',
+                incoming.actorName,
+                '',
+                item.count + 1
+              )
+            : incoming.title,
         }
       : item
   );

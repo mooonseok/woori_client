@@ -27,6 +27,7 @@ export const AUDIT_ACTION_LABELS: Readonly<Record<string, string>> = {
   ADMIN_CONTENT_DELETED: '콘텐츠 삭제',
   ADMIN_USER_SUSPENDED: '회원 이용 정지',
   ADMIN_PHOTO_VIEWED: '사진 열람',
+  ADMIN_VIDEO_VIEWED: '동영상 열람',
   ADMIN_COMMENT_VIEWED: '댓글 열람',
   ADMIN_USER_VIEWED: '회원 열람',
   ADMIN_USER_RENAMED: '회원 이름 변경',

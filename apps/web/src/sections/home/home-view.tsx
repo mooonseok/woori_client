@@ -13,6 +13,8 @@ import { Icon } from '@/components/atoms/icon';
 import { AlbumCard } from '@/components/molecules/album-card';
 import { EmptyState } from '@/components/molecules/empty-state';
 import type { Album, Photo } from '@/dto/album.dto';
+import { AlbumMeta } from '@/components/molecules/album-meta';
+import { mediaCountLabel } from '@/utils/media';
 interface Props {
   demo?: boolean;
   memories?: ReactNode;
@@ -67,9 +69,7 @@ export function HomeView({
             <Box className='memory-caption'>
               <Text className='muted'>다시 꺼내 보는 우리</Text>
               <Heading className='memory-title'>{albums[0].title}</Heading>
-              <Text className='muted'>
-                {albums[0].date.replaceAll('-', '.')} · 사진 {count}장
-              </Text>
+              <AlbumMeta className='muted' album={albums[0]} count={count} />
               {demo && (
                 <Text className='memory-quote'>
                   “이날 바닷바람이 참 시원했지.
@@ -80,7 +80,8 @@ export function HomeView({
                 className='text-button'
                 onClick={() => onAlbum(albums[0].id)}
               >
-                사진 {count}장 보기 <Icon name='chevron-right' size={18} />
+                {mediaCountLabel(count, albums[0].videoCount)} 보기{' '}
+                <Icon name='chevron-right' size={18} />
               </Button>
             </Box>
           </Section>

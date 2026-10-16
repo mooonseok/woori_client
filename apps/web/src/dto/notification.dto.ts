@@ -1,3 +1,4 @@
+import type { NotificationNavigation } from './notification-api.dto';
 export type NotificationType = 'photos' | 'comment' | 'reaction';
 export type NotificationGroupMode = 'default' | 'mine' | 'off';
 export interface NotificationItem {
@@ -10,6 +11,10 @@ export interface NotificationItem {
   commentId?: string | null;
   latestSequence?: number;
   actorId?: string;
+  actorName?: string;
+  navigation?: NotificationNavigation;
+  mediaKind?: 'PHOTO' | 'VIDEO';
+  videoCount?: number;
   title: string;
   timestamp: number;
   createdAt: number;

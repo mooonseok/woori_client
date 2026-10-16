@@ -139,7 +139,7 @@ export function NotificationsView({
                       className='notification-item'
                       disabled={loading || pending}
                       onClick={row.onOpen}
-                      aria-label={`${row.read ? '' : '읽지 않음. '}${row.title}${row.count > 1 ? `. 반응 ${row.count}개` : ''}. ${row.when}`}
+                      aria-label={`${row.read ? '' : '읽지 않음. '}${row.title}. ${row.group}. ${row.when}`}
                     >
                       {row.image ? (
                         <Image
@@ -158,10 +158,8 @@ export function NotificationsView({
                         </Span>
                       )}
                       <Span className='notification-item-copy'>
-                        <Span>
-                          {row.title}
-                          {row.count > 1 ? ` 외 반응 ${row.count - 1}개` : ''}
-                        </Span>
+                        {/* Bundle counts are part of the title. */}
+                        <Span>{row.title}</Span>
                         <Span className='notification-description'>
                           {row.group} · {row.when}
                         </Span>

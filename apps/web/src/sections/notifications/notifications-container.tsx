@@ -7,16 +7,20 @@ import {
   notificationRelativeTime,
 } from '../../utils/notification-policy';
 import { PhotoViewer } from '@/components/organisms/photo-viewer/photo-viewer';
+import { notificationDestination } from '@/utils/notification-model';
 import { NotificationsView } from './notifications-view';
 import type { NotificationRowViewModel } from './notifications-view';
 import '../../styles/notifications.css';
 interface Props {
   onOpenPhoto: (id: string) => void;
+  // PHOTOS bundles lead to the album screen (switching group if needed).
+  onOpenAlbum: (groupId: string, albumId: string) => void;
   onBack: () => void;
   onSettings: () => void;
 }
 export function NotificationsContainer({
   onOpenPhoto,
+  onOpenAlbum,
   onBack,
   onSettings,
 }: Props) {
@@ -26,12 +30,15 @@ export function NotificationsContainer({
   const requested = useRef(false);
   const targetRef = useRef(target);
   const inboxRef = useRef(inbox);
+  const albumRef = useRef(onOpenAlbum);
   useEffect(() => {
     targetRef.current = target;
     inboxRef.current = inbox;
+    albumRef.current = onOpenAlbum;
   });
   useEffect(() => {
-    if (!inbox.live || requested.current) return;
+    // After the first list load, so the row (and its media kind) is known.
+    if (!inbox.live || inbox.loading || requested.current) return;
     const id = new URLSearchParams(window.location.search).get(
       'notificationId'
     );
@@ -46,14 +53,22 @@ export function NotificationsContainer({
     queueMicrotask(() => {
       if (!active) return;
       requested.current = true;
-      void targetRef.current.open(id, true).then(async (opened) => {
-        if (opened) await inboxRef.current.reload?.();
-      });
+      // A push opens before the row may be loaded: its kind if known.
+      const row = inboxRef.current.items.find((item) => item.id === id);
+      void targetRef.current
+        .open(id, true, row?.mediaKind)
+        .then(async (opened) => {
+          if (!opened) return;
+          const destination = notificationDestination(opened);
+          if (destination.kind === 'album')
+            albumRef.current(destination.groupId, destination.albumId);
+          await inboxRef.current.reload?.();
+        });
     });
     return () => {
       active = false;
     };
-  }, [inbox.live]);
+  }, [inbox.live, inbox.loading]);
   useEffect(() => {
     void reload?.();
   }, [reload]);
@@ -69,16 +84,24 @@ export function NotificationsContainer({
       id: item.id,
       title: item.title,
       image: inbox.live ? undefined : `/photos/${item.photoId}.jpg`,
-      group: item.groupName || '윤슬네 가족',
+      group: item.groupName || '이름 없는 그룹',
       when: notificationRelativeTime(item.timestamp, inbox.now),
       read: item.read,
       count: item.count,
       onOpen: async () => {
         if (inbox.live) {
-          if (await target.open(item.id)) await inbox.markRead(item.id);
+          const opened = await target.open(item.id, false, item.mediaKind);
+          if (!opened) return;
+          const destination = notificationDestination(opened);
+          if (destination.kind === 'album')
+            onOpenAlbum(destination.groupId, destination.albumId);
+          // Read through what was opened, which may be newer than the row.
+          await inbox.markRead(item.id, opened.latestSequence);
         } else {
           inbox.markRead(item.id);
-          onOpenPhoto(item.photoId);
+          if (item.navigation === 'ALBUM' && item.albumId)
+            onOpenAlbum(item.groupId, item.albumId);
+          else onOpenPhoto(item.photoId);
         }
       },
     });
@@ -115,6 +138,7 @@ export function NotificationsContainer({
           onReact={() => {}}
           onClose={target.close}
           onDownloadOriginal={target.download}
+          loadVideo={target.loadVideo}
         />
       )}
     </>

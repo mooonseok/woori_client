@@ -13,6 +13,8 @@ import {
 import { Icon } from '@/components/atoms/icon';
 import { usePhotoInteractions } from '@/hooks/use-photo-interactions';
 import { usePhotoViewer } from '@/hooks/use-photo-viewer';
+import { useDisplayRenditions } from '@/hooks/use-display-renditions';
+import { useVideoSource } from '@/hooks/use-video-source';
 import { usePhotoGestures } from '@/hooks/use-photo-gestures';
 import { Guide } from '@/components/organisms/guide/guide';
 import { PhotoStageView } from './photo-stage-view';
@@ -66,6 +68,16 @@ function PhotoViewerContainer(props: PhotoViewerProps) {
     }),
     dialog = useRef<HTMLDialogElement>(null);
   const interactions = usePhotoInteractions(m.photo.id, !!props.live);
+  // A video plays from a signed URL fetched when it is on screen.
+  const video = useVideoSource(m.photo, props.loadVideo);
+  // Grid thumbnails stay on screen until the display rendition arrives.
+  const stagePhotos = useDisplayRenditions(
+    props.photos,
+    m.index,
+    props.loadDisplay,
+    m.imageRetry,
+    m.setFailedPhoto
+  );
   const commentTargetOpened = useRef(false);
   useEffect(() => {
     if (
@@ -159,8 +171,9 @@ function PhotoViewerContainer(props: PhotoViewerProps) {
         <PhotoStageView
           model={m}
           gestures={g}
-          photos={props.photos}
-          comments={comments}
+          photos={stagePhotos}
+          comments={m.photo.mediaKind === 'VIDEO' ? [] : comments}
+          video={video}
         />
         <ViewerToolbarView
           model={m}
@@ -371,8 +384,16 @@ function PhotoViewerContainer(props: PhotoViewerProps) {
       )}
       {deleting && props.onDeletePhoto && (
         <ActionConfirm
-          title='사진을 삭제할까요?'
-          description='모든 구성원에게서 이 사진이 삭제돼요. 원본과 썸네일도 정리되며 되돌릴 수 없어요.'
+          title={
+            m.photo.mediaKind === 'VIDEO'
+              ? '동영상을 삭제할까요?'
+              : '사진을 삭제할까요?'
+          }
+          description={
+            m.photo.mediaKind === 'VIDEO'
+              ? '모든 구성원에게서 이 동영상이 삭제돼요. 변환한 동영상과 썸네일도 정리되며 되돌릴 수 없어요.'
+              : '모든 구성원에게서 이 사진이 삭제돼요. 원본과 썸네일도 정리되며 되돌릴 수 없어요.'
+          }
           returnFocus={menuButton}
           onConfirm={() => props.onDeletePhoto!(m.photo)}
           onClose={() => setDeleting(false)}

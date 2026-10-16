@@ -248,6 +248,7 @@ interface PhotoRow {
   created: string;
   createdAt: string;
   viewable: boolean;
+  video: boolean;
 }
 export function AlbumPhotosView({
   title,
@@ -272,7 +273,7 @@ export function AlbumPhotosView({
   hasMore: boolean;
   onRetry: () => void;
   onMore: () => void;
-  onView: (id: string) => void;
+  onView: (id: string, video: boolean) => void;
 }) {
   return (
     <Section className='card' aria-labelledby='album-photos-title'>
@@ -350,10 +351,10 @@ export function AlbumPhotosView({
                       {row.viewable ? (
                         <Button
                           className='secondary-button small'
-                          onClick={() => onView(row.id)}
+                          onClick={() => onView(row.id, row.video)}
                         >
                           <Icon name='eye' size={16} />
-                          사진 보기
+                          {row.video ? '동영상 보기' : '사진 보기'}
                         </Button>
                       ) : (
                         <Span className='muted'>볼 수 없음</Span>

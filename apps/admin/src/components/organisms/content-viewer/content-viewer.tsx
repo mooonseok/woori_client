@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useId, useRef } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import {
   Box,
   Button,
@@ -14,6 +14,7 @@ import {
   Label,
   Text,
   Time,
+  Video,
 } from '@/components/atoms/ui';
 import { Notice } from '@/components/molecules/notice';
 import { REAUTH_WINDOW_MINUTES } from '@/constants/admin-auth';
@@ -53,7 +54,24 @@ export function ContentViewer({
       });
     };
   }, []);
-  const noun = target.kind === 'photo' ? '사진' : '댓글';
+  const noun =
+    target.kind === 'photo'
+      ? '사진'
+      : target.kind === 'video'
+        ? '동영상'
+        : '댓글';
+  const video = useRef<HTMLVideoElement>(null),
+    [videoError, setVideoError] = useState(false);
+  // Closing (unmount) stops playback and drops the signed URL.
+  useEffect(() => {
+    const element = video.current;
+    return () => {
+      if (!element) return;
+      element.pause();
+      element.removeAttribute('src');
+      element.load();
+    };
+  }, [viewer.videoUrl]);
   const comment = viewer.comment;
   return (
     <Dialog
@@ -129,6 +147,29 @@ export function ContentViewer({
                 draggable={false}
               />
             </Box>
+          )}
+          {viewer.videoUrl && (
+            <Box className='viewer-photo'>
+              <Video
+                ref={video}
+                src={viewer.videoUrl}
+                controls
+                playsInline
+                preload='metadata'
+                // Viewing only: no download or picture-in-picture controls.
+                controlsList='nodownload noremoteplayback'
+                disablePictureInPicture
+                onContextMenu={(event) => event.preventDefault()}
+                onError={() => setVideoError(true)}
+                aria-label={`${target.label} (변환된 동영상)`}
+              />
+            </Box>
+          )}
+          {videoError && (
+            <Notice tone='error'>
+              동영상을 재생하지 못했어요. 링크는 10분 동안만 유효해요. 닫고 다시
+              열람해 주세요.
+            </Notice>
           )}
           {comment && (
             <Box className='viewer-comment'>

@@ -9,6 +9,8 @@ import {
 } from '@/components/atoms/ui';
 import type { MemoryCard, MemoryKind } from '@/dto/memories.dto';
 import { photoDateLabel } from '@/utils/photo-date';
+import { formatDuration } from '@/utils/media';
+import { MediaBadge } from '@/components/molecules/media-badge';
 interface Props {
   kind: MemoryKind;
   items: MemoryCard[];
@@ -104,9 +106,16 @@ export function MemoriesView(props: Props) {
               className='memory-card-photo'
               disabled={props.opening || !!pending}
               onClick={() => props.onOpen(item)}
-              aria-label={`${item.albumTitle}, ${item.effectiveDate}, 사진 크게 보기`}
+              aria-label={`${item.albumTitle}, ${item.effectiveDate}, ${
+                item.photo.mediaKind === 'VIDEO'
+                  ? `동영상${item.photo.durationMs ? ` ${formatDuration(item.photo.durationMs)}` : ''}`
+                  : '사진'
+              } 크게 보기`}
             >
               <Image src={item.thumbnail} alt='' loading='lazy' />
+              {item.photo.mediaKind === 'VIDEO' && (
+                <MediaBadge durationMs={item.photo.durationMs} />
+              )}
             </Button>
             <Text className='memory-card-title'>
               {kind === 'hidden'

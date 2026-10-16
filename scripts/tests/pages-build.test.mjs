@@ -1,0 +1,181 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import {
+  finish,
+  forbiddenUrls,
+  httpsOrigin,
+  r2Origin,
+  renderHeaders,
+  scriptHashes,
+  withScriptPolicy,
+  wooriOrigin,
+} from '../pages-build.mjs';
+
+const page = (scripts) =>
+  `<!DOCTYPE html><html lang="ko"><head><meta charSet="utf-8"/><script src="/_next/static/chunks/a.js" async=""></script></head><body><main>우리</main>${scripts.map((s) => `<script>${s}</script>`).join('')}</body></html>`;
+const sha = (text) =>
+  `'sha256-${createHash('sha256').update(text).digest('base64')}'`;
+const account =
+  'https://0123456789abcdef0123456789abcdef.r2.cloudflarestorage.com';
+
+test('each page gets a script-src meta with exactly its inline-script hashes, before them', () => {
+  const scripts = ['self.__next_f=[]', 'self.__next_f.push([1,"한글"])'];
+  const html = withScriptPolicy(page(scripts));
+  assert.deepEqual(scriptHashes(page(scripts)), scripts.map(sha));
+  const meta = html.match(
+    /<meta http-equiv="Content-Security-Policy"[^>]*>/
+  )[0];
+  assert.equal(
+    meta.match(/content="([^"]*)"/)[1],
+    `script-src 'self' ${scripts.map(sha).join(' ')}`
+  );
+  assert.ok(html.indexOf(meta) < html.indexOf('<script>'));
+  assert.ok(
+    html.startsWith(
+      '<!DOCTYPE html><html lang="ko"><head><meta charSet="utf-8"/><meta'
+    )
+  );
+  // External scripts are allowed by 'self', not hashed; reruns are refused.
+  assert.equal(scriptHashes(page([])).length, 0);
+  assert.throws(() => withScriptPolicy(html), /already present/);
+});
+
+test('origins must be public https; the R2 host matches the presigned PUT format', () => {
+  assert.equal(
+    httpsOrigin('https://api.woori.stream/', 'API'),
+    'https://api.woori.stream'
+  );
+  for (const bad of [
+    undefined,
+    'http://api.woori.stream',
+    'https://localhost:3001',
+    'https://127.0.0.1',
+    'https://api.example',
+  ])
+    assert.throws(() => httpsOrigin(bad, 'API'));
+  assert.equal(r2Origin(account), account);
+  assert.throws(() => r2Origin('https://woori.r2.dev'));
+  assert.throws(() => r2Origin(`${account}/bucket`), /account id/);
+});
+
+test('_headers placeholders are all filled and Pages limits are enforced', () => {
+  const template =
+    '/*\n  Content-Security-Policy: connect-src {{API_ORIGIN}}\n';
+  assert.equal(
+    renderHeaders(template, { API_ORIGIN: 'https://api.woori.stream' }),
+    '/*\n  Content-Security-Policy: connect-src https://api.woori.stream\n'
+  );
+  assert.throws(
+    () => renderHeaders(template, {}),
+    /No value for \{\{API_ORIGIN\}\}/
+  );
+  assert.throws(
+    () => renderHeaders(`/*\n  X: ${'a'.repeat(2001)}\n`, {}),
+    /2000 characters/
+  );
+});
+
+test('an export with local or mock URLs fails; a clean one is finished in place', () => {
+  assert.deepEqual(
+    forbiddenUrls(
+      'fetch("http://localhost:3001/v1") "http://127.0.0.1:3097" "https://api.example/v1"'
+    ),
+    ['http://localhost:3001', 'http://127.0.0.1:3097', 'https://api.example']
+  );
+  // LAN hosts and private addresses are caught as well.
+  assert.deepEqual(
+    forbiddenUrls(
+      '"https://nas.local/api" "http://api.internal:8080" "http://10.1.2.3" "https://192.168.0.10:3001" "http://172.20.0.5" "http://[fd00::1]:3001"'
+    ),
+    [
+      'https://nas.local',
+      'http://api.internal:8080',
+      'http://10.1.2.3',
+      'https://192.168.0.10:3001',
+      'http://172.20.0.5',
+      'http://[fd00::1]:3001',
+    ]
+  );
+  // Public look-alikes are not: 172.32/16 and 10.x as a longer name.
+  assert.deepEqual(
+    forbiddenUrls('"https://172.32.0.1" "https://10.1.2.3.example.org"'),
+    []
+  );
+  // Hostnames without a URL (the SW's dev allowlist) and .invalid bases pass.
+  assert.deepEqual(
+    forbiddenUrls(
+      "['localhost','127.0.0.1'] new URL(v,'https://woori.invalid')"
+    ),
+    []
+  );
+  const out = mkdtempSync(join(tmpdir(), 'pages-build-'));
+  mkdirSync(join(out, 'album'));
+  writeFileSync(join(out, 'album.html'), page(['self.__next_f=[]']));
+  writeFileSync(join(out, '404.html'), page(['self.__next_f.push(404)']));
+  writeFileSync(join(out, 'album', 'x.txt'), 'rsc');
+  writeFileSync(
+    join(out, '_headers'),
+    '/*\n  CSP: connect-src {{API_ORIGIN}}\n'
+  );
+  assert.equal(finish(out, { API_ORIGIN: 'https://api.woori.stream' }), 2);
+  assert.match(readFileSync(join(out, '404.html'), 'utf8'), /data-woori-csp/);
+  assert.match(
+    readFileSync(join(out, '_headers'), 'utf8'),
+    /api\.woori\.stream/
+  );
+  writeFileSync(join(out, 'leak.js'), 'const api="http://localhost:3001"');
+  assert.throws(
+    () => finish(out, { API_ORIGIN: 'https://api.woori.stream' }),
+    /leak\.js: http:\/\/localhost:3001/
+  );
+});
+
+test('the API origin is woori.stream or a subdomain; R2 keeps only its account format', () => {
+  for (const good of [
+    'https://api.woori.stream',
+    'https://api.woori.stream/',
+    'https://woori.stream',
+    'https://admin.woori.stream',
+    'https://API.Woori.Stream',
+  ])
+    assert.equal(
+      wooriOrigin(good, 'API'),
+      new URL(good).origin,
+      `${good} is allowed`
+    );
+  for (const bad of [
+    'https://api.invalid',
+    'https://api.woori.invalid',
+    'https://api.local',
+    'https://nas.local',
+    'https://api.internal',
+    'https://woori.internal',
+    'https://10.0.0.5',
+    'https://192.168.0.10',
+    'https://172.16.0.1',
+    'https://172.31.255.254',
+    'https://[fd00::1]',
+    'https://woori.stream.evil.com',
+    'https://evilwoori.stream',
+    'https://api.woori.stream.',
+    'https://api.woori.dev',
+    'https://woori.pages.dev',
+    'https://api.woori.stream:8443',
+    'https://user:pass@api.woori.stream',
+    'http://api.woori.stream',
+    'https://localhost',
+    undefined,
+  ])
+    assert.throws(
+      () => wooriOrigin(bad, 'API'),
+      /must be/,
+      `${bad} is refused`
+    );
+  // The storage host is Cloudflare's, so the allowlist does not apply to it.
+  assert.equal(r2Origin(account), account);
+  assert.throws(() => r2Origin('https://api.woori.stream'), /account id/);
+});

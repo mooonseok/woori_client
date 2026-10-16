@@ -37,22 +37,31 @@ export const notificationPreviewRow: NotificationSettingRow = {
 };
 export function createNotificationFixtures(now: number): NotificationItem[] {
   return [
+    // Titles follow notificationTitle() so demo and live read the same.
     {
       id: 'sample-photos',
       type: 'photos',
       photoId: 'p289',
       groupId: 'g1',
-      title: '하은님이 가을 단풍 나들이에 사진을 올렸어요',
+      groupName: '윤슬네 가족',
+      albumId: 'a1',
+      navigation: 'ALBUM',
+      actorName: '하은',
+      title: "하은님이 '가을 단풍 나들이'에 사진 3장을 올렸어요",
       timestamp: now - 8 * 60000,
-      createdAt: now - 8 * 60000,
+      createdAt: now - 20 * 60000,
       read: false,
-      count: 1,
+      count: 3,
     },
     {
       id: 'sample-comment',
       type: 'comment',
       photoId: 'p129',
       groupId: 'g1',
+      groupName: '윤슬네 가족',
+      albumId: 'a1',
+      navigation: 'COMMENT',
+      actorName: '성호',
       title: '성호님이 댓글을 남겼어요: 다음에 또 가자!',
       timestamp: now - 40 * 60000,
       createdAt: now - 40 * 60000,
@@ -64,11 +73,15 @@ export function createNotificationFixtures(now: number): NotificationItem[] {
       type: 'reaction',
       photoId: 'p129',
       groupId: 'g1',
-      title: '정미님이 사진에 마음을 남겼어요',
+      groupName: '윤슬네 가족',
+      albumId: 'a1',
+      navigation: 'PHOTO',
+      actorName: '정미',
+      title: '정미님 외 1명이 내 사진에 반응했어요',
       timestamp: now - 25 * 3600000,
-      createdAt: now - 25 * 3600000,
+      createdAt: now - 26 * 3600000,
       read: true,
-      count: 1,
+      count: 2,
     },
   ];
 }

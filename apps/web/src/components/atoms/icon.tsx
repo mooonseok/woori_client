@@ -25,6 +25,7 @@ const paths: Record<string, string[]> = {
   ],
   more: ['M5 12h.01M12 12h.01M19 12h.01'],
   download: ['M12 3v12', 'm7 10 5 5 5-5', 'M4 16v5h16v-5'],
+  play: ['M8 5v14l11-7Z'],
   upload: ['M12 16V4', 'm7 9 5-5 5 5', 'M4 16v5h16v-5'],
   pin: [
     'M19 9c0 6-7 12-7 12S5 15 5 9a7 7 0 1 1 14 0Z',

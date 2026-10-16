@@ -69,6 +69,10 @@ export function Dialog(props: ComponentPropsWithRef<'dialog'>) {
 export function Image({ alt, ...props }: ComponentPropsWithRef<'img'>) {
   return <img alt={alt ?? ''} {...props} />;
 }
+// Signed video URLs only; never autoplays (callers pass controls etc.).
+export function Video(props: ComponentPropsWithRef<'video'>) {
+  return <video {...props} />;
+}
 export function Ul(props: ComponentPropsWithRef<'ul'>) {
   return <ul {...props} />;
 }

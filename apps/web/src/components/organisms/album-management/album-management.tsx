@@ -1,5 +1,6 @@
 'use client';
 import { useRef, useState } from 'react';
+import { mediaCountLabel, subjectParticle } from '@/utils/media';
 import type { Album } from '@/dto/album.dto';
 import { Box, Button } from '@/components/atoms/ui';
 import { Icon } from '@/components/atoms/icon';
@@ -19,6 +20,7 @@ export function AlbumManagement({
   const [open, setOpen] = useState(false),
     [action, setAction] = useState<'rename' | 'delete' | null>(null);
   const trigger = useRef<HTMLButtonElement>(null);
+  const contents = mediaCountLabel(album.photoCount || 0, album.videoCount);
   function choose(next: 'rename' | 'delete') {
     trigger.current?.focus();
     setOpen(false);
@@ -75,7 +77,7 @@ export function AlbumManagement({
       {action === 'delete' && (
         <ActionConfirm
           title='앨범을 삭제할까요?'
-          description={`‘${album.title}’ 앨범과 안에 있는 사진 ${album.photoCount || 0}장이 모든 구성원에게서 삭제돼요. 원본과 썸네일도 정리되며 되돌릴 수 없어요.`}
+          description={`‘${album.title}’ 앨범과 안에 있는 ${contents}${subjectParticle(contents)} 모든 구성원에게서 삭제돼요. 원본과 썸네일, 변환한 동영상도 정리되며 되돌릴 수 없어요.`}
           onConfirm={onDelete}
           onClose={() => setAction(null)}
         />

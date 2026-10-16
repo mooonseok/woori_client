@@ -327,6 +327,15 @@ svg {
 .recent-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
+.secondary-button.album-more {
+  display: flex;
+  min-width: 180px;
+  margin: 36px auto 0;
+}
+.album-more[aria-disabled='true'] {
+  opacity: 0.6;
+  cursor: progress;
+}
 .album-card {
   display: block;
   width: 100%;
@@ -361,6 +370,9 @@ svg {
   margin-top: 5px;
   font-size: 0.8125rem;
   color: var(--muted);
+}
+.album-meta-count {
+  white-space: nowrap;
 }
 .page-heading h2,
 .page-title {
@@ -492,6 +504,62 @@ svg {
   overflow: hidden;
   border-radius: 4px;
   background: var(--wash);
+}
+/* Video posters: play mark and length (see MediaBadge). */
+.photo-tile,
+.album-cover,
+.memory-card-photo {
+  position: relative;
+}
+.upload-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 0;
+}
+.upload-progress-bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--wash);
+  overflow: hidden;
+}
+.upload-progress-fill {
+  height: 100%;
+  background: var(--ink);
+  transition: width 200ms linear;
+}
+.upload-progress-label {
+  min-width: 3.5em;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+@media (prefers-reduced-motion: reduce) {
+  .upload-progress-fill {
+    transition: none;
+  }
+}
+.media-badge {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px 2px 5px;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.62);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+.media-badge svg {
+  width: 13px;
+  height: 13px;
+  fill: currentColor;
 }
 .photo-tile img {
   width: 100%;

@@ -145,6 +145,8 @@ function Shell({ children }: { children: ReactNode }) {
         <PhotoViewer
           key={`${user?.id || 'demo'}:${gallery.groupId}:${gallery.viewer.id}`}
           live={gallery.mode === 'live'}
+          loadDisplay={gallery.loadDisplay}
+          loadVideo={gallery.loadVideo}
           photos={gallery.viewer.photos}
           initialPhotoId={gallery.viewer.id}
           comments={gallery.data.comments}

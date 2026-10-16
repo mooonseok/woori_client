@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { PhotoGestures } from '../src/lib/viewer/gesture-controller.ts';
+import {
+  PhotoGestures,
+  VIDEO_CONTROL_BAND,
+  inVideoControls,
+} from '../src/lib/viewer/gesture-controller.ts';
 import {
   FIT,
   clampTransform,
@@ -104,4 +108,46 @@ test('zoom anchoring and normalized comment coordinates preserve the selected po
     clampTransform({ scale: 0.85, x: 50, y: 80 }, image, image),
     FIT
   );
+});
+test('a video pointer swipes to the next item but leaves taps and double taps to the video', () => {
+  const h = harness();
+  h.controller.down(1, { x: 0, y: 0 }, true);
+  h.controller.up(1);
+  h.clock(100);
+  h.controller.down(1, { x: 0, y: 0 }, true);
+  h.controller.up(1);
+  h.clock(1000);
+  assert.equal(h.state().singles, 0);
+  assert.equal(h.state().doubles, 0);
+  h.controller.down(1, { x: 100, y: 0 }, true);
+  assert.equal(h.controller.swiping(), false);
+  h.clock(1040);
+  h.controller.move(1, { x: 60, y: 4 });
+  assert.equal(h.controller.swiping(), true);
+  h.clock(1080);
+  h.controller.move(1, { x: -40, y: 6 });
+  h.controller.up(1);
+  assert.equal(h.state().swipes, 1);
+  h.controller.dispose();
+});
+test('a vertical drag on a video neither swipes nor pinches with a second finger', () => {
+  const h = harness();
+  h.controller.down(1, { x: 0, y: 0 }, true);
+  h.controller.down(2, { x: 80, y: 0 }, true);
+  assert.equal(h.controller.has(2), false);
+  h.controller.move(1, { x: 4, y: 120 });
+  h.controller.up(1);
+  assert.equal(h.state().swipes, 0);
+  assert.deepEqual(h.state().value, FIT);
+  assert.equal(h.state().offset, 0);
+  h.controller.dispose();
+});
+test('the bottom control strip of a video belongs to its native controls', () => {
+  const box = { bottom: 700, height: 600 };
+  assert.equal(inVideoControls(box, 700 - VIDEO_CONTROL_BAND + 1), true);
+  assert.equal(inVideoControls(box, 699), true);
+  assert.equal(inVideoControls(box, 700 - VIDEO_CONTROL_BAND - 1), false);
+  // A short video keeps its upper half swipeable.
+  assert.equal(inVideoControls({ bottom: 300, height: 100 }, 255), true);
+  assert.equal(inVideoControls({ bottom: 300, height: 100 }, 245), false);
 });
