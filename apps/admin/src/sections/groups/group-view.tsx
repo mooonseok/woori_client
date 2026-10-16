@@ -277,9 +277,12 @@ export function AlbumPhotosView({
   return (
     <Section className='card' aria-labelledby='album-photos-title'>
       <Heading id='album-photos-title'>‘{title}’ 사진 정보</Heading>
+      <Notice>
+        앨범 사진 목록을 열면 감사로그에 열람 기록이 남아요. 사진 보기는 사유와
+        함께 따로 기록돼요.
+      </Notice>
       <Text className='field-help'>
-        촬영 위치·EXIF 같은 상세 정보와 원본 파일은 제공하지 않아요. 사진 보기는
-        열람 기록이 남아요.
+        촬영 위치·EXIF 같은 상세 정보와 원본 파일은 제공하지 않아요.
       </Text>
       <ListState
         loading={loading}

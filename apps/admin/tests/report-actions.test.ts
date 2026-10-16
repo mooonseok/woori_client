@@ -66,8 +66,16 @@ test('result messages include same-target closures only when there are some', ()
 });
 
 test('reporter text distinguishes written, none and removed by withdrawal', () => {
-  const reporter = { id: 'r', displayName: '신고자', status: 'ACTIVE' };
-  const withdrawn = { id: 'w', displayName: '탈퇴한 회원', status: 'DELETED' };
+  const reporter = {
+    id: 'r',
+    displayName: '신고자',
+    status: 'ACTIVE' as const,
+  };
+  const withdrawn = {
+    id: 'w',
+    displayName: '탈퇴한 회원',
+    status: 'DELETED' as const,
+  };
   assert.deepEqual(reporterTextState('<b>내용</b>', reporter), {
     kind: 'text',
     text: '<b>내용</b>',
@@ -92,7 +100,6 @@ test('reporter text distinguishes written, none and removed by withdrawal', () =
     }),
     { kind: 'none' }
   );
-  assert.deepEqual(reporterTextState(null, null), { kind: 'removed' });
   assert.equal(isReportOpen('RECEIVED'), true);
   assert.equal(isReportOpen('REVIEWING'), true);
   assert.equal(isReportOpen('RESOLVED'), false);

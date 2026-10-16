@@ -205,7 +205,7 @@ function Report({
         }
         reasonLabel={labelOf(REPORT_REASON_LABELS, report.reason)}
         reporterText={reporterText}
-        reporter={report.reporter?.displayName ?? '탈퇴한 회원'}
+        reporter={report.reporter.displayName}
         group={report.group?.name ?? '알 수 없는 그룹'}
         groupStatus={
           report.group && report.group.status !== 'ACTIVE'

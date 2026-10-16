@@ -57,10 +57,10 @@ async function request(path: string, init: RequestInit = {}) {
   const headers = new Headers(init.headers);
   if (!headers.has('Accept')) headers.set('Accept', 'application/json');
   const method = (init.method ?? 'GET').toUpperCase();
-  if (!['GET', 'HEAD'].includes(method)) {
-    headers.set('X-Woori-Request', '1');
+  // The server requires this header on every admin request, reads included.
+  headers.set('X-Woori-Request', '1');
+  if (init.body !== undefined && init.body !== null)
     headers.set('Content-Type', 'application/json');
-  }
   let response: Response;
   try {
     response = await fetch(new URL(path, base), {

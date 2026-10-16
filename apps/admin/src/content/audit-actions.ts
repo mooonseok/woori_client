@@ -33,6 +33,7 @@ export const AUDIT_ACTION_LABELS: Readonly<Record<string, string>> = {
   ADMIN_USER_UNSUSPENDED: '회원 정지 해제',
   ADMIN_USER_DELETED: '회원 삭제',
   ADMIN_GROUP_VIEWED: '그룹 열람',
+  ADMIN_ALBUM_PHOTOS_VIEWED: '앨범 사진 목록 열람',
 };
 export const AUDIT_TARGET_LABELS: Readonly<Record<string, string>> = {
   ADMIN: '관리자',

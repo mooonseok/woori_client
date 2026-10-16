@@ -1,3 +1,4 @@
+import type { MemberStatus } from './inquiry.dto.ts';
 import type {
   REPORT_ACTIONS,
   REPORT_STATUSES,
@@ -21,9 +22,9 @@ export interface AdminReportSummary {
   createdAt: string;
   resolvedAt: string | null;
   group: { id: string; name: string; status: string } | null;
-  // A withdrawn reporter stays as { displayName: '탈퇴한 회원', status:
-  // 'DELETED' } (status arrives with OpenAPI 0.18.0); null is tolerated.
-  reporter: { id: string; displayName: string; status?: string } | null;
+  // Never null: a withdrawn reporter is { displayName: '탈퇴한 회원',
+  // status: 'DELETED' }.
+  reporter: { id: string; displayName: string; status: MemberStatus };
   targetUser: { id: string; displayName: string; status: string } | null;
   openReportsOnTarget: number;
 }
