@@ -6,7 +6,12 @@ import { useMetrics } from '@/hooks/use-metrics';
 import { useReauth } from '@/hooks/use-reauth';
 import { DASHBOARD_AUDIT_LIMIT } from '@/constants/admin-auth';
 import { ROUTES } from '@/constants/routes';
-import { metricGroups } from '@/utils/metrics';
+import {
+  OPS_UNAVAILABLE,
+  metricGroups,
+  queueRows,
+  workerSummary,
+} from '@/utils/metrics';
 import { isFuture, kstDateTimeLabel, kstTimeLabel } from '@/utils/time';
 import { DashboardView } from './dashboard-view';
 export function DashboardContainer() {
@@ -38,6 +43,13 @@ export function DashboardContainer() {
               groups: ROUTES.GROUPS,
             })
           : []
+      }
+      queueRows={queueRows(metrics.data?.queues)}
+      workers={workerSummary(metrics.data?.workers)}
+      opsUnavailable={
+        metrics.data && !metrics.data.queues && !metrics.data.workers
+          ? OPS_UNAVAILABLE
+          : ''
       }
       metricsAt={kstDateTimeLabel(metrics.data?.generatedAt)}
       metricsAtIso={metrics.data?.generatedAt ?? ''}

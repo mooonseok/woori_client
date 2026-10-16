@@ -45,7 +45,8 @@ interface NotificationsApi extends Omit<PreferencesApi, 'flush'> {
   now: number;
   latestDecision: string;
   notify: (type: NotificationType, photoId: string, title: string) => void;
-  markRead: (id: string) => void | Promise<boolean>;
+  // latestSequence: a fresher one from /target to read through (live).
+  markRead: (id: string, latestSequence?: number) => void | Promise<boolean>;
   markAllRead: () => void;
 }
 const NotificationContext = createContext<NotificationsApi | null>(null);

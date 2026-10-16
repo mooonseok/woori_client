@@ -4,6 +4,7 @@ import {
   uploadPhoto,
   validatePhoto,
   photoBlob,
+  ticketExpiring,
 } from '../src/services/media-client.ts';
 import type { PendingUpload } from '../src/dto/media.dto.ts';
 const file = new File(['image'], 'family.jpg', { type: 'image/jpeg' });
@@ -157,6 +158,64 @@ test('definitive expired completion permits a new reservation while transient fa
   );
 });
 
+test('a retry reserves again when its unsent PUT URL is within a minute of expiry', async (t) => {
+  const reserved: string[] = [],
+    puts: string[] = [];
+  let n = 0;
+  setup(t, async (input) => {
+    const url = String(input);
+    if (url.endsWith('/uploads')) {
+      const fresh = {
+        ...ticket,
+        photoId: `photo-${++n}`,
+        uploadUrl: `https://r2.example/photo-${n}`,
+        // A video window is the server's call (up to an hour); only its
+        // expiresAt matters here.
+        expiresAt: new Date(Date.now() + 60 * 60_000).toISOString(),
+      };
+      reserved.push(fresh.photoId);
+      return Response.json(fresh);
+    }
+    if (url.startsWith('https://r2.example/')) {
+      puts.push(url);
+      return new Response(null, { status: 200 });
+    }
+    return Response.json({ photo });
+  });
+  const signal = new AbortController().signal;
+  const stale: PendingUpload = {
+    uploaded: false,
+    ticket: {
+      ...ticket,
+      expiresAt: new Date(Date.now() + 30_000).toISOString(),
+    },
+  };
+  await uploadPhoto('g', 'a', file, stale, signal);
+  assert.deepEqual(reserved, ['photo-1']);
+  assert.deepEqual(puts, ['https://r2.example/photo-1']);
+  // A ticket with time left, or one whose bytes are already stored, is kept.
+  const fresh: PendingUpload = {
+    uploaded: false,
+    ticket: {
+      ...ticket,
+      uploadUrl: 'https://r2.example/kept',
+      expiresAt: new Date(Date.now() + 5 * 60_000).toISOString(),
+    },
+  };
+  await uploadPhoto('g', 'a', file, fresh, signal);
+  const stored: PendingUpload = {
+    uploaded: true,
+    ticket: { ...ticket, expiresAt: new Date(Date.now() - 1).toISOString() },
+  };
+  await uploadPhoto('g', 'a', file, stored, signal);
+  assert.deepEqual(reserved, ['photo-1']);
+  assert.deepEqual(puts, [
+    'https://r2.example/photo-1',
+    'https://r2.example/kept',
+  ]);
+  assert.equal(ticketExpiring({ expiresAt: 'not a date' }), false);
+});
+
 test('an already canceled upload never reserves or sends a file', async (t) => {
   let calls = 0;
   setup(t, async () => {
@@ -301,7 +360,7 @@ test('selection checks the entire deduplicated batch before any upload reservati
     (_, index) => new File(['x'], `${index}.jpg`, { type: 'image/jpeg' })
   );
   assert.equal(photoSelection(files.slice(0, 30)).files.length, 30);
-  assert.throws(() => photoSelection(files), /30장/);
+  assert.throws(() => photoSelection(files), /30개/);
   const large = Array.from(
     { length: 11 },
     (_, index) =>

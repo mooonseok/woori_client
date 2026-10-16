@@ -1,6 +1,15 @@
 import type { Point } from '@/dto/album.dto';
 import type { Transform } from './geometry';
 const TAP_MS = 280;
+// Height of the strip a native <video controls> keeps for its seek bar and
+// buttons. Pointers that start there belong to the video, not the viewer.
+export const VIDEO_CONTROL_BAND = 72;
+export function inVideoControls(
+  box: { bottom: number; height: number },
+  y: number
+) {
+  return box.bottom - y < Math.min(VIDEO_CONTROL_BAND, box.height / 2);
+}
 interface Options {
   read(): Transform;
   paint(value: Transform): void;
@@ -28,6 +37,9 @@ interface Gesture {
   offset: number;
   distance?: number;
   midpoint?: Point;
+  // Started on a playing surface (a video): only a horizontal swipe is ours,
+  // a tap stays with the element's own controls.
+  swipeOnly: boolean;
 }
 export class PhotoGestures {
   private pointers = new Map<number, Point>();
@@ -48,11 +60,17 @@ export class PhotoGestures {
   has(id: number) {
     return this.pointers.has(id);
   }
-  down(id: number, p: Point) {
+  swiping() {
+    return this.gesture?.type === 'swipe';
+  }
+  down(id: number, p: Point, swipeOnly = false) {
+    // A video takes one finger at a time; a second one is the video's.
+    if (this.gesture?.swipeOnly && this.pointers.size) return;
     this.pointers.set(id, p);
     const now = this.now();
     if (this.pointers.size === 1) {
       const second =
+        !swipeOnly &&
         !!this.tapTimer &&
         !!this.lastTap &&
         now - this.lastTap.time < TAP_MS &&
@@ -69,6 +87,7 @@ export class PhotoGestures {
         lastTime: now,
         velocity: 0,
         offset: 0,
+        swipeOnly,
       };
     } else if (this.pointers.size === 2 && this.gesture) {
       this.clearTap();
@@ -182,7 +201,8 @@ export class PhotoGestures {
       else this.options.track(0, true);
       return;
     }
-    if (g.type !== 'pending' || this.now() - g.time >= 500) return;
+    if (g.swipeOnly || g.type !== 'pending' || this.now() - g.time >= 500)
+      return;
     if (g.second) {
       this.clearTap();
       this.lastTap = null;

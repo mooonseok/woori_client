@@ -12,23 +12,40 @@ import {
 import { Icon } from '@/components/atoms/icon';
 import { AlbumCard } from '@/components/molecules/album-card';
 import { EmptyState } from '@/components/molecules/empty-state';
-import type { Album, Photo } from '@/dto/album.dto';
+import type { Album, AlbumListState, Photo } from '@/dto/album.dto';
 import type { AlbumSearch } from '@/dto/album-search.dto';
 interface Props {
   albums: Album[];
+  // Albums of the group loaded so far, before the title filter.
+  loadedCount: number;
+  paging?: AlbumListState;
   live?: boolean;
   photos: Photo[];
   search: AlbumSearch;
+  cardId: (albumId: string) => string;
   onOpen: (id: string) => void;
+  onMore: () => void;
 }
 export function AlbumsView({
   albums,
+  loadedCount,
+  paging,
   photos,
   search: s,
+  cardId,
   onOpen,
+  onMore,
   live = false,
 }: Props) {
   const { input, trigger } = s;
+  const hasMore = !!paging?.hasMore;
+  // The list is paged: never present loaded albums as the group's total.
+  const countLabel = s.query
+    ? `불러온 앨범 중 ${albums.length}개`
+    : hasMore
+      ? `앨범 ${loadedCount}개 불러옴`
+      : `앨범 ${loadedCount}개`;
+  const searchLabel = live ? '불러온 앨범에서 찾기' : '앨범 제목 검색';
   return (
     <Box>
       <Header className='page-heading'>
@@ -58,8 +75,8 @@ export function AlbumsView({
               <Input
                 ref={input}
                 type='search'
-                aria-label='앨범 제목 검색'
-                placeholder='앨범 제목 검색'
+                aria-label={searchLabel}
+                placeholder={searchLabel}
                 value={s.draft}
                 onCompositionStart={s.startComposition}
                 onCompositionEnd={(e) =>
@@ -78,7 +95,9 @@ export function AlbumsView({
         </Box>
       </Box>
       <Box className='album-controls'>
-        <Text className='muted'>앨범 {albums.length}개</Text>
+        <Text className='muted' id='album-count' tabIndex={-1}>
+          {countLabel}
+        </Text>
         <Box className='control-actions'>
           <Label className='sr-only' htmlFor='sort'>
             앨범 정렬
@@ -98,11 +117,17 @@ export function AlbumsView({
           </Button>
         </Box>
       </Box>
+      {paging?.notice && (
+        <Text className='muted' role='status'>
+          {paging.notice}
+        </Text>
+      )}
       {albums.length ? (
         <Box className='album-grid'>
           {albums.map((a) => (
             <AlbumCard
               key={a.id}
+              domId={cardId(a.id)}
               album={a}
               cover={photos.find((p) => p.id === a.coverId)}
               count={
@@ -117,12 +142,36 @@ export function AlbumsView({
           title={s.query ? '찾는 앨범이 없어요' : '아직 앨범이 없어요'}
           body={
             s.query
-              ? '다른 제목으로 검색해 보세요.'
+              ? hasMore
+                ? '아직 불러오지 않은 앨범에서는 찾지 못해요. 앨범을 더 불러와 보세요.'
+                : '다른 제목으로 검색해 보세요.'
               : '소중한 순간을 담을 첫 앨범을 만들어 보세요.'
           }
           action={s.query ? '검색 초기화' : '앨범 만들기'}
           onAction={s.query ? s.closeSearch : () => s.setCreating(true)}
         />
+      )}
+      {paging?.error && (
+        <Box className='error-notice' role='alert'>
+          <Text>{paging.error}</Text>
+        </Box>
+      )}
+      {hasMore && (
+        <Button
+          className='secondary-button album-more'
+          // aria-disabled keeps keyboard focus here while the page loads.
+          aria-disabled={paging?.loadingMore}
+          aria-busy={paging?.loadingMore}
+          onClick={() => {
+            if (!paging?.loadingMore) onMore();
+          }}
+        >
+          {paging?.loadingMore
+            ? '불러오는 중…'
+            : paging?.error
+              ? '다시 불러오기'
+              : '앨범 더 불러오기'}
+        </Button>
       )}
     </Box>
   );

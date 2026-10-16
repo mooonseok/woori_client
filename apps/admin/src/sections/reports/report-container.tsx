@@ -62,7 +62,11 @@ function targetFacts(report: AdminReportDetail): {
       facts: [
         { label: '앨범', value: photo.albumTitle || '이름 없는 앨범' },
         {
-          label: '사진 상태',
+          label: '종류',
+          value: photo.mediaKind === 'VIDEO' ? '동영상' : '사진',
+        },
+        {
+          label: '상태',
           value: labelOf(PHOTO_STATUS_LABELS, photo.status),
         },
         {
@@ -73,7 +77,9 @@ function targetFacts(report: AdminReportDetail): {
       ],
       view:
         photo.photoId && photo.status !== 'DELETED'
-          ? { kind: 'photo', id: photo.photoId, label: '신고된 사진' }
+          ? photo.mediaKind === 'VIDEO'
+            ? { kind: 'video', id: photo.photoId, label: '신고된 동영상' }
+            : { kind: 'photo', id: photo.photoId, label: '신고된 사진' }
           : null,
     };
   }
@@ -225,7 +231,13 @@ function Report({
         resolvedAt={report.resolvedAt ?? ''}
         targetFacts={facts}
         viewLabel={
-          view ? (view.kind === 'photo' ? '사진 보기' : '댓글 보기') : ''
+          view
+            ? view.kind === 'photo'
+              ? '사진 보기'
+              : view.kind === 'video'
+                ? '동영상 보기'
+                : '댓글 보기'
+            : ''
         }
         open={open}
         canReview={report.status === 'RECEIVED'}

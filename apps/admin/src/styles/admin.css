@@ -865,6 +865,14 @@
   width: min(760px, calc(100% - 32px));
   display: grid;
   gap: 16px;
+  /* What the title, notice, gaps, padding and close button take (measured
+     242px wide, 286px at 375px where the notice wraps), plus slack. */
+  --viewer-chrome: 292px;
+}
+@media (max-width: 599px) {
+  .viewer-dialog {
+    --viewer-chrome: 340px;
+  }
 }
 .viewer-dialog[open] {
   display: grid;
@@ -876,11 +884,20 @@
   border-radius: 12px;
   background: #15181f;
 }
+/* Media fits the dialog without scrolling, a portrait 1080x1920 clip too:
+   at most 65svh and never more than the dialog leaves after its chrome. */
 .viewer-photo img {
   max-width: 100%;
-  max-height: 65svh;
+  max-height: min(65svh, calc(100svh - var(--viewer-chrome)));
   object-fit: contain;
   user-select: none;
+}
+.viewer-photo video {
+  display: block;
+  max-width: 100%;
+  max-height: min(65svh, calc(100svh - var(--viewer-chrome)));
+  width: auto;
+  height: auto;
 }
 .viewer-comment {
   display: grid;
@@ -999,6 +1016,24 @@ a.metric-value:hover {
 }
 .metric-list > div[data-attention='true'] .metric-value {
   color: var(--danger);
+}
+.ops-detail {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+.ops-detail .status-chip {
+  margin-left: 6px;
+}
+.ops-detail tr[data-attention='true'] td,
+.ops-detail tr[data-attention='true'] th {
+  color: var(--danger);
+  font-weight: 600;
+}
+/* A job running 10+ minutes: the cell itself stands out in the red row. */
+.ops-detail td[data-long='true'] {
+  background: var(--danger-wash);
+  font-weight: 700;
 }
 .metric-note {
   color: var(--muted);

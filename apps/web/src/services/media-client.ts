@@ -1,25 +1,47 @@
 import { apiRequest, apiBlob, ApiError } from './api-client.ts';
 import type {
+  AlbumPageResponse,
   AlbumResponse,
   PhotoResponse,
   PendingUpload,
+  UploadTicket,
   UploadJobResponse,
   UploadProgress,
+  VideoAccess,
 } from '../dto/media.dto.ts';
+import { mediaPrecheck } from '../utils/media.ts';
 export const albumPath = (groupId: string, albumId?: string) =>
   `/v1/groups/${encodeURIComponent(groupId)}/albums${albumId ? `/${encodeURIComponent(albumId)}` : ''}`;
+// Photos (JPG/PNG/WebP, 30MB) and videos (MP4/MOV, 200MB). A video's length
+// is checked separately before upload when the browser can read it.
 export function validatePhoto(file: File) {
-  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type))
-    throw new Error(
-      'JPG, PNG, WebP 사진만 올릴 수 있어요. HEIC 사진은 JPG로 변환해 주세요.'
-    );
-  if (!file.size || file.size > 30 * 1024 * 1024)
-    throw new Error('사진 한 장은 30MB 이하여야 해요.');
+  const problem = mediaPrecheck(file);
+  if (problem) throw new Error(problem);
 }
-export function listAlbums(groupId: string, signal: AbortSignal) {
-  return apiRequest<{ albums: AlbumResponse[] }>(albumPath(groupId), {
-    signal,
-  });
+// The signed URL is used as is: no cookies or headers go to storage.
+export function videoAccess(
+  groupId: string,
+  albumId: string,
+  photoId: string,
+  purpose: 'play' | 'download',
+  signal: AbortSignal
+) {
+  return apiRequest<VideoAccess>(
+    `${albumPath(groupId, albumId)}/photos/${encodeURIComponent(photoId)}/video?purpose=${purpose}`,
+    { signal }
+  );
+}
+// Server default page size (30); a server before OpenAPI 0.21.0 ignores the
+// cursor and answers one page without nextCursor.
+export function listAlbums(
+  groupId: string,
+  signal: AbortSignal,
+  cursor: string | null = null
+) {
+  return apiRequest<AlbumPageResponse>(
+    `${albumPath(groupId)}${cursor ? `?cursor=${encodeURIComponent(cursor)}` : ''}`,
+    { signal }
+  );
 }
 export function createAlbum(
   groupId: string,
@@ -43,17 +65,86 @@ export function listPhotos(
     { signal }
   );
 }
+/**
+ * Server renditions (long edge, `fit: inside`): thumbnail 480px WebP for grid
+ * tiles, covers and memories; display 2560px WebP for the viewer only.
+ */
+export type PhotoVariant = 'thumbnail' | 'display' | 'original';
 export function photoBlob(
   groupId: string,
   albumId: string,
   photoId: string,
   signal: AbortSignal,
-  variant = 'display'
+  variant: PhotoVariant = 'display'
 ) {
   return apiBlob(
     `${albumPath(groupId, albumId)}/photos/${encodeURIComponent(photoId)}/content?variant=${variant}`,
     signal
   );
+}
+export type UploadProgressListener = (
+  phase: UploadProgress['phase'],
+  bytes?: { sent: number; size: number }
+) => void;
+/**
+ * Presigned PUT straight to storage: no cookies, the signed headers only.
+ * XMLHttpRequest reports upload progress (fetch cannot); where it does not
+ * exist (tests, old runtimes) fetch is used without progress. Resolves with
+ * the HTTP status; an abort rejects like fetch does.
+ */
+export function putToStorage(
+  url: string,
+  body: Blob,
+  headers: Record<string, string>,
+  signal: AbortSignal,
+  onBytes?: (sent: number, size: number) => void
+): Promise<number> {
+  if (typeof XMLHttpRequest === 'undefined')
+    return fetch(url, {
+      method: 'PUT',
+      body,
+      headers,
+      credentials: 'omit',
+      signal,
+    }).then((response) => response.status);
+  return new Promise((resolve, reject) => {
+    signal.throwIfAborted();
+    const xhr = new XMLHttpRequest();
+    const abort = () => xhr.abort();
+    const settle = () => signal.removeEventListener('abort', abort);
+    xhr.open('PUT', url);
+    xhr.withCredentials = false;
+    for (const [name, value] of Object.entries(headers))
+      xhr.setRequestHeader(name, value);
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) onBytes?.(event.loaded, event.total);
+    };
+    xhr.onload = () => {
+      settle();
+      resolve(xhr.status);
+    };
+    xhr.onerror = xhr.ontimeout = () => {
+      settle();
+      reject(new TypeError('Storage upload failed'));
+    };
+    xhr.onabort = () => {
+      settle();
+      reject(signal.reason ?? new DOMException('Aborted', 'AbortError'));
+    };
+    signal.addEventListener('abort', abort, { once: true });
+    xhr.send(body);
+  });
+}
+// A retry reuses its reservation, but a PUT URL this close to expiry would
+// fail mid-transfer: reserve again instead. The window itself is the
+// server's (longer for videos), so only the response's expiresAt counts.
+const TICKET_MARGIN_MS = 60_000;
+export function ticketExpiring(
+  ticket: Pick<UploadTicket, 'expiresAt'>,
+  now = Date.now()
+) {
+  const at = Date.parse(ticket.expiresAt);
+  return Number.isFinite(at) && at - now < TICKET_MARGIN_MS;
 }
 async function sendPhoto(
   groupId: string,
@@ -61,12 +152,14 @@ async function sendPhoto(
   file: File,
   pending: PendingUpload,
   signal: AbortSignal,
-  onProgress?: (phase: UploadProgress['phase']) => void
+  onProgress?: UploadProgressListener
 ): Promise<{ path: string; ticket: NonNullable<PendingUpload['ticket']> }> {
   signal.throwIfAborted();
   validatePhoto(file);
   const path = albumPath(groupId, albumId);
   onProgress?.('RESERVING');
+  if (pending.ticket && !pending.uploaded && ticketExpiring(pending.ticket))
+    pending.ticket = undefined;
   if (!pending.ticket)
     pending.ticket = await apiRequest(`${path}/uploads`, {
       method: 'POST',
@@ -80,25 +173,25 @@ async function sendPhoto(
   signal.throwIfAborted();
   const ticket = pending.ticket!;
   if (!pending.uploaded) {
-    onProgress?.('UPLOADING');
-    let response: Response;
+    onProgress?.('UPLOADING', { sent: 0, size: file.size });
+    let status: number;
     try {
-      response = await fetch(ticket.uploadUrl, {
-        method: 'PUT',
-        body: file,
-        headers: ticket.headers,
-        credentials: 'omit',
+      status = await putToStorage(
+        ticket.uploadUrl,
+        file,
+        ticket.headers,
         signal,
-      });
+        (sent, size) => onProgress?.('UPLOADING', { sent, size })
+      );
     } catch (error) {
       if (signal.aborted) throw error;
       throw new Error(
-        '사진을 전송하지 못했어요. 연결을 확인하고 다시 시도해 주세요.'
+        '파일을 전송하지 못했어요. 연결을 확인하고 다시 시도해 주세요.'
       );
     }
-    if (!response.ok) {
-      if (response.status === 403) pending.ticket = undefined;
-      throw new Error('사진 전송에 실패했어요. 다시 시도해 주세요.');
+    if (status < 200 || status >= 300) {
+      if (status === 403) pending.ticket = undefined;
+      throw new Error('전송에 실패했어요. 다시 시도해 주세요.');
     }
     signal.throwIfAborted();
     pending.uploaded = true;
@@ -207,11 +300,11 @@ export function photoSelection(files: File[]) {
   });
   if (unique.length > 30)
     throw new Error(
-      '한 번에 30장까지 선택해 주세요. 아직 전송한 사진은 없어요.'
+      '한 번에 30개까지 선택해 주세요. 아직 전송한 파일은 없어요.'
     );
   if (unique.reduce((bytes, file) => bytes + file.size, 0) > 300 * 1024 * 1024)
     throw new Error(
-      '선택한 사진의 합계가 300MB를 넘어요. 나누어 선택해 주세요. 아직 전송한 사진은 없어요.'
+      '선택한 파일의 합계가 300MB를 넘어요. 나누어 선택해 주세요. 아직 전송한 파일은 없어요.'
     );
   return { files: unique, duplicates: files.length - unique.length };
 }
@@ -221,7 +314,7 @@ export async function queuePhoto(
   file: File,
   pending: PendingUpload,
   signal: AbortSignal,
-  onProgress?: (phase: UploadProgress['phase']) => void
+  onProgress?: UploadProgressListener
 ) {
   const { path, ticket } = await sendPhoto(
     groupId,

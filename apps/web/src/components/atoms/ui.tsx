@@ -57,6 +57,10 @@ export function Option(props: ComponentPropsWithRef<'option'>) {
 export function Image({ alt, ...props }: ComponentPropsWithRef<'img'>) {
   return <img alt={alt ?? ''} {...props} />;
 }
+// Signed video URLs only; never autoplays (callers pass controls etc.).
+export function Video(props: ComponentPropsWithRef<'video'>) {
+  return <video {...props} />;
+}
 export function Label(props: ComponentPropsWithRef<'label'>) {
   return <label {...props} />;
 }

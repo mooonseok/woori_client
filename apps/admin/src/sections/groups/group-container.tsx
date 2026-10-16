@@ -18,7 +18,12 @@ import {
 import type { ContentViewTarget } from '@/dto/content-view.dto';
 import type { AdminGroupAlbum, AdminGroupDetail } from '@/dto/group.dto';
 import { detailHref, isUuid } from '@/utils/admin-navigation';
-import { formatBytes, formatCount, usagePercent } from '@/utils/format';
+import {
+  formatBytes,
+  formatCount,
+  formatDuration,
+  usagePercent,
+} from '@/utils/format';
 import { kstMinuteLabel } from '@/utils/time';
 import { AlbumPhotosView, GroupView } from './group-view';
 
@@ -52,10 +57,12 @@ function AlbumPhotos({
         domId: photoRowId(photo.id),
         uploader: photo.uploader?.displayName ?? '탈퇴한 회원',
         status: labelOf(PHOTO_STATUS_LABELS, photo.status),
-        size:
-          photo.width && photo.height
-            ? `${photo.width} × ${photo.height}`
-            : '—',
+        size: `${
+          photo.mediaKind === 'VIDEO'
+            ? `동영상${photo.durationMs ? ` ${formatDuration(photo.durationMs)}` : ''} · `
+            : ''
+        }${photo.width && photo.height ? `${photo.width} × ${photo.height}` : '—'}`,
+        video: photo.mediaKind === 'VIDEO',
         bytes: formatBytes(photo.bytes),
         date: photo.effectiveDate ?? '',
         created: kstMinuteLabel(photo.createdAt),
@@ -70,11 +77,11 @@ function AlbumPhotos({
       hasMore={list.hasMore}
       onRetry={list.reload}
       onMore={list.more}
-      onView={(id) =>
+      onView={(id, video) =>
         onView({
-          kind: 'photo',
+          kind: video ? 'video' : 'photo',
           id,
-          label: `‘${album.title || '이름 없는 앨범'}’ 앨범의 사진`,
+          label: `‘${album.title || '이름 없는 앨범'}’ 앨범의 ${video ? '동영상' : '사진'}`,
         })
       }
     />

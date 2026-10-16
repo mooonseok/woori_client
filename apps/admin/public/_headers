@@ -1,0 +1,20 @@
+# Cloudflare Pages headers: admin web (https://admin.woori.stream).
+# `pnpm pages:admin` fills {{API_ORIGIN}} / {{R2_ORIGIN}} (signed video URLs in
+# the audited viewer) from the Pages build environment and adds each page's
+# inline-script hashes as a <meta> CSP (both enforced).
+# Nothing is cached or indexed; only content-hashed build files are cached.
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self'; img-src 'self' blob: data:; font-src 'self'; connect-src 'self' {{API_ORIGIN}}; media-src 'self' {{R2_ORIGIN}}; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: no-referrer
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()
+  Cross-Origin-Opener-Policy: same-origin
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-store
+
+# If Pages kept both values, "no-store" still wins (fail safe).
+/_next/static/*
+  ! Cache-Control
+  Cache-Control: public, max-age=31536000, immutable

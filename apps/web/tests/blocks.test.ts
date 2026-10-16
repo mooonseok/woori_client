@@ -197,10 +197,13 @@ test('a block hides the person locally until refetch and closes a viewer showing
       albumTitle: '여름',
       photoId: 'p',
       commentId: 'c',
+      count: 1,
       createdAt: '2026-10-14T00:00:00Z',
+      latestAt: '2026-10-14T00:00:00Z',
       latestSequence: 2,
       readThroughSequence: 0,
       unread: true,
+      navigation: 'COMMENT',
     }),
   ];
   assert.equal(inbox[0].actorId, other);

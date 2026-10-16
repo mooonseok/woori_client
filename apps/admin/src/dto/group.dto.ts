@@ -39,6 +39,9 @@ export interface AdminAlbumPhoto {
   bytes: number | null;
   effectiveDate: string | null;
   createdAt: string;
+  // OpenAPI 0.22.0: VIDEO plays via the audited video view.
+  mediaKind?: 'PHOTO' | 'VIDEO';
+  durationMs?: number | null;
 }
 export interface GroupListQuery {
   query: string;

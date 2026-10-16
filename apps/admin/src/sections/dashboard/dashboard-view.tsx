@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  Code,
   Dd,
   Dl,
   Dt,
@@ -8,6 +9,13 @@ import {
   Section,
   Span,
   Subheading,
+  Table,
+  Caption,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
   Text,
   Time,
   Title,
@@ -22,7 +30,7 @@ import {
   IDLE_TIMEOUT_MINUTES,
   REAUTH_WINDOW_MINUTES,
 } from '@/constants/admin-auth';
-import type { MetricGroup } from '@/dto/metrics.dto';
+import type { MetricGroup, QueueRow, WorkerSummary } from '@/dto/metrics.dto';
 import type { AuditLogRowViewModel } from '@/dto/audit-log-view.dto';
 interface Props {
   adminName: string;
@@ -32,6 +40,9 @@ interface Props {
   reauthUntilAt: string;
   reauthNotice: string;
   metricGroups: MetricGroup[];
+  queueRows: QueueRow[];
+  workers: WorkerSummary | null;
+  opsUnavailable: string;
   metricsAt: string;
   metricsAtIso: string;
   metricsLoading: boolean;
@@ -53,6 +64,9 @@ export function DashboardView({
   reauthUntilAt,
   reauthNotice,
   metricGroups,
+  queueRows,
+  workers,
+  opsUnavailable,
   metricsAt,
   metricsAtIso,
   metricsLoading,
@@ -142,6 +156,115 @@ export function DashboardView({
               </Section>
             ))}
           </Box>
+        )}
+        {!metricsLoading && opsUnavailable && (
+          <Text className='muted'>큐 지연·워커 상태: {opsUnavailable}</Text>
+        )}
+        {!metricsLoading && workers && (
+          <Section className='ops-detail' aria-labelledby='workers-title'>
+            <Box className='card-head'>
+              <Subheading id='workers-title'>워커 상태</Subheading>
+              <Span
+                className='status-chip'
+                data-status={workers.healthy ? 'RESOLVED' : 'SUSPENDED'}
+              >
+                {workers.status}
+              </Span>
+            </Box>
+            {workers.warnings.map((warning) => (
+              <Notice key={warning} tone='warning'>
+                {warning}
+              </Notice>
+            ))}
+            {workers.rows.length > 0 && (
+              <Box
+                className='table-scroll'
+                role='region'
+                aria-label='워커 상태 (가로로 스크롤할 수 있어요)'
+                tabIndex={0}
+              >
+                <Table className='data-table compact'>
+                  <Caption className='sr-only'>워커 상태</Caption>
+                  <Thead>
+                    <Tr>
+                      <Th scope='col'>워커</Th>
+                      <Th scope='col'>마지막 신호</Th>
+                      <Th scope='col'>마지막 처리</Th>
+                      <Th scope='col'>동영상 변환</Th>
+                      {workers.showBusy && <Th scope='col'>현재 작업</Th>}
+                      <Th scope='col'>시작</Th>
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    {workers.rows.map((row) => (
+                      <Tr
+                        key={row.id}
+                        data-attention={row.attention ? 'true' : undefined}
+                      >
+                        <Td>
+                          <Code>{row.id}</Code>
+                        </Td>
+                        <Td>{row.beat}</Td>
+                        <Td>{row.lastPass}</Td>
+                        <Td>{row.video}</Td>
+                        {workers.showBusy && (
+                          <Td data-long={row.busyLong ? 'true' : undefined}>
+                            {row.busy}
+                          </Td>
+                        )}
+                        <Td>
+                          <Time dateTime={row.startedAt}>{row.started}</Time>
+                        </Td>
+                      </Tr>
+                    ))}
+                  </Tbody>
+                </Table>
+              </Box>
+            )}
+          </Section>
+        )}
+        {!metricsLoading && queueRows.length > 0 && (
+          <Section className='ops-detail' aria-labelledby='queues-title'>
+            <Subheading id='queues-title'>큐 지연</Subheading>
+            <Box
+              className='table-scroll'
+              role='region'
+              aria-label='큐 지연 (가로로 스크롤할 수 있어요)'
+              tabIndex={0}
+            >
+              <Table className='data-table compact'>
+                <Caption className='sr-only'>
+                  큐 지연: 처리할 차례가 된 작업 수와 가장 오래 기다린 시간
+                </Caption>
+                <Thead>
+                  <Tr>
+                    <Th scope='col'>큐</Th>
+                    <Th scope='col'>처리할 차례</Th>
+                    <Th scope='col'>가장 오래 밀린 시간</Th>
+                  </Tr>
+                </Thead>
+                <Tbody>
+                  {queueRows.map((row) => (
+                    <Tr
+                      key={row.id}
+                      data-attention={row.attention ? 'true' : undefined}
+                    >
+                      <Th scope='row'>{row.label}</Th>
+                      <Td>{row.due}</Td>
+                      <Td>
+                        {row.oldest}
+                        {row.attention && (
+                          <Span className='status-chip' data-status='SUSPENDED'>
+                            지연
+                          </Span>
+                        )}
+                      </Td>
+                    </Tr>
+                  ))}
+                </Tbody>
+              </Table>
+            </Box>
+          </Section>
         )}
       </Section>
       <Box className='card-grid'>

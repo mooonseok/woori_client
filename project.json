@@ -1,7 +1,7 @@
 {
   "name": "woori_client",
   "product": "우리",
-  "status": "admin-operations-implemented-acceptance-pending",
+  "status": "family-beta-prep-implemented-deploy-pending",
   "plans": "/Users/parkmoonseok/.Codex/projects/woori_client/plans",
   "sharedPlan": "/Users/parkmoonseok/.Codex/projects/woori/plans/00-product-plan.md",
   "implemented": [
@@ -39,15 +39,22 @@
     "native FCM/APNs push subscriptions and delivery",
     "automatic memory push notifications",
     "operator identity, privacy contact, retention periods and finalized privacy policy text (placeholders shown)",
-    "album cover selection and album date range",
-    "server-side album search/sort and album pagination beyond 50; taken-date sort is demo-only",
-    "group join approval and join notifications (enum/preference only)"
+    "group join approval and join notifications (enum/preference only)",
+    "manual album cover selection, server-side album search and taken-date sort (after beta)",
+    "Cloudflare Pages production deployment and HTTPS acceptance (W07)"
   ],
   "deployment": {
     "api": "Railway paid; Serverless off",
     "worker": "Railway paid; separate service; Serverless off",
     "database": "Supabase Pro PostgreSQL",
-    "objects": "Cloudflare R2 Standard private buckets"
+    "objects": "Cloudflare R2 Standard private buckets",
+    "web": "Cloudflare Pages static hosting for apps/web (woori.stream) and apps/admin (admin.woori.stream)",
+    "region": "Singapore for Railway API/worker and Supabase (Railway has no Seoul region)",
+    "domain": "woori.stream (Cloudflare Registrar/DNS): web woori.stream, admin admin.woori.stream, API api.woori.stream",
+    "mail": "Resend from the mail.woori.stream subdomain with SPF/DKIM/DMARC",
+    "backup": "Supabase daily backups (7 days) + weekly R2 copy to a separate backup bucket; monthly restore drill; RPO 24 h, RTO half a day; no PITR",
+    "costCap": "USD 60/month with a usage alert at USD 45",
+    "status": "decided 2026-10-16; not provisioned"
   },
   "localSetupPlan": "/Users/parkmoonseok/.Codex/projects/woori/plans/05-local-auth-setup.md",
   "localDevelopment": {
@@ -127,5 +134,12 @@
     "security": "Every admin request sends X-Woori-Request; member text rendered as plain text; viewed photos only as revoked blob URLs (raster types only, no cache/download); re-auth retry once; next/id parameters validated.",
     "memberWeb": "Login shows the 403 ACCOUNT_SUSPENDED notice without retry.",
     "remaining": "Real screen-reader/200% zoom and Safari/Firefox datetime-local checks."
+  },
+  "familyBeta": {
+    "scope": "W07 on feature/family-beta-ops, aligned with OpenAPI 0.25.0",
+    "gallery": "480px grid thumbnails (display variant only in the viewer), album date range, 30-per-page \"더 불러오기\", background refresh keeps scroll/focus/pages.",
+    "notifications": "Bundle text (사진 N장 / 동영상 N개 / 외 N명), id replacement sorted by latestAt, ALBUM navigation across groups, unread re-transition.",
+    "video": "Upload pre-check (duration/size), XHR progress, queue-only processing, poster+play badge, viewer playback with signed URL re-fetch and position restore, download, pin comments hidden for video; admin audited view without download.",
+    "deploy": "pnpm pages:web / pages:admin with per-page sha256 meta CSP, _headers security headers, WOORI_R2_ORIGIN, woori.stream origin allowlist; see SETUP.md."
   }
 }

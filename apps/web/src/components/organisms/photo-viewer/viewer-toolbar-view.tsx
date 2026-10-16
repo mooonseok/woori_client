@@ -69,6 +69,7 @@ export function ViewerToolbarView({
   onRetryInteractions,
 }: Props) {
   const active = m.chrome || m.mode !== 'browse';
+  const video = m.photo.mediaKind === 'VIDEO';
   const mine = reactionSummary
     ? reactionSummary.myReaction
     : reactions.find((reaction) => reaction.userId === 'me')?.emoji;
@@ -138,10 +139,13 @@ export function ViewerToolbarView({
               <Icon name='comment' />
               <Span>{comments || '댓글'}</Span>
             </Button>
-            <Button onClick={m.startPin}>
-              <Icon name='pin' />
-              <Span>위치 댓글</Span>
-            </Button>
+            {/* A position on a playing video has no fixed meaning: no pins. */}
+            {!video && (
+              <Button onClick={m.startPin}>
+                <Icon name='pin' />
+                <Span>위치 댓글</Span>
+              </Button>
+            )}
           </>
         )}
         {!onDownloadOriginal && (
@@ -219,13 +223,18 @@ export function ViewerToolbarView({
               onClick={() => void onDownloadOriginal()}
             >
               <Icon name='download' />
-              {downloading ? '원본 받는 중…' : '원본 다운로드'}
+              {downloading
+                ? '받는 중…'
+                : video
+                  ? '동영상 다운로드'
+                  : '원본 다운로드'}
             </Button>
           )}
           {onDownloadOriginal && (
             <Text className='muted memory-date-note'>
-              원본에는 촬영 위치(GPS) 등 사진 정보가 포함될 수 있어요. 다른 곳에
-              공유할 때 확인해 주세요.
+              {video
+                ? '서버에서 변환한 MP4 파일로 받아요. 촬영 위치 정보는 지워져 있어요.'
+                : '원본에는 촬영 위치(GPS) 등 사진 정보가 포함될 수 있어요. 다른 곳에 공유할 때 확인해 주세요.'}
             </Text>
           )}
           {downloadError && (
@@ -244,13 +253,13 @@ export function ViewerToolbarView({
               disabled={downloading}
               onClick={onDelete}
             >
-              사진 삭제
+              {video ? '동영상 삭제' : '사진 삭제'}
             </Button>
           )}
           {onReport && (
             <Button disabled={downloading} onClick={onReport}>
               <Icon name='flag' />
-              사진 신고
+              {video ? '동영상 신고' : '사진 신고'}
             </Button>
           )}
           {onBlockUploader && (
@@ -259,16 +268,20 @@ export function ViewerToolbarView({
               {blockLabel || '올린 사람 차단'}
             </Button>
           )}
-          <Button onClick={() => g.zoom(1.5)}>
-            <Icon name='zoom-in' />
-            확대
-          </Button>
-          <Button onClick={() => g.zoom(1 / 1.5)}>
-            <Icon name='zoom-out' />
-            축소
-          </Button>
-          <Button onClick={() => g.reset()}>화면에 맞추기</Button>
-          {interactionsEnabled && (
+          {!video && (
+            <>
+              <Button onClick={() => g.zoom(1.5)}>
+                <Icon name='zoom-in' />
+                확대
+              </Button>
+              <Button onClick={() => g.zoom(1 / 1.5)}>
+                <Icon name='zoom-out' />
+                축소
+              </Button>
+              <Button onClick={() => g.reset()}>화면에 맞추기</Button>
+            </>
+          )}
+          {interactionsEnabled && !video && (
             <Button
               onClick={() => {
                 m.setPins(!m.pins);
@@ -280,13 +293,13 @@ export function ViewerToolbarView({
             </Button>
           )}
           <Button onClick={() => m.openGuide('view')}>사진 감상 사용법</Button>
-          {interactionsEnabled && (
+          {interactionsEnabled && !video && (
             <Button onClick={() => m.openGuide('pin')}>위치 댓글 사용법</Button>
           )}
         </Box>
       )}
       {active && m.mode === 'browse' && (
-        <Box className='viewer-desktop-arrows'>
+        <Box className={`viewer-desktop-arrows ${video ? 'is-video' : ''}`}>
           <Button
             disabled={!m.index}
             aria-label='이전 사진'

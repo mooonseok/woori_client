@@ -7,6 +7,19 @@ export interface AlbumResponse {
   photoCount: number;
   coverPhotoId: string | null;
   canManage: boolean;
+  // OpenAPI 0.22.0: videos among photoCount (photoCount counts both).
+  videoCount?: number;
+  // OpenAPI 0.24.0 (planned): the cover's kind; null without a cover.
+  coverMediaKind?: 'PHOTO' | 'VIDEO' | null;
+  // OpenAPI 0.21.0 (additive): KST 'YYYY-MM-DD' range of the visible photos'
+  // effective dates; null when none is visible. Absent from older servers.
+  startDate?: string | null;
+  endDate?: string | null;
+}
+export interface AlbumPageResponse {
+  albums: AlbumResponse[];
+  // OpenAPI 0.21.0: opaque; absent from older servers (one page only).
+  nextCursor?: string | null;
 }
 export interface PhotoResponse {
   id: string;
@@ -23,6 +36,22 @@ export interface PhotoResponse {
   canDelete: boolean;
   // OpenAPI 0.15.0 (additive): who uploaded the photo.
   uploader?: PhotoUploader;
+  // OpenAPI 0.22.0: VIDEO thumbnail/display variants are posters; play and
+  // download go through VideoAccess. durationMs is null for photos.
+  mediaKind?: 'PHOTO' | 'VIDEO';
+  durationMs?: number | null;
+}
+// GET .../photos/{photoId}/video: a 10-minute signed R2 URL used as is
+// (<video src> or a download link); no cookies, re-requested when expired.
+export interface VideoAccess {
+  url: string;
+  expiresAt: string;
+  purpose: 'play' | 'download';
+  mime: 'video/mp4';
+  bytes: number;
+  width: number;
+  height: number;
+  durationMs: number;
 }
 export interface PhotoUploader {
   id: string;
@@ -53,7 +82,11 @@ export interface UploadProgress {
   current: number;
   total: number;
   filename: string;
-  phase: 'RESERVING' | 'UPLOADING' | 'QUEUING';
+  // CHECKING: reading a video's length in the browser before reserving.
+  phase: 'CHECKING' | 'RESERVING' | 'UPLOADING' | 'QUEUING';
+  video?: boolean;
+  // Bytes sent of this file while UPLOADING (whole percent).
+  percent?: number;
 }
 
 export interface UploadJobsView {

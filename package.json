@@ -10,6 +10,8 @@
     "dev": "pnpm --filter @woori/web dev",
     "dev:admin": "pnpm --filter @woori/admin dev",
     "build": "pnpm -r build",
+    "pages:web": "pnpm --filter @woori/web build && node scripts/pages-build.mjs web",
+    "pages:admin": "pnpm --filter @woori/admin build && node scripts/pages-build.mjs admin",
     "typecheck": "pnpm -r typecheck",
     "test": "node --test scripts/tests/*.test.mjs && pnpm --filter @woori/web test && pnpm --filter @woori/admin test",
     "check:boundaries": "node scripts/check-boundaries.mjs",

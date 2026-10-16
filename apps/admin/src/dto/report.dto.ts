@@ -34,6 +34,7 @@ export interface PhotoReportTarget {
   albumTitle: string;
   status: string;
   uploadedAt: string | null;
+  mediaKind?: 'PHOTO' | 'VIDEO'; // OpenAPI 0.22.0
 }
 export interface CommentReportTarget {
   commentId: string;

@@ -9,7 +9,10 @@ import {
 import type { KeyboardEvent, PointerEvent } from 'react';
 import type { PhotoGestureModel } from '@/dto/viewer-ui.dto';
 import type { Photo, Point } from '@/dto/album.dto';
-import { PhotoGestures } from '@/lib/viewer/gesture-controller';
+import {
+  PhotoGestures,
+  inVideoControls,
+} from '@/lib/viewer/gesture-controller';
 import {
   FIT,
   clampTransform,
@@ -47,12 +50,18 @@ export function usePhotoGestures(options: Options): PhotoGestureModel {
     busy = useRef(false),
     navTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const controller = useRef<PhotoGestures | null>(null);
+  // A video is never zoomed (its controls need the whole frame).
   const maximum = useCallback(
     () =>
-      Math.max(
-        2,
-        Math.min(4, latest.current.photo.width / dimensions.current.photo.width)
-      ),
+      latest.current.photo.mediaKind === 'VIDEO'
+        ? 1
+        : Math.max(
+            2,
+            Math.min(
+              4,
+              latest.current.photo.width / dimensions.current.photo.width
+            )
+          ),
     []
   );
   const paint = useCallback((value: Transform, animate = false) => {
@@ -144,9 +153,17 @@ export function usePhotoGestures(options: Options): PhotoGestureModel {
     setScale(1);
     busy.current = false;
     const update = () => {
+      // A video stage pads out the toolbars (viewer.css) so they never sit
+      // on the video's own controls; fit inside what is left.
+      const style = getComputedStyle(stage);
       const space = {
         width: Math.max(1, stage.clientWidth),
-        height: Math.max(1, stage.clientHeight),
+        height: Math.max(
+          1,
+          stage.clientHeight -
+            (parseFloat(style.paddingTop) || 0) -
+            (parseFloat(style.paddingBottom) || 0)
+        ),
       };
       const fitted = fitSize(latest.current.photo, space);
       dimensions.current = { stage: space, photo: fitted };
@@ -239,27 +256,50 @@ export function usePhotoGestures(options: Options): PhotoGestureModel {
     };
   };
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    const target = event.target as Element;
     if (
       options.disabled ||
       busy.current ||
       (event.pointerType === 'mouse' && event.button !== 0) ||
-      (event.target as Element).closest(
-        'button,input,textarea,[data-viewer-interactive]'
-      )
+      target.closest('button,input,textarea,[data-viewer-interactive]')
     )
       return;
+    if (target.tagName === 'VIDEO') {
+      // The native seek bar and buttons own the bottom strip. Elsewhere on
+      // the video only a horizontal swipe is the viewer's; capture waits for
+      // it so a tap still reaches the video's own play control.
+      if (inVideoControls(target.getBoundingClientRect(), event.clientY))
+        return;
+      controller.current?.down(event.pointerId, point(event), true);
+      return;
+    }
     event.currentTarget.setPointerCapture(event.pointerId);
     controller.current?.down(event.pointerId, point(event));
+  };
+  const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    const gestures = controller.current;
+    if (!gestures) return;
+    gestures.move(event.pointerId, point(event));
+    // A swipe that began on a video takes the pointer now, so the release
+    // lands on the stage and does not toggle playback.
+    if (
+      gestures.swiping() &&
+      gestures.has(event.pointerId) &&
+      !event.currentTarget.hasPointerCapture(event.pointerId)
+    )
+      event.currentTarget.setPointerCapture(event.pointerId);
   };
   const onKeyDown = (event: KeyboardEvent) => {
     if (
       options.disabled ||
-      /INPUT|TEXTAREA|SELECT/.test((event.target as Element).tagName) ||
+      // A focused video keeps its own keys (seek, volume, play).
+      /INPUT|TEXTAREA|SELECT|VIDEO/.test((event.target as Element).tagName) ||
       event.ctrlKey ||
       event.metaKey
     )
       return;
-    if (['+', '=', '-', '0'].includes(event.key)) {
+    const video = latest.current.photo.mediaKind === 'VIDEO';
+    if (!video && ['+', '=', '-', '0'].includes(event.key)) {
       event.preventDefault();
       if (event.key === '0') {
         paint({ ...FIT }, true);
@@ -300,12 +340,14 @@ export function usePhotoGestures(options: Options): PhotoGestureModel {
     onKeyDown,
     stageEvents: {
       onPointerDown,
-      onPointerMove: (e: PointerEvent) =>
-        controller.current?.move(e.pointerId, point(e)),
+      onPointerMove,
       onPointerUp: (e: PointerEvent) => controller.current?.up(e.pointerId),
       onPointerCancel: (e: PointerEvent) =>
         controller.current?.up(e.pointerId, true),
       onLostPointerCapture: (e: PointerEvent) => {
+        // Only the stage giving the pointer up ends a gesture; a video
+        // handing over its implicit touch capture to the stage does not.
+        if (e.target !== e.currentTarget) return;
         if (controller.current?.has(e.pointerId))
           controller.current.up(e.pointerId, true);
       },

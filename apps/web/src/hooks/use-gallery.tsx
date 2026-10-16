@@ -19,11 +19,17 @@ type GalleryStore = Omit<
     date: string | null
   ) => Promise<void>;
   setGroupId: (id: string) => void;
+  loadDisplay?: import('@/dto/viewer.dto').DisplayLoader;
+  loadVideo?: import('@/dto/viewer.dto').VideoLoader;
+  videoUploads?: string[];
   createAlbum: (title: string) => string | null | Promise<string>;
   loadPhotos?: (
     albumId: string,
     cursor?: string | null
   ) => Promise<import('@/dto/album.dto').Photo[]>;
+  albumList?: import('@/dto/album.dto').AlbumListState;
+  loadMoreAlbums?: () => Promise<string[] | null>;
+  showAlbumPhotos?: (albumId: string) => Promise<boolean>;
   photoLoading?: boolean;
   photoError?: string;
   nextCursor?: string | null;

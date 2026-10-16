@@ -9,11 +9,23 @@ export interface Album {
   id: string;
   groupId: string;
   title: string;
-  date: string;
+  // Period of the visible photos (see AlbumResponse); undefined from a server
+  // before OpenAPI 0.21.0, where the creation date is shown instead.
+  startDate?: string | null;
+  endDate?: string | null;
   coverId: string;
-  photoCount?: number;
+  photoCount?: number; // photos and videos (OpenAPI 0.22.0)
+  videoCount?: number;
+  coverMediaKind?: 'PHOTO' | 'VIDEO' | null; // OpenAPI 0.24.0 (planned)
   canManage?: boolean;
   createdAt: string;
+}
+// Live album list paging ("더 불러오기"); demo shows every album at once.
+export interface AlbumListState {
+  hasMore: boolean;
+  loadingMore: boolean;
+  error: string;
+  notice: string;
 }
 export interface Photo {
   id: string;
@@ -22,6 +34,11 @@ export interface Photo {
   width: number;
   height: number;
   alt: string;
+  // Server rendition held by `src`; the viewer upgrades 'thumbnail' to display.
+  variant?: 'thumbnail' | 'display';
+  // A video's `src` is its poster image; it plays via the viewer's loadVideo.
+  mediaKind?: 'PHOTO' | 'VIDEO';
+  durationMs?: number | null;
   capturedAt: string;
   effectiveDate?: string;
   dateSource?: PhotoDateSource;

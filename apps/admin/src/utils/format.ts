@@ -1,4 +1,10 @@
 const UNITS = ['B', 'KB', 'MB', 'GB', 'TB'];
+// 42000 → "0:42"; '' when unknown.
+export function formatDuration(ms: number | null | undefined) {
+  if (typeof ms !== 'number' || !Number.isFinite(ms) || ms <= 0) return '';
+  const seconds = Math.round(ms / 1000);
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+}
 // 1536 → "1.5 KB"; base 1024 to match the storage quota.
 export function formatBytes(value: number | null | undefined) {
   if (typeof value !== 'number' || !Number.isFinite(value) || value < 0)
