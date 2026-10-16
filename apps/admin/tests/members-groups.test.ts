@@ -78,7 +78,7 @@ test('member actions use the documented methods, paths and bodies', async (t) =>
     method: 'GET',
     path: `/v1/admin/users/${ID}`,
     body: undefined,
-    guard: null,
+    guard: '1',
   });
   await renameMember(ID, '새 이름', '본인 요청으로 변경');
   assert.deepEqual(await http.last(), {

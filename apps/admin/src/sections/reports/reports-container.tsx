@@ -57,7 +57,7 @@ export function ReportsContainer() {
           report.group && report.group.status !== 'ACTIVE'
             ? labelOf(GROUP_STATUS_LABELS, report.group.status)
             : '',
-        reporter: report.reporter?.displayName ?? '탈퇴한 회원',
+        reporter: report.reporter.displayName,
         status: report.status,
         statusLabel: labelOf(REPORT_STATUS_LABELS, report.status),
         resolution: report.resolution

@@ -40,7 +40,7 @@ const json = (status: number, body: unknown) =>
     headers: { 'Content-Type': 'application/json' },
   });
 
-test('admin mutations send the cookie, the CSRF header and JSON; reads do not send the mutation header', async (t) => {
+test('admin mutations send the cookie, the request header and JSON; reads send the header without Content-Type', async (t) => {
   useEnvironment(t);
   const calls: Request[] = [];
   t.mock.method(
@@ -72,8 +72,49 @@ test('admin mutations send the cookie, the CSRF header and JSON; reads do not se
   assert.equal(await apiRequest('/v1/admin/auth/me'), undefined);
   assert.equal(calls[1].method, 'GET');
   assert.equal(calls[1].credentials, 'include');
-  assert.equal(calls[1].headers.get('X-Woori-Request'), null);
+  assert.equal(calls[1].headers.get('X-Woori-Request'), '1');
   assert.equal(calls[1].headers.get('Content-Type'), null);
+});
+
+test('every admin request carries X-Woori-Request; Content-Type only with a body', async (t) => {
+  useEnvironment(t);
+  const calls: Request[] = [];
+  t.mock.method(
+    globalThis,
+    'fetch',
+    async (input: RequestInfo, init?: RequestInit) => {
+      calls.push(new Request(input, init));
+      return new Response(null, { status: 204 });
+    }
+  );
+  await apiRequest('/v1/admin/audit-logs?limit=5');
+  await apiRequest('/v1/admin/metrics', { method: 'HEAD' });
+  await apiRequest('/v1/admin/users/x', { method: 'DELETE' });
+  await apiRequest('/v1/admin/notices/x', {
+    method: 'PATCH',
+    body: JSON.stringify({ title: '점검' }),
+  });
+  await post('/v1/admin/auth/logout');
+  assert.deepEqual(
+    calls.map((call) => [
+      call.method,
+      call.headers.get('X-Woori-Request'),
+      call.headers.get('Content-Type'),
+      call.credentials,
+    ]),
+    [
+      ['GET', '1', null, 'include'],
+      ['HEAD', '1', null, 'include'],
+      ['DELETE', '1', null, 'include'],
+      ['PATCH', '1', 'application/json', 'include'],
+      ['POST', '1', 'application/json', 'include'],
+    ]
+  );
+  // A caller cannot drop the header by passing its own headers.
+  await apiRequest('/v1/admin/metrics', {
+    headers: { 'X-Woori-Request': '0' },
+  });
+  assert.equal(calls.at(-1)?.headers.get('X-Woori-Request'), '1');
 });
 
 test('only admin API paths on the configured base are requested', async (t) => {

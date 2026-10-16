@@ -107,7 +107,7 @@ test('list queries send only chosen filters and the page size', async (t) => {
     '/v1/admin/reports?status=OPEN&limit=20'
   );
   assert.equal((await http.last()).method, 'GET');
-  assert.equal((await http.last()).guard, null);
+  assert.equal((await http.last()).guard, '1');
 });
 
 test('inquiry and report actions send exactly the contract fields', async (t) => {

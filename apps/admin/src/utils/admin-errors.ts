@@ -49,6 +49,10 @@ const CODE_MESSAGES: Record<string, string> = {
   [ADMIN_ERROR.MEDIA_NOT_CONFIGURED]:
     '사진 저장소가 설정되지 않아 사진을 볼 수 없어요. 서버 설정을 확인해 주세요.',
   [ADMIN_ERROR.USER_NOT_FOUND]: '회원을 찾을 수 없어요.',
+  [ADMIN_ERROR.USER_ALREADY_DELETED]:
+    '이미 탈퇴한 회원이에요. 최신 상태를 확인해 주세요.',
+  [ADMIN_ERROR.ACCOUNT_DELETION_CONFLICT]:
+    '다른 변경과 겹쳐 회원 삭제를 끝내지 못했어요. 잠시 후 다시 시도해 주세요.',
   [ADMIN_ERROR.GROUP_NOT_FOUND]: '그룹을 찾을 수 없어요.',
   [ADMIN_ERROR.ALBUM_NOT_FOUND]: '앨범을 찾을 수 없어요.',
   [ADMIN_ERROR.OWNED_GROUPS_REMAIN]:

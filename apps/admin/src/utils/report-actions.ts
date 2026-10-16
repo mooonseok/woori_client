@@ -28,7 +28,5 @@ export function reporterTextState(
 ): ReporterTextState {
   if (typeof detail === 'string' && detail.trim())
     return { kind: 'text', text: detail };
-  return !reporter || reporter.status === 'DELETED'
-    ? { kind: 'removed' }
-    : { kind: 'none' };
+  return reporter.status === 'DELETED' ? { kind: 'removed' } : { kind: 'none' };
 }

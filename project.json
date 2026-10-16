@@ -1,7 +1,7 @@
 {
   "name": "woori_client",
   "product": "우리",
-  "status": "service-guidance-implemented-mobile-validation-pending",
+  "status": "admin-operations-implemented-acceptance-pending",
   "plans": "/Users/parkmoonseok/.Codex/projects/woori_client/plans",
   "sharedPlan": "/Users/parkmoonseok/.Codex/projects/woori/plans/00-product-plan.md",
   "implemented": [
@@ -33,12 +33,11 @@
     "personal one-directional user blocks hiding blocked members' photos, comments, reactions, memories and notifications/push for the blocker only; block-time notification erasure; roster blockedByMe and photo uploader exposure"
   ],
   "notImplemented": [
-    "admin operations and native token authentication",
+    "native token authentication",
     "production cloud deployment",
     "HEIC conversion",
     "native FCM/APNs push subscriptions and delivery",
     "automatic memory push notifications",
-    "admin notice authoring, inquiry answers and report processing (W06)",
     "operator identity, privacy contact, retention periods and finalized privacy policy text (placeholders shown)",
     "album cover selection and album date range",
     "server-side album search/sort and album pagination beyond 50; taken-date sort is demo-only",
@@ -56,7 +55,8 @@
     "api": "http://localhost:3001",
     "appMode": "live",
     "demoMode": "NEXT_PUBLIC_APP_MODE=demo; isolated sample data only",
-    "photoWorker": "Server must run pnpm start:worker separately after pnpm build; API alone only accepts queued processing."
+    "photoWorker": "Server must run pnpm start:worker separately after pnpm build; API alone only accepts queued processing.",
+    "admin": "pnpm dev:admin → http://localhost:3002 (static export in build); NEXT_PUBLIC_API_BASE_URL points to the API; the served origin must equal the server ADMIN_WEB_ORIGIN."
   },
   "groupManagement": {
     "albumTitlePermission": "active group owner only",
@@ -118,7 +118,14 @@
     "blocks": "Personal and one-directional: blocker no longer sees blocked user's photos (counts/covers/list/content/memories), comments and totals, reactions, and receives no notifications/push caused by them; blocked user is not notified and group membership is unchanged. Block erases existing blocker<-blocked notifications; unblock restores content only. 500 per user, 60 mutations/hour. Blocker rows deleted on blocker account deletion; rows naming a deleted user are kept.",
     "privacy": "Public help/privacy pages describe implemented behaviour only; operator, privacy officer/contact, retention, processors and effective date are null placeholders until decided.",
     "verification": "Server 18 policy/87 unit/128 isolated integration; client 16 policy/121 functional, boundaries, builds. Isolated fixture DB with actual private R2 synthetic photos and owner/member/third/outsider browser flows; iOS Simulator Mobile Safari layout (not a physical device). Two independent reviews with fixes applied.",
-    "remaining": "Physical iPhone/Android and screen-reader validation, large-account erasure timing, and W06 admin processing remain.",
+    "remaining": "Physical iPhone/Android and screen-reader validation, large-account erasure timing, remain; W06 admin processing is implemented on feature/admin-operations.",
     "mobile": "Touch devices force form controls to at least 16px to prevent iOS Safari focus zoom; viewport zoom stays enabled."
+  },
+  "adminOperations": {
+    "scope": "apps/admin (Next.js static export) on feature/admin-operations, aligned with OpenAPI 0.19.0.",
+    "screens": "Login, MFA setup/verify, re-auth dialog, dashboard metrics, audit logs, notices, inquiries, reports, members, groups/albums with the audited content viewer.",
+    "security": "Every admin request sends X-Woori-Request; member text rendered as plain text; viewed photos only as revoked blob URLs (raster types only, no cache/download); re-auth retry once; next/id parameters validated.",
+    "memberWeb": "Login shows the 403 ACCOUNT_SUSPENDED notice without retry.",
+    "remaining": "Real screen-reader/200% zoom and Safari/Firefox datetime-local checks."
   }
 }

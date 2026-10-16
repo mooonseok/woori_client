@@ -157,3 +157,14 @@ test('server-added slice B codes and the view rate limit have Korean wording', (
     /정지 상태가 아니라/
   );
 });
+
+test('deletion conflicts and already-deleted members have their own wording', () => {
+  assert.match(
+    apiErrorMessage(409, 'ADMIN_USER_ALREADY_DELETED', undefined),
+    /이미 탈퇴한 회원/
+  );
+  assert.match(
+    apiErrorMessage(409, 'ACCOUNT_DELETION_CONFLICT', 'conflict'),
+    /겹쳐 회원 삭제를 끝내지 못했어요. 잠시 후 다시 시도/
+  );
+});

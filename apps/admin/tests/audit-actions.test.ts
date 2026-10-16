@@ -34,6 +34,10 @@ test('slice C member and group actions have labels', () => {
   assert.equal(auditActionLabel('ADMIN_USER_UNSUSPENDED'), '회원 정지 해제');
   assert.equal(auditActionLabel('ADMIN_USER_DELETED'), '회원 삭제');
   assert.equal(auditActionLabel('ADMIN_GROUP_VIEWED'), '그룹 열람');
+  assert.equal(
+    auditActionLabel('ADMIN_ALBUM_PHOTOS_VIEWED'),
+    '앨범 사진 목록 열람'
+  );
   assert.equal(auditTargetLabel('ALBUM'), '앨범');
 });
 
