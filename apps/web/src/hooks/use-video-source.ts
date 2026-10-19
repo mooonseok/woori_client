@@ -13,7 +13,7 @@ const IDLE: VideoSourceState = {
   status: 'idle',
 };
 /**
- * The signed play URL for the video on screen (see createVideoSource). Without
+ * The authenticated play URL for the video on screen (see createVideoSource). Without
  * a loader (demo) nothing loads and the poster stays.
  */
 export function useVideoSource(photo: Photo, load: VideoLoader | undefined) {

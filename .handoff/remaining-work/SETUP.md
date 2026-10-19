@@ -1,5 +1,11 @@
 # 집 컴퓨터 준비와 운영 이행
 
+## 현재 배포 기준 우선 (2026-10-19 사용자 보고)
+
+API·워커는 AWS Lightsail 서울의 별도 Ubuntu/Docker 인스턴스, DB는 Supabase Pro 서울을 사용한다. 사용자는 API healthz/readyz 200, 워커 polling·lastPassOk/videoReady true, 운영 R2 버킷·토큰·CORS 설정, Cloudflare Pages 회원 웹 woori.stream의 로그인 화면을 확인했다고 보고했다. 이 문서 갱신에서 해당 운영 환경을 직접 재검증한 것은 아니다.
+
+아래 Railway·Singapore와 운영 리소스 미생성 설명은 이전 계획 및 절차 보관용이다. 현재 배포에서는 이 절과 실제 서버 배포 설정을 우선하며 Railway 서비스 생성·예약 작업을 그대로 실행하지 않는다. 전체 운영 수용, 실기기, 관리자 웹 배포, 일일 백업 스케줄·성공 감시·복원 훈련은 별도 확인이 필요하다. 이전 검사 기록을 현재 운영 검증 완료 근거로 사용하지 않는다.
+
 ## 저장소·도구
 
 두 저장소를 원하는 위치에 나란히 둔다. 특정 사용자명이나 `/Users/...` 경로는 필요 없다.
@@ -98,7 +104,7 @@ Production 환경변수(Pages 설정에 입력, 저장소·NEXT_PUBLIC에 서버
 
 - 공통: `NODE_VERSION=24.12.0`, `PNPM_VERSION=10.27.0`, `NEXT_PUBLIC_API_BASE_URL=https://api.woori.stream`,
   `WOORI_R2_ORIGIN=https://<운영 R2 계정 ID>.r2.cloudflarestorage.com`
-  (presigned PUT 업로드·동영상 서명 재생 호스트, 서버 `R2_ACCOUNT_ID`와 같은 계정. 키·버킷 비밀값은 넣지 않는다)
+  (presigned PUT 업로드 호스트, 서버 `R2_ACCOUNT_ID`와 같은 계정. 키·버킷 비밀값은 넣지 않는다)
 - 회원 웹만: `NEXT_PUBLIC_APP_MODE=live`
 
 `scripts/pages-build.mjs`가 빌드 후 HTML마다 inline script 해시 CSP meta를 넣고 `_headers`의 origin을 채운다.
@@ -119,7 +125,7 @@ Web Analytics가 필요하면 자동 삽입이 아니라 수동 설치로 하고
    운영 브랜치만 빌드하고, 관리자 프로젝트의 `*.pages.dev`는 Cloudflare Access 등으로 막는다.
 4. 선행 조건(서버·운영): API `WEB_ORIGIN=https://woori.stream`, `CORS_ALLOWED_ORIGINS`에 두 웹 origin,
    운영 R2 버킷 CORS에 `https://woori.stream`의 `PUT`(Content-Type 헤더) 허용.
-   동영상은 `<video src>`로 R2에서 직접 재생하므로 CORS 없이 동작한다(Range 응답은 R2가 처리).
+   동영상은 `crossOrigin="use-credentials"`로 API에서 재생한다. API는 현재 세션·권한을 확인한 뒤 R2의 Range 응답을 전달한다. 운영 웹/API 사이의 credentialed CORS와 쿠키가 실제 브라우저에서 작동하는지 확인한다.
    HSTS `includeSubDomains`는 woori.stream 하위 전체에 적용되므로 HTTP 전용 하위 도메인이 없어야 한다.
 
 배포 후 확인: `curl -sI https://woori.stream/album`으로 CSP·HSTS 헤더를 본다.
@@ -166,6 +172,21 @@ CORS 목록은 `WEB_ORIGIN`·`ADMIN_WEB_ORIGIN` 두 개와 정확히 같아야 �
 
 배포 순서: 운영 migration → API·워커(같은 커밋) → 웹. 파괴적 migration은 별도 절차로 한다.
 
+## 운영 생성 전 준비와 TLS
+
+2026-10-16 현재 사용자가 준비한 것은 도메인·개발용 R2·Resend다. 운영 리소스 생성·결제·비밀값 입력은 사용자가 직접 한다. 운영 배포 브랜치는 아직 미정이며 서비스 Git 자동 배포를 연결하기 전에 정한다. 추천은 승인된 릴리스를 migration 이후 운영 브랜치로 승격하는 방식이다. develop을 연결하는 즉시 자동 배포되도록 설정하지 않는다.
+
+- Supabase Pro Singapore 프로젝트를 생성하고 일일 백업·SSL enforcement를 확인한다. 가능하면 Data API를 끈다.
+- IPv4가 필요한 연결은 대시보드의 Session pooler 문자열을 사용한다. migration 역할과 `woori_api` 런타임 역할의 문자열을 분리한다.
+- CA 인증서를 내려받고 `verify-full` 연결을 검증한다. `sslmode=require`만 붙이고 인증서 검증이 완료됐다고 가정하지 않는다. 인증서 검증 실패를 `rejectUnauthorized=false`로 우회하지 않는다.
+- 해당 프로젝트 CA를 확인한 뒤 공개 인증서만 `deploy/`에 추가할 수 있다. `sslrootcert` 경로는 API/worker 실행 디렉터리와 이미지 내 파일 존재를 확인한다. 아직 인증서 파일은 추가하지 않았다.
+- 앱의 시작 설정 검사는 실제 TLS 협상·인증서 검증·DB 역할 권한을 증명하지 않는다. Prisma migration CLI, 런타임 pg 연결, 관리자 CLI 각각 첫 연결을 확인한다.
+- 런타임 역할은 `LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS`이며 비밀번호는 `psql`의 `\password` 등 비공개 입력으로 설정한다. 연결 문자열은 명령 인자·로그에 넣지 않는다.
+- 운영 키는 기존 개발 키와 분리한다. 저장소 밖 0700 디렉터리에서 서버 키 생성 스크립트를 절대 경로로 실행한다. 생성된 0600 파일의 값을 사용자만 API/worker 콘솔에 입력한다. 기존 `.env.mail.local`·`.env.admin.local`을 덮어쓰지 않는다.
+- 백업 토큰의 버킷별 읽기/쓰기 권한이 콘솔에서 표현되지 않으면 자동으로 광범위한 권한을 주지 않는다. 서버 내부 CopyObject가 양쪽 버킷 접근을 요구하는 점을 설명하고 실제 토큰 권한 대안을 확정한다.
+
+공식 확인 자료: [Supabase SSL enforcement](https://supabase.com/docs/guides/platform/ssl-enforcement), [Postgres 연결](https://supabase.com/docs/guides/database/connecting-to-postgres), [R2 API 토큰](https://developers.cloudflare.com/r2/api/tokens/). 운영 적용 직전에 다시 확인한다.
+
 ## 운영 migration 절차
 
 앱 시작에 migration을 넣지 않는다. 운영 DB에 `pnpm dev:db:prepare`·통합 테스트·seed를 실행하지 않는다.
@@ -176,7 +197,7 @@ CORS 목록은 `WEB_ORIGIN`·`ADMIN_WEB_ORIGIN` 두 개와 정확히 같아야 �
 4. `node --env-file=<그 파일> node_modules/prisma/build/index.js migrate status`로 적용 대상을 확인한 뒤
    같은 방식으로 `migrate deploy`를 실행한다.
 5. 처음 한 번 `woori_api` 로그인 역할을 만들고(비밀번호는 비밀번호 관리자에서 생성), 매 배포마다
-   `psql "<MIGRATION_DATABASE_URL>" -v ON_ERROR_STOP=1 -f prisma/runtime-grants.sql`로 최소 권한을 다시 적용한다.
+   비공개 libpq 환경/서비스 파일을 사용한 `psql -v ON_ERROR_STOP=1 -f prisma/runtime-grants.sql`로 최소 권한을 다시 적용한다. URL·비밀번호를 명령 인자에 직접 넣지 않는다.
 6. `20261030010000_one_waiting_delivery` 적용 전 확인(대기 배송 중복, 결과 0행이 정상):
    `SELECT "notificationId","installationId",count(*) FROM woori.notification_deliveries WHERE status IN ('PENDING','RUNNING') GROUP BY 1,2 HAVING count(*)>1;`
    중복이 있으면 migration이 오래된 바인딩 쪽을 `DONE/superseded`로 닫고 인덱스를 만든다.
@@ -186,8 +207,8 @@ CORS 목록은 `WEB_ORIGIN`·`ADMIN_WEB_ORIGIN` 두 개와 정확히 같아야 �
 
 - 버킷 2개: 운영(사진·동영상)과 백업. 둘 다 비공개, r2.dev·공개 도메인 금지.
 - 운영 버킷 CORS: `deploy/r2-cors.production.json`(https://woori.stream의 `PUT`, `content-type` 헤더).
-  재생은 `<video src>`(crossorigin 없음), 다운로드는 링크 이동이라 `GET` CORS가 필요 없다.
-  웹 CSP의 `connect-src`(업로드 PUT)·`media-src`(동영상 재생)에 R2 호스트(`WOORI_R2_ORIGIN`)가 들어간다(웹 담당, `pnpm pages:web`·`pages:admin`이 채움). 사진·포스터는 API를 거쳐 blob으로 표시하므로 `img-src`에는 필요 없다.
+  재생·다운로드는 권한 검사 API를 경유하므로 R2 `GET`을 브라우저에 열지 않는다.
+  웹 CSP의 `connect-src`에만 업로드용 R2 호스트(`WOORI_R2_ORIGIN`)를 허용하고, `media-src`는 API로 제한한다. 사진·포스터도 API를 거쳐 blob으로 표시한다.
 - 운영 버킷 lifecycle: `staging/` 접두사만 1일 후 삭제.
 - API 토큰 2개: 앱용(운영 버킷 Object Read & Write만), 백업용(운영 버킷 Read + 백업 버킷 Read & Write).
 
@@ -215,20 +236,34 @@ CORS 목록은 `WEB_ORIGIN`·`ADMIN_WEB_ORIGIN` 두 개와 정확히 같아야 �
 ## 백업과 복원 훈련 (RPO 24시간, RTO 반나절)
 
 - DB: Supabase Pro 일일 백업 7일 보관(PITR 없음). 최대 24시간 데이터 손실을 감수한다.
-- R2: 매주 신뢰할 수 있는 컴퓨터에서 `pnpm build` 후 `pnpm r2:backup`(dry-run, 개수만 출력)으로 확인하고
+- R2: 매일 신뢰할 수 있는 실행 환경에서 `pnpm build` 후 `pnpm r2:backup`(dry-run, 개수만 출력)으로 확인하고
   `pnpm r2:backup --apply`로 운영→백업 버킷 증분 복사(키·크기·ETag 비교, 서버 내부 복사)를 한다.
   필요한 값: `R2_ACCOUNT_ID`, `R2_BUCKET`, `R2_BACKUP_BUCKET`, `R2_BACKUP_ACCESS_KEY_ID`, `R2_BACKUP_SECRET_ACCESS_KEY`.
   백업 버킷의 `_woori-backup/manifest.json`에 원본 버킷 이름과 "운영에서 사라진 것을 백업 실행이 처음 본 시각"을 기록한다(`--apply` 때만 갱신).
   백업에서 지우는 일은 `--apply --prune-older-than <7일 이상>`을 명시할 때만, 그 처음 본 시각에서 기간이 지난 객체만 한다
-  (백업 사본의 수정 시각은 쓰지 않는다. 주 1회 실행이므로 실제로는 최대 1주 더 늦게 지워진다).
+  (백업 사본의 수정 시각은 쓰지 않는다. 매일 성공적으로 실행하면 실제 삭제는 다음 실행 시점까지 늦어질 수 있다).
   안전 정지: 운영 목록이 0개, 두 버킷이 같음, manifest의 원본 버킷이 다름, manifest 손상이면 아무것도 바꾸지 않고
   `{"status":"aborted","reason":...}`로 끝난다. 지울 대상이 백업 객체의 5%를 넘으면 삭제만 건너뛰고(복사는 진행) 종료 코드 1을 낸다.
   원인을 확인한 뒤에만 `--force-large-prune`을 붙인다.
+- 일일 실행은 2026-10-16 사용자 확정이다. 자동 실행 환경·시간·실패 알림은 아직 배포하지 않았다.
+  개인 컴퓨터의 수동 실행만으로 24시간 RPO를 달성했다고 보고하지 않는다. 마지막 성공 백업 시각과
+  실패·누락을 감시하고, 재시도 여유를 둔 실행 주기를 운영 배포 전에 확정한다. 백업은 복사 시점이
+  분산된 증분 사본이므로 DB 백업 시각에 대응하는 객체가 있는지도 복원 훈련에서 확인한다.
+- 서버 `deploy/railway.backup.json`은 별도 예약 실행 서비스용 준비 파일이다. 매일 03:00 KST(18:00 UTC),
+  `node scripts/r2-backup.mjs --apply`, 단일 실행이며 자동 prune을 하지 않는다. 실제 서비스는 아직 만들지 않았다.
+  API·워커와 별도로 생성 승인을 받은 후 백업에 필요한 R2 변수만 넣고, DB·메일·관리자 키는 넣지 않는다.
+  첫 실행 전 버킷·권한을 확인하고 dry-run을 승인·검토한다. 운영 브랜치 연결·스케줄 활성화는 배포 승인 후 한다.
+  이전 실행이 끝나지 않으면 Railway가 다음 실행을 건너뛰므로 실행 종료·실패와 마지막 성공 시각을 따로 감시한다.
+  [Railway Cron Jobs](https://docs.railway.com/cron-jobs) 참조. 이 설정 파일만으로 백업/알림이 운영된다고 보고하지 않는다.
 - 월 1회 복원 훈련:
   1. Supabase에서 최신 일일 백업을 새 프로젝트(Singapore)로 복원한다. 운영 프로젝트를 덮어쓰지 않는다.
   2. 새 프로젝트에 `woori_api` 역할을 만들고 `prisma/runtime-grants.sql`을 적용한다.
   3. 신뢰할 수 있는 컴퓨터에서 API만 실행한다. `DATABASE_URL`은 복원 프로젝트, `R2_BUCKET`은 백업 버킷,
      R2 토큰은 백업 버킷 **읽기 전용**으로 둔다. 워커는 실행하지 않는다(정리 큐가 객체를 지울 수 있다).
-  4. 시험 계정으로 로그인, 앨범 목록, 사진 썸네일·원본, 동영상 재생 URL, 알림 목록을 확인하고
+  4. 시험 계정으로 로그인, 앨범 목록, 사진 썸네일·원본, 권한 검사 동영상 재생, 알림 목록을 확인하고
      사용자·그룹·사진 수를 운영 관리자 지표와 비교한다.
   5. 날짜, 복원한 백업 시각, 걸린 시간, 문제를 기록하고 복원 프로젝트를 삭제한다.
+
+## 영상 권한 보완 배포 호환성
+
+기존 `/video` JSON 응답의 URL 의미가 R2 서명 링크에서 API 경로로 바뀐다. 이전 웹은 API 경로를 거절하거나 쿠키 없는 재생을 할 수 있으므로 API만 먼저 바꾼 뒤 오래 방치하지 않는다. 새 API·워커 준비 후 곧바로 새 회원·관리자 웹으로 전환하고 캐시된 이전 웹에는 새로고침이 필요하다. 보안 정책 때문에 옛 R2 링크 허용으로 되돌리는 호환 경로는 두지 않는다. 기존에 발급된 R2 링크는 최장 600초 만료될 때까지 남을 수 있고 이미 전송된 파일은 회수할 수 없다. 새 API에서는 매 요청 세션·권한을 재검사하며 이미 진행 중인 스트림을 실시간으로 회수하는 정책과는 구분한다.

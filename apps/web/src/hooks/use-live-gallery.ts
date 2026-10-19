@@ -824,7 +824,7 @@ export function useLiveGalleryState() {
     const signal = scope.current.signal;
     if (photo.mediaKind === 'VIDEO') {
       // No original is kept: the transcoded MP4, as an attachment download
-      // (a navigation to the signed URL; nothing is buffered here).
+      // (an API navigation with the session cookie; nothing is buffered here).
       const access = await media.videoAccess(
         groupId,
         photo.albumId,

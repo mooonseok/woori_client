@@ -6,8 +6,8 @@ import { Icon } from '@/components/atoms/icon';
 import type { Photo } from '@/dto/album.dto';
 import type { VideoSourceView } from '@/dto/viewer-ui.dto';
 import { formatDuration } from '@/utils/media';
-// The video on screen: poster first (display rendition), then the signed
-// play URL. The viewer's gestures leave its control strip and taps alone
+// The video on screen: poster first (display rendition), then the authenticated
+// API URL. The viewer's gestures leave its control strip and taps alone
 // (use-photo-gestures) and only take a horizontal swipe elsewhere on it.
 export function PhotoVideo({
   photo,
@@ -25,7 +25,7 @@ export function PhotoVideo({
     playing: boolean;
   } | null>(null);
   // Leaving the item, a fresh URL (a new element) or closing the viewer:
-  // stop playback and drop the signed URL so nothing streams in background.
+  // stop playback and drop the API URL so nothing streams in background.
   useEffect(() => {
     const video = element.current;
     return () => {
@@ -62,6 +62,7 @@ export function PhotoVideo({
         ref={element}
         className='viewer-video'
         controls
+        crossOrigin='use-credentials'
         playsInline
         preload='metadata'
         poster={photo.src}

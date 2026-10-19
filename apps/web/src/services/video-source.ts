@@ -16,8 +16,8 @@ const IDLE: VideoSourceState = {
 };
 
 /**
- * The play URL for the video on screen. Signed URLs expire (10 min), so a
- * playback error re-fetches one fresh URL; a second failure in a row shows an
+ * The play URL for the video on screen. The API rechecks permission for every
+ * media request; a playback error re-fetches access once; a second failure in a row shows an
  * error until retry(). Once the video plays again (played()) the next expiry
  * gets its fresh URL too. Leaving the item aborts its request and forgets it.
  */

@@ -1,4 +1,10 @@
-import { apiRequest, apiBlob, ApiError } from './api-client.ts';
+import {
+  apiRequest,
+  apiBlob,
+  ApiError,
+  currentSessionRevision,
+} from './api-client.ts';
+import { authenticatedMediaUrl } from '../utils/media-url.ts';
 import type {
   AlbumPageResponse,
   AlbumResponse,
@@ -18,18 +24,26 @@ export function validatePhoto(file: File) {
   const problem = mediaPrecheck(file);
   if (problem) throw new Error(problem);
 }
-// The signed URL is used as is: no cookies or headers go to storage.
-export function videoAccess(
+// Playback and downloads use the API session; each media request rechecks access.
+export async function videoAccess(
   groupId: string,
   albumId: string,
   photoId: string,
   purpose: 'play' | 'download',
   signal: AbortSignal
 ) {
-  return apiRequest<VideoAccess>(
-    `${albumPath(groupId, albumId)}/photos/${encodeURIComponent(photoId)}/video?purpose=${purpose}`,
-    { signal }
-  );
+  const revision = currentSessionRevision();
+  const path = `${albumPath(groupId, albumId)}/photos/${encodeURIComponent(photoId)}/video`;
+  const access = await apiRequest<VideoAccess>(`${path}?purpose=${purpose}`, {
+    signal,
+  });
+  signal.throwIfAborted();
+  if (revision !== currentSessionRevision())
+    throw new ApiError(401, '로그인이 바뀌었어요. 동영상을 다시 열어 주세요.');
+  return {
+    ...access,
+    url: authenticatedMediaUrl(access.url, `${path}/content`),
+  };
 }
 // Server default page size (30); a server before OpenAPI 0.21.0 ignores the
 // cursor and answers one page without nextCursor.
