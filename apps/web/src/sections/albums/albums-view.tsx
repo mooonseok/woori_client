@@ -15,6 +15,8 @@ import { EmptyState } from '@/components/molecules/empty-state';
 import type { Album, AlbumListState, Photo } from '@/dto/album.dto';
 import type { AlbumSearch } from '@/dto/album-search.dto';
 interface Props {
+  onRetryPreview?: (photo: Photo) => void;
+  onImageError?: (photo: Photo) => void;
   albums: Album[];
   // Albums of the group loaded so far, before the title filter.
   loadedCount: number;
@@ -27,6 +29,8 @@ interface Props {
   onMore: () => void;
 }
 export function AlbumsView({
+  onRetryPreview,
+  onImageError,
   albums,
   loadedCount,
   paging,
@@ -128,6 +132,8 @@ export function AlbumsView({
             <AlbumCard
               key={a.id}
               domId={cardId(a.id)}
+              onRetry={onRetryPreview}
+              onImageError={onImageError}
               album={a}
               cover={photos.find((p) => p.id === a.coverId)}
               count={

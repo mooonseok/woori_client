@@ -1,3 +1,5 @@
+import { Icon } from '@/components/atoms/icon';
+import { MediaPreview } from '@/components/molecules/media-preview';
 import {
   Box,
   Section,
@@ -5,13 +7,14 @@ import {
   Heading,
   Text,
   Button,
-  Image,
 } from '@/components/atoms/ui';
 import type { MemoryCard, MemoryKind } from '@/dto/memories.dto';
 import { photoDateLabel } from '@/utils/photo-date';
 import { formatDuration } from '@/utils/media';
 import { MediaBadge } from '@/components/molecules/media-badge';
 interface Props {
+  previewError: (item: MemoryCard) => void;
+  retryPreview: (item: MemoryCard) => void;
   kind: MemoryKind;
   items: MemoryCard[];
   loading: boolean;
@@ -101,7 +104,7 @@ export function MemoriesView(props: Props) {
       )}
       <Box className='memories-grid'>
         {items.map((item) => (
-          <Box className='memory-card' key={item.photo.id}>
+          <Box className='memory-card media-card-frame' key={item.photo.id}>
             <Button
               className='memory-card-photo'
               disabled={props.opening || !!pending}
@@ -112,11 +115,30 @@ export function MemoriesView(props: Props) {
                   : '사진'
               } 크게 보기`}
             >
-              <Image src={item.thumbnail} alt='' loading='lazy' />
+              <MediaPreview
+                src={item.thumbnail}
+                status={item.previewStatus}
+                video={item.photo.mediaKind === 'VIDEO'}
+                onError={() => props.previewError(item)}
+              />
               {item.photo.mediaKind === 'VIDEO' && (
                 <MediaBadge durationMs={item.photo.durationMs} />
               )}
             </Button>
+            {item.previewStatus === 'error' && (
+              <Button
+                className='media-retry'
+                aria-label='추억 미리보기 다시 불러오기'
+                onClick={(event) => {
+                  event.currentTarget.parentElement
+                    ?.querySelector<HTMLButtonElement>('.memory-card-photo')
+                    ?.focus();
+                  props.retryPreview(item);
+                }}
+              >
+                <Icon name='refresh' size={18} />
+              </Button>
+            )}
             <Text className='memory-card-title'>
               {kind === 'hidden'
                 ? item.albumTitle

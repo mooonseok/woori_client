@@ -61,7 +61,9 @@ export function PhotoCommentItem({
   return (
     <Box className='viewer-comment'>
       <Box className='viewer-comment-meta'>
-        <Span className='viewer-avatar'>{comment.authorName.slice(0, 1)}</Span>
+        <Span className='viewer-avatar' aria-hidden='true'>
+          <Icon name='user' size={18} />
+        </Span>
         <Span>{comment.authorName}</Span>
         <Span className='viewer-comment-date'>
           {new Date(comment.createdAt).toLocaleString('ko-KR', {

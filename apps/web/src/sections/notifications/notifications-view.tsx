@@ -16,6 +16,7 @@ export interface NotificationRowViewModel {
   id: string;
   title: string;
   image?: string;
+  onImageError?: () => void;
   group: string;
   when: string;
   read: boolean;
@@ -148,6 +149,7 @@ export function NotificationsView({
                           alt=''
                           width={56}
                           height={56}
+                          onError={row.onImageError}
                         />
                       ) : (
                         <Span

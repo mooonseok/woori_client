@@ -2,6 +2,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { MemoryCard, MemoryItem, MemoryKind } from '@/dto/memories.dto';
 import * as memories from '@/services/memories';
+import { thumbnailFailure, thumbnailResult } from '@/services/thumbnail-result';
+import {
+  MemoryPreviewRequests,
+  reconcileMemoryPreviews,
+} from '@/services/memory-preview';
 import { photoBlob } from '@/services/media-client';
 import { MAX_WINDOW_PAGES, readWindow, withTail } from '@/services/list-window';
 import { GROUP_MEMBERSHIP_CHANGED } from '@/services/api-client';
@@ -42,18 +47,29 @@ async function cardsFor(
     let thumbnail = reuse.get(item.photo.id);
     if (!thumbnail) {
       // A failed private image request must not leave a stale card visible.
-      const blob = await photoBlob(
-        groupId,
-        item.photo.albumId,
-        item.photo.id,
-        signal,
-        'thumbnail'
+      thumbnail = await thumbnailResult(
+        async () => {
+          const blob = await photoBlob(
+            groupId,
+            item.photo.albumId,
+            item.photo.id,
+            signal,
+            'thumbnail'
+          );
+          signal.throwIfAborted();
+          const src = URL.createObjectURL(blob);
+          created.push(src);
+          return src;
+        },
+        () => '',
+        signal
       );
-      signal.throwIfAborted();
-      thumbnail = URL.createObjectURL(blob);
-      created.push(thumbnail);
     }
-    cards.push({ ...item, thumbnail });
+    cards.push({
+      ...item,
+      thumbnail,
+      previewStatus: thumbnail ? undefined : 'error',
+    });
   }
   return cards;
 }
@@ -75,6 +91,7 @@ export function useMemories(groupId: string) {
   const mutation = useRef<AbortController | null>(null);
   const urls = useRef(new Set<string>());
   const currentItems = useRef<MemoryCard[]>([]);
+  const previewRequests = useRef(new MemoryPreviewRequests());
   const applyStatus = useCallback((next: LoadState) => {
     statusRef.current = next;
     setStatus(next);
@@ -89,14 +106,18 @@ export function useMemories(groupId: string) {
     const start = startLoad(statusRef.current, kind);
     applyStatus(start.state);
     if (!start.background) {
+      previewRequests.current.cancelAll();
       urls.current.forEach(URL.revokeObjectURL);
       urls.current.clear();
       currentItems.current = [];
       setItems([]);
       setNextCursor(null);
     }
+    const captured = [...currentItems.current];
     const reuse = new Map(
-      currentItems.current.map((card) => [card.photo.id, card.thumbnail])
+      captured
+        .filter((card) => !card.previewStatus)
+        .map((card) => [card.photo.id, card.thumbnail])
     );
     const created: string[] = [];
     let committed = false;
@@ -142,7 +163,9 @@ export function useMemories(groupId: string) {
       if (version !== generation.current) return;
       // Past the page limit, cards loaded beyond the window stay.
       const shown = withTail(
-        cards.map((card) => ({ id: card.photo.id, card })),
+        reconcileMemoryPreviews(cards, currentItems.current, captured).map(
+          (card) => ({ id: card.photo.id, card })
+        ),
         currentItems.current.map((card) => ({ id: card.photo.id, card })),
         window.capped
       ).map(({ card }) => card);
@@ -152,7 +175,16 @@ export function useMemories(groupId: string) {
           URL.revokeObjectURL(url);
           urls.current.delete(url);
         }
-      created.forEach((url) => urls.current.add(url));
+      created.forEach((url) => {
+        if (kept.has(url)) urls.current.add(url);
+        else URL.revokeObjectURL(url);
+      });
+      // A removed card must not publish a pending retry after this refresh.
+      const shownIds = new Set(shown.map((card) => card.photo.id));
+      currentItems.current.forEach((card) => {
+        if (!shownIds.has(card.photo.id))
+          previewRequests.current.cancel(card.photo.id);
+      });
       committed = true;
       currentItems.current = shown;
       setItems(shown);
@@ -222,6 +254,7 @@ export function useMemories(groupId: string) {
     const removed = currentItems.current.filter(drop);
     if (!removed.length) return;
     removed.forEach((card) => {
+      previewRequests.current.cancel(card.photo.id);
       URL.revokeObjectURL(card.thumbnail);
       urls.current.delete(card.thumbnail);
     });
@@ -264,11 +297,13 @@ export function useMemories(groupId: string) {
     window.addEventListener('focus', focus);
     document.addEventListener('visibilitychange', focus);
     const objects = urls.current,
+      previews = previewRequests.current,
       counter = generation;
     return () => {
       mounted = false;
       counter.current++;
       active.current?.abort();
+      previews.cancelAll();
       mutation.current?.abort();
       mutation.current = null;
       objects.forEach(URL.revokeObjectURL);
@@ -320,9 +355,66 @@ export function useMemories(groupId: string) {
       }
     }
   }
+  function previewError(item: MemoryCard) {
+    const update = currentItems.current.map((p) =>
+      p.photo.id === item.photo.id && p.thumbnail === item.thumbnail
+        ? { ...p, previewStatus: 'error' as const }
+        : p
+    );
+    currentItems.current = update;
+    setItems(update);
+  }
+  async function retryPreview(item: MemoryCard) {
+    // A list refresh/page request may be cancelled independently. Only a
+    // replaced retry, removed card, or group/tab cleanup cancels this request.
+    const controller = previewRequests.current.start(item.photo.id);
+    const signal = controller.signal;
+    const current = () =>
+      previewRequests.current.isCurrent(item.photo.id, controller);
+    const update = (patch: Partial<MemoryCard>) => {
+      currentItems.current = currentItems.current.map((p) =>
+        p.photo.id === item.photo.id && p.thumbnail === item.thumbnail
+          ? { ...p, ...patch }
+          : p
+      );
+      setItems(currentItems.current);
+    };
+    update({ previewStatus: 'loading' });
+    try {
+      const blob = await photoBlob(
+        groupId,
+        item.photo.albumId,
+        item.photo.id,
+        signal,
+        'thumbnail'
+      );
+      signal.throwIfAborted();
+      const bitmap = await createImageBitmap(blob);
+      bitmap.close();
+      if (
+        !current() ||
+        !currentItems.current.some(
+          (p) => p.photo.id === item.photo.id && p.thumbnail === item.thumbnail
+        )
+      )
+        return;
+      const thumbnail = URL.createObjectURL(blob);
+      urls.current.add(thumbnail);
+      update({ thumbnail, previewStatus: undefined });
+      if (item.thumbnail) {
+        URL.revokeObjectURL(item.thumbnail);
+        urls.current.delete(item.thumbnail);
+      }
+    } catch (cause) {
+      if (current()) update({ previewStatus: thumbnailFailure(cause) });
+    } finally {
+      previewRequests.current.finish(item.photo.id, controller);
+    }
+  }
   function changeKind(next: MemoryKind) {
     if (next === kind || mutation.current) return;
     active.current?.abort();
+    previewRequests.current.cancelAll();
     generation.current++;
     urls.current.forEach(URL.revokeObjectURL);
     urls.current.clear();
@@ -346,6 +438,8 @@ export function useMemories(groupId: string) {
     pending,
     notice,
     hide,
+    previewError,
+    retryPreview: (item: MemoryCard) => void retryPreview(item),
     reload: () => void refresh(),
     more: () => void more(),
   };

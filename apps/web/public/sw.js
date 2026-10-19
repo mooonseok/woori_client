@@ -74,8 +74,8 @@ self.addEventListener('push', (event) => {
         const displayPromise = self.registration.showNotification('우리', {
           body: display.body.slice(0, 240),
           tag: `woori-${payload.notificationId}`,
-          icon: '/icons/icon-192.png',
-          badge: '/icons/badge-96.png',
+          icon: '/icons/icon-192-v2.png',
+          badge: '/icons/badge-96-v2.png',
           data: { notificationId: payload.notificationId },
         });
         pendingDisplays.add(displayPromise);

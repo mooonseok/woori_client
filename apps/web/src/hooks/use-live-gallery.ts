@@ -22,6 +22,11 @@ import { UploadRetention, type UploadResult } from '@/utils/upload-retention';
 import { photoWindow, withTail } from '@/services/list-window';
 import { coverPhoto } from '@/lib/gallery';
 import {
+  thumbnailFailure,
+  thumbnailResult,
+  reconcileThumbnails,
+} from '@/services/thumbnail-result';
+import {
   finishLoad,
   freshLoad,
   startLoad,
@@ -304,9 +309,17 @@ export function useLiveGalleryState() {
               ? d
               : { ...d, photos: [...d.photos, photo] }
           );
-        } catch {
-          if (signal.aborted)
-            return; /* Keep album navigation available if its cover is unavailable. */
+        } catch (cause) {
+          if (signal.aborted || !current()) return;
+          const photo = {
+            ...coverPhoto(album, '', { width: 1, height: 1 }),
+            previewStatus: thumbnailFailure(cause),
+          };
+          setData((d) =>
+            d.photos.some((p) => p.id === photo.id)
+              ? d
+              : { ...d, photos: [...d.photos, photo] }
+          );
         }
       }
     },
@@ -466,6 +479,65 @@ export function useLiveGalleryState() {
     urls.current.add(src);
     return photoModel(p, src, variant);
   }
+  const previewAttempts = useRef(new Map<string, number>());
+  function patchPreview(photo: Photo, patch: Partial<Photo>) {
+    const update = (photos: Photo[]) =>
+      photos.map((p) =>
+        p.id === photo.id && p.src === photo.src ? { ...p, ...patch } : p
+      );
+    // Another async completion can run before React commits an effect.
+    // Publish the preview to the ref in the same turn as the state update.
+    dataRef.current = {
+      ...dataRef.current,
+      photos: update(dataRef.current.photos),
+    };
+    setData((d) => ({ ...d, photos: update(d.photos) }));
+  }
+  function markPreviewError(photo: Photo) {
+    patchPreview(photo, { previewStatus: 'error' });
+  }
+  async function retryPreview(photo: Photo) {
+    const signal = scope.current.signal;
+    const attempt = (previewAttempts.current.get(photo.id) ?? 0) + 1;
+    previewAttempts.current.set(photo.id, attempt);
+    const current = () =>
+      !signal.aborted && previewAttempts.current.get(photo.id) === attempt;
+    patchPreview(photo, { previewStatus: 'loading' });
+    try {
+      const blob = await media.photoBlob(
+        groupId,
+        photo.albumId,
+        photo.id,
+        signal,
+        'thumbnail'
+      );
+      signal.throwIfAborted();
+      // Reject malformed images before offering a successful retry.
+      const bitmap = await createImageBitmap(blob);
+      const size = { width: bitmap.width, height: bitmap.height };
+      bitmap.close();
+      if (!current()) return;
+      if (
+        !dataRef.current.photos.some(
+          (p) => p.id === photo.id && p.src === photo.src
+        )
+      )
+        return;
+      const src = URL.createObjectURL(blob);
+      urls.current.add(src);
+      patchPreview(photo, { ...size, src, previewStatus: undefined });
+      if (
+        photo.src &&
+        !viewerRef.current?.photos.some((p) => p.src === photo.src)
+      ) {
+        URL.revokeObjectURL(photo.src);
+        urls.current.delete(photo.src);
+      }
+    } catch (cause) {
+      if (!current()) return;
+      patchPreview(photo, { previewStatus: thumbnailFailure(cause) });
+    }
+  }
   // A first page (cursor null) or "사진 더 보기". A refresh that replaces the
   // grid while a page is in flight makes that page wait for it and continue
   // after the refreshed window; if it still cannot, the user is told.
@@ -520,7 +592,14 @@ export function useLiveGalleryState() {
       for (let start = 0; start < page.photos.length; start += 3) {
         const batch = await Promise.allSettled(
           page.photos.slice(start, start + 3).map(async (p) => {
-            const photo = await loadPhoto(p, signal, 'thumbnail');
+            const photo = await thumbnailResult(
+              () => loadPhoto(p, signal, 'thumbnail'),
+              () => ({
+                ...photoModel(p, '', 'thumbnail'),
+                previewStatus: 'error' as const,
+              }),
+              signal
+            );
             photos.push(photo);
             return photo;
           })
@@ -598,7 +677,14 @@ export function useLiveGalleryState() {
       for (let start = 0; start < missing.length; start += 3) {
         const batch = await Promise.allSettled(
           missing.slice(start, start + 3).map(async (p) => {
-            const photo = await loadPhoto(p, signal, 'thumbnail');
+            const photo = await thumbnailResult(
+              () => loadPhoto(p, signal, 'thumbnail'),
+              () => ({
+                ...photoModel(p, '', 'thumbnail'),
+                previewStatus: 'error' as const,
+              }),
+              signal
+            );
             created.push(photo);
           })
         );
@@ -607,23 +693,40 @@ export function useLiveGalleryState() {
         if (signal.aborted || current !== photoRequest.current) return false;
       }
       if (signal.aborted || current !== photoRequest.current) return false;
-      const fresh = new Map(created.map((p) => [p.id, p.src]));
-      // Past the page limit, photos loaded beyond the window stay in the grid.
+      // Read at completion, not before photoWindow: a retry can settle while
+      // this request is awaiting the server or new thumbnail downloads.
+      const latest = dataRef.current.photos.filter(
+        (p) => p.albumId === albumId
+      );
       const photos = withTail(
-        page.items.map((p) =>
-          photoModel(p, shown.get(p.id) ?? fresh.get(p.id)!, 'thumbnail')
+        reconcileThumbnails(
+          page.items.map((p) => photoModel(p, '', 'thumbnail')),
+          latest,
+          created
         ),
-        shownPhotos,
+        latest,
         page.capped
       );
       const kept = new Set(photos.map((p) => p.src));
-      const replaced = dataRef.current.photos.filter(
-        (p) => p.albumId === albumId && !kept.has(p.src)
-      );
+      const replaced = latest.filter((p) => !kept.has(p.src));
+      dataRef.current = {
+        ...dataRef.current,
+        photos: [
+          ...dataRef.current.photos.filter((p) => p.albumId !== albumId),
+          ...photos,
+        ],
+      };
       setData((d) => ({
         ...d,
         photos: [...d.photos.filter((p) => p.albumId !== albumId), ...photos],
       }));
+      // A retry/other loaded view may already have supplied a newer preview.
+      created
+        .filter((p) => !kept.has(p.src))
+        .forEach((p) => {
+          URL.revokeObjectURL(p.src);
+          urls.current.delete(p.src);
+        });
       replaced.forEach((p) => {
         // An open viewer may still show it; closeViewer revokes it later.
         if (viewerRef.current?.photos.some((v) => v.src === p.src)) return;
@@ -1200,6 +1303,8 @@ export function useLiveGalleryState() {
     photoError,
     nextCursor,
     loadPhotos,
+    retryPreview,
+    markPreviewError,
     showAlbumPhotos: refreshPhotos,
     albumList: {
       hasMore: albumPaging.groupId === groupId && !!albumPaging.nextCursor,

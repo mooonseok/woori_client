@@ -14,6 +14,8 @@ import {
 } from '@/components/atoms/ui';
 import { Icon } from '@/components/atoms/icon';
 import { Link } from '@/components/molecules/link';
+import { HeaderLogin } from '@/components/organisms/header-login/header-login';
+import { BrandMark } from '@/components/molecules/brand-mark';
 import { EntryDialog } from '@/components/organisms/entry-dialog/entry-dialog';
 import { PhotoViewer } from '@/components/organisms/photo-viewer/photo-viewer';
 import { GalleryProvider, useGallery } from '@/hooks/use-gallery';
@@ -32,7 +34,26 @@ function Shell({ children }: { children: ReactNode }) {
   const path = usePathname(),
     gallery = useGallery(),
     { unreadCount } = useNotifications();
-  const { user } = useAuth();
+  const auth = useAuth();
+  const { user } = auth;
+  const entryRoute = ['/login', '/signup'].includes(path.replace(/\/$/, ''));
+  const member = DEMO_MODE || !!user;
+  const memberShell = member && !entryRoute;
+  const [logoutPending, setLogoutPending] = useState(false);
+  async function logout() {
+    if (logoutPending) return;
+    setLogoutPending(true);
+    try {
+      await auth.logout();
+      router.replace('/');
+    } catch (error) {
+      gallery.setToast(
+        error instanceof Error ? error.message : '로그아웃하지 못했어요.'
+      );
+    } finally {
+      setLogoutPending(false);
+    }
+  }
   const router = useRouter();
   const [create, setCreate] = useState(false);
   useEffect(() => {
@@ -45,43 +66,64 @@ function Shell({ children }: { children: ReactNode }) {
     { href: ROUTES.MY, label: '마이페이지', icon: 'user' },
   ];
   return (
-    <Box className='app-root'>
+    <Box className={`app-root ${memberShell ? 'member-shell' : 'entry-shell'}`}>
       {DEMO_MODE && (
         <Box className='preview-bar'>
           개발 미리보기 · 예시 사진 · 데이터는 서버에 전송되지 않아요
         </Box>
       )}
       <Header className='desktop-header'>
-        <Link className='wordmark' href={ROUTES.HOME}>
-          우리
+        <Link className='brand-home' href={ROUTES.HOME} aria-label='우리 홈'>
+          <BrandMark />
         </Link>
-        <Nav aria-label='데스크톱 메뉴'>
-          {tabs.map((t) => (
-            <Link
-              key={t.href}
-              href={t.href}
-              aria-current={
-                currentTab(path, DEMO_MODE || !!user) === t.href
-                  ? 'page'
-                  : undefined
-              }
-            >
-              {t.label}
-            </Link>
-          ))}
-        </Nav>
+        {memberShell && (
+          <Nav aria-label='데스크톱 메뉴'>
+            {tabs.map((t) => (
+              <Link
+                key={t.href}
+                href={t.href}
+                aria-current={
+                  currentTab(path, member) === t.href ? 'page' : undefined
+                }
+              >
+                {t.label}
+              </Link>
+            ))}
+          </Nav>
+        )}
+        {memberShell && !DEMO_MODE ? (
+          <Details className='account-menu'>
+            <Summary aria-label='내 계정 메뉴'>
+              <Icon name='user' size={18} />
+              <Span>{user?.displayName} 님</Span>
+              <Icon name='chevron-down' size={16} />
+            </Summary>
+            <Box className='account-menu-items'>
+              <Link
+                href='/mypage'
+                onClick={(e) =>
+                  e.currentTarget.closest('details')?.removeAttribute('open')
+                }
+              >
+                마이페이지
+              </Link>
+              <Button
+                variant='quiet'
+                disabled={logoutPending}
+                onClick={() => void logout()}
+              >
+                <Icon name='logout' size={18} />
+                {logoutPending ? '로그아웃 중…' : '로그아웃'}
+              </Button>
+            </Box>
+          </Details>
+        ) : (
+          !member &&
+          auth.status === 'anonymous' &&
+          path.replace(/\/$/, '') !== '/change-email' && <HeaderLogin />
+        )}
       </Header>
-      {(DEMO_MODE || user) && path === '/' && (
-        <Header className='mobile-brand-header'>
-          <Link className='wordmark' href={ROUTES.HOME}>
-            우리
-          </Link>
-          <Button variant='secondary' onClick={() => router.push('/albums')}>
-            <Icon name='upload' size={18} /> 올리기
-          </Button>
-        </Header>
-      )}
-      {(DEMO_MODE || user) && (
+      {memberShell && (
         <Header className='group-header'>
           <Details className='group-picker'>
             <Summary>
@@ -128,22 +170,24 @@ function Shell({ children }: { children: ReactNode }) {
       <Main className='app-content' id='main-content'>
         <AccountGate>{children}</AccountGate>
       </Main>
-      <Nav className='bottom-nav' aria-label='주요 메뉴'>
-        {tabs.map((t) => (
-          <Link
-            key={t.href}
-            href={t.href}
-            aria-current={
-              currentTab(path, DEMO_MODE || !!user) === t.href
-                ? 'page'
-                : undefined
-            }
-          >
-            <Icon name={t.icon} />
-            <Span>{t.label}</Span>
-          </Link>
-        ))}
-      </Nav>
+      {memberShell && (
+        <Nav className='bottom-nav' aria-label='주요 메뉴'>
+          {tabs.map((t) => (
+            <Link
+              key={t.href}
+              href={t.href}
+              aria-current={
+                currentTab(path, DEMO_MODE || !!user) === t.href
+                  ? 'page'
+                  : undefined
+              }
+            >
+              <Icon name={t.icon} />
+              <Span>{t.label}</Span>
+            </Link>
+          ))}
+        </Nav>
+      )}
       {create && (
         <EntryDialog
           title='그룹 만들기'

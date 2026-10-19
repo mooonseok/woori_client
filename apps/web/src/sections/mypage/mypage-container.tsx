@@ -25,7 +25,7 @@ export function MypageContainer() {
     setLogoutPending(true);
     try {
       await auth.logout();
-      router.replace('/login');
+      router.replace('/');
     } catch (error) {
       setToast(
         error instanceof Error ? error.message : '로그아웃하지 못했어요.'

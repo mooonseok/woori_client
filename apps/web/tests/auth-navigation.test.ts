@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { authDestination, safeReturnTo } from '../src/utils/auth-navigation.ts';
+import {
+  authDestination,
+  safeReturnTo,
+  entryLoginDestination,
+} from '../src/utils/auth-navigation.ts';
 const token = 'a'.repeat(43);
 test('external, protocol-relative and encoded destinations cannot escape the app', () => {
   for (const value of [
@@ -45,4 +49,30 @@ test('invalid invitation tokens are not forwarded', () => {
     safeReturnTo('/invite?code=ABCDEF1234'),
     '/invite?code=ABCDEF1234'
   );
+});
+
+test('header login preserves invitation after close and on query-only code changes', () => {
+  const destination = (query: string) =>
+    new URL(
+      entryLoginDestination('/invite', query),
+      'https://woori.invalid'
+    ).searchParams.get('next');
+  assert.equal(destination('code=QA2026'), '/invite?code=QA2026');
+  assert.equal(destination('code=SECOND26'), '/invite?code=SECOND26');
+  assert.equal(
+    destination(`token=${token}&untrusted=secret`),
+    `/invite?token=${token}`
+  );
+});
+test('header login inherits safe recovery context but refuses arbitrary destinations', () => {
+  const destination = (query: string) =>
+    new URL(
+      entryLoginDestination('/privacy', query),
+      'https://woori.invalid'
+    ).searchParams.get('next');
+  assert.equal(
+    destination('next=%2Finvite%3Fcode%3DQA2026'),
+    '/invite?code=QA2026'
+  );
+  assert.equal(destination('next=https%3A%2F%2Fevil.example'), '/');
 });

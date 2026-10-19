@@ -31,6 +31,8 @@ export interface Photo {
   id: string;
   albumId: string;
   src: string;
+  // Local preview state; never an API field. Missing means a loaded source.
+  previewStatus?: 'loading' | 'error' | 'unavailable';
   width: number;
   height: number;
   alt: string;

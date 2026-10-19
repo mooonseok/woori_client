@@ -24,7 +24,7 @@ export function AlbumMeta({
           </Span>
         </>
       ) : (
-        '사진 없음'
+        '사진 0장'
       )}
     </Text>
   );

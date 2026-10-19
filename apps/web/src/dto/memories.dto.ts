@@ -17,4 +17,5 @@ export interface MemoriesResponse {
 }
 export interface MemoryCard extends MemoryItem {
   thumbnail: string;
+  previewStatus?: 'loading' | 'error' | 'unavailable';
 }

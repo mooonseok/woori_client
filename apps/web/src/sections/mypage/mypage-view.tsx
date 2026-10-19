@@ -90,7 +90,9 @@ export function MypageView({
     <Box className='mypage'>
       <Heading className='page-title'>마이페이지</Heading>
       <Section className='profile'>
-        <Box className='avatar'>{name.slice(-2)}</Box>
+        <Box className='avatar' role='img' aria-label='기본 프로필'>
+          <Icon name='user' size={30} />
+        </Box>
         <Box>
           <Heading>{name}</Heading>
           <Text className='muted'>{live ? email : '미리보기 계정'}</Text>

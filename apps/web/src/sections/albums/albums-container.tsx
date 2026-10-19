@@ -47,6 +47,8 @@ export function AlbumsContainer() {
   return (
     <>
       <AlbumsView
+        onRetryPreview={(photo) => void gallery.retryPreview?.(photo)}
+        onImageError={gallery.markPreviewError}
         albums={albums}
         loadedCount={
           gallery.data.albums.filter((a) => a.groupId === gallery.groupId)

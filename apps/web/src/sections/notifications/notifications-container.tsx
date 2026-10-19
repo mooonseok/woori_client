@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNotifications } from '../../hooks/use-notifications';
 import { useNotificationTarget } from '@/hooks/use-notification-target';
 import {
@@ -25,6 +25,7 @@ export function NotificationsContainer({
   onSettings,
 }: Props) {
   const inbox = useNotifications();
+  const [failedImages, setFailedImages] = useState<string[]>([]);
   const target = useNotificationTarget();
   const reload = inbox.reload;
   const requested = useRef(false);
@@ -83,7 +84,14 @@ export function NotificationsContainer({
     group.rows.push({
       id: item.id,
       title: item.title,
-      image: inbox.live ? undefined : `/photos/${item.photoId}.jpg`,
+      image:
+        inbox.live || failedImages.includes(item.id)
+          ? undefined
+          : `/photos/${item.photoId}.jpg`,
+      onImageError: () =>
+        setFailedImages((ids) =>
+          ids.includes(item.id) ? ids : [...ids, item.id]
+        ),
       group: item.groupName || '이름 없는 그룹',
       when: notificationRelativeTime(item.timestamp, inbox.now),
       read: item.read,

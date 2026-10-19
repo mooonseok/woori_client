@@ -10,7 +10,16 @@ import { useGallery } from '@/hooks/use-gallery';
 import { photosFor } from '@/lib/gallery';
 import { HomeView } from './home-view';
 export function HomeContainer() {
-  const { data, groupId, openPhoto, mode, loading, error } = useGallery();
+  const {
+    data,
+    groupId,
+    openPhoto,
+    mode,
+    loading,
+    error,
+    retryPreview,
+    markPreviewError,
+  } = useGallery();
   const { user } = useAuth();
   const router = useRouter();
   if (mode === 'live' && (loading || error || !groupId))
@@ -21,6 +30,8 @@ export function HomeContainer() {
   const hero = data.photos.find((p) => p.id === albums[0]?.coverId);
   return (
     <HomeView
+      onRetryPreview={(photo) => void retryPreview?.(photo)}
+      onImageError={markPreviewError}
       demo={mode === 'demo'}
       memories={
         mode === 'live' ? (
