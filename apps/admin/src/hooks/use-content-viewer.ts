@@ -21,9 +21,10 @@ export function useContentViewer(target: ContentViewTarget) {
     [error, setError] = useState(''),
     [loading, setLoading] = useState(false),
     [photoUrl, setPhotoUrl] = useState(''),
-    // A signed URL (not a blob): dropped with the viewer; each fetch is a
-    // new audited view, so an expired URL is not refetched silently.
+    // A session-bound API ticket, dropped when the grant expires or closes.
+    // Each fresh grant is a new audited view, never a silent refresh.
     [videoUrl, setVideoUrl] = useState(''),
+    [videoExpiresAt, setVideoExpiresAt] = useState<number | null>(null),
     [comment, setComment] = useState<AdminCommentView | null>(null);
   const slot = useRef<Slot | null>(null);
   const request = useRef<AbortController | null>(null);
@@ -35,6 +36,28 @@ export function useContentViewer(target: ContentViewTarget) {
       current.close();
     };
   }, []);
+  useEffect(() => {
+    if (videoExpiresAt === null) return;
+    const expire = () => {
+      setVideoUrl('');
+      setVideoExpiresAt(null);
+      setError(
+        '동영상 열람 시간이 끝났어요. 사유를 확인하고 다시 열람해 주세요.'
+      );
+    };
+    const delay = videoExpiresAt - Date.now();
+    const timer = window.setTimeout(expire, Math.max(0, delay));
+    const visible = () => {
+      if (Date.now() >= videoExpiresAt) expire();
+    };
+    window.addEventListener('focus', visible);
+    document.addEventListener('visibilitychange', visible);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener('focus', visible);
+      document.removeEventListener('visibilitychange', visible);
+    };
+  }, [videoExpiresAt]);
   async function open() {
     if (loading) return;
     const invalid = plainTextError(reason, RULES.viewReason);
@@ -51,7 +74,10 @@ export function useContentViewer(target: ContentViewTarget) {
         const result = await reauth.run(() =>
           viewVideo(target.id, text, controller.signal)
         );
-        if (!controller.signal.aborted) setVideoUrl(result.url);
+        if (!controller.signal.aborted) {
+          setVideoUrl(result.url);
+          setVideoExpiresAt(Date.parse(result.expiresAt));
+        }
       } else if (target.kind === 'photo') {
         const blob = await reauth.run(() =>
           viewPhoto(target.id, text, controller.signal)

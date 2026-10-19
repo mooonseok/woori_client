@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import { test, type TestContext } from 'node:test';
-import { ApiError } from '../src/services/api-client.ts';
+import {
+  ApiError,
+  advanceSessionRevision,
+} from '../src/services/api-client.ts';
 import {
   archiveNotice,
   createNotice,
@@ -196,13 +199,13 @@ test('a non-image photo response and view errors are reported, not shown', async
   assert.equal(comment.body, '<b>댓글</b>');
 });
 
-test('video view: reason, then re-auth once, then a signed URL (audited ADMIN_VIDEO_VIEWED)', async (t) => {
+test('video view: reason, then re-auth once, then a session-bound API URL (audited ADMIN_VIDEO_VIEWED)', async (t) => {
   let reauthenticated = false;
   const http = capture(t, () =>
     reauthenticated
       ? json(200, {
-          url: 'https://r2.example/photos/v.mp4?X-Amz-Signature=x',
-          expiresAt: '2026-10-16T00:10:00Z',
+          url: `/v1/admin/photos/${ID}/video/content?ticket=test-ticket`,
+          expiresAt: new Date(Date.now() + 180_000).toISOString(),
           mime: 'video/mp4',
           bytes: 1234,
           durationMs: 42000,
@@ -219,7 +222,10 @@ test('video view: reason, then re-auth once, then a signed URL (audited ADMIN_VI
     }
   );
   assert.equal(prompts, 1);
-  assert.equal(view.url, 'https://r2.example/photos/v.mp4?X-Amz-Signature=x');
+  assert.equal(
+    view.url,
+    `${BASE}/v1/admin/photos/${ID}/video/content?ticket=test-ticket`
+  );
   assert.equal(formatDuration(view.durationMs), '0:42');
   assert.equal(http.calls.length, 2);
   for (const request of http.calls) {
@@ -236,4 +242,27 @@ test('video view: reason, then re-auth once, then a signed URL (audited ADMIN_VI
   await assert.rejects(viewVideo(ID, '신고 내용 확인'), { status: 404 });
   for (const bad of ['../x', ''])
     await assert.rejects(viewVideo(bad, '신고 내용 확인'), { status: 400 });
+});
+
+test('admin video grants reject another origin, an expired ticket and a prior session response', async (t) => {
+  let url = 'https://storage.example/video';
+  let expiresAt = new Date(Date.now() + 180_000).toISOString();
+  let switched = false;
+  capture(t, () => {
+    if (switched) advanceSessionRevision();
+    return json(200, {
+      url,
+      expiresAt,
+      mime: 'video/mp4',
+      bytes: 10,
+      durationMs: 1000,
+    });
+  });
+  await assert.rejects(viewVideo(ID, '신고 내용 확인'), /주소/);
+  url = `/v1/admin/photos/${ID}/video/content?ticket=test`;
+  expiresAt = new Date(Date.now() - 1000).toISOString();
+  await assert.rejects(viewVideo(ID, '신고 내용 확인'), { status: 502 });
+  expiresAt = new Date(Date.now() + 180_000).toISOString();
+  switched = true;
+  await assert.rejects(viewVideo(ID, '신고 내용 확인'), { status: 401 });
 });

@@ -6,10 +6,10 @@
 - apps/web/src/sections/auth, verify-email, mypage: 가입·로그인·인증과 계정 UI.
 - apps/web/src/hooks/use-auth.tsx, services: HttpOnly 세션/계정 전환 경계.
 - apps/web/src/sections/groups, invite, albums, album: 그룹·초대·앨범.
-- apps/web/src/sections/home: 현재 대표 앨범/최근 앨범. 날짜 기반 추억 선별은 미구현.
+- apps/web/src/sections/home: 오늘/이번 달 추억, 날짜·개인 숨김 및 그룹 범위 상태.
 - apps/web/src/sections/settings, notifications, hooks/use-web-push.ts,
   services/web-push.ts, public/sw.js: 기기별 푸시·권한 확인·로그아웃 정리.
-- apps/admin/src/sections/dashboard: 관리자 준비 화면이며 실제 운영 기능 미구현.
+- apps/admin/src/sections: 관리자 로그인·MFA, 대시보드, 회원·그룹·공지·문의·신고·감사 화면.
 
 ## 작업별 책임
 
@@ -43,5 +43,5 @@ pnpm build
 node --test .handoff/remaining-work/lifecycle.test.mjs
 ```
 
-기준선: 기능 테스트 61개, 웹/관리자 production build 통과. 새 환경 재검증 필요.
+최신 검사 수치·환경·미검증은 status.json의 최신 evidence를 따른다. 새 환경 재검증 필요.
 브라우저는 두 계정·비회원, 모바일 폭/키보드/reduced-motion, 로그인 전후 초대/알림 링크를 확인한다.

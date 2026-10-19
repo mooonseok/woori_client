@@ -4,6 +4,7 @@ import {
   createVideoSource,
   type VideoSourceState,
 } from '../src/services/video-source.ts';
+import { advanceSessionRevision } from '../src/services/api-client.ts';
 import { videoAccess } from '../src/services/media-client.ts';
 import type { Photo } from '../src/dto/album.dto.ts';
 import type { VideoAccess } from '../src/dto/media.dto.ts';
@@ -141,7 +142,9 @@ test('play and download URLs come from the video endpoint with the API session',
     assert.equal(init?.credentials, 'include');
     assert.equal(init?.cache, 'no-store');
     requested.push(String(input));
-    return Response.json(access('https://r2.example/signed'));
+    return Response.json(
+      access('/v1/groups/g/albums/a/photos/v%2F1/video/content?purpose=play')
+    );
   };
   t.after(() => {
     globalThis.fetch = original;
@@ -151,11 +154,30 @@ test('play and download URLs come from the video endpoint with the API session',
   const signal = new AbortController().signal;
   assert.equal(
     (await videoAccess('g', 'a', 'v/1', 'play', signal)).url,
-    'https://r2.example/signed'
+    'https://api.example/v1/groups/g/albums/a/photos/v%2F1/video/content?purpose=play'
   );
   await videoAccess('g', 'a', 'v/1', 'download', signal);
   assert.deepEqual(requested, [
     'https://api.example/v1/groups/g/albums/a/photos/v%2F1/video?purpose=play',
     'https://api.example/v1/groups/g/albums/a/photos/v%2F1/video?purpose=download',
   ]);
+});
+
+test('a video access response from a prior session is rejected before playback or download', async (t) => {
+  const previous = process.env.NEXT_PUBLIC_API_BASE_URL;
+  process.env.NEXT_PUBLIC_API_BASE_URL = 'https://api.example';
+  t.after(() => {
+    if (previous === undefined) delete process.env.NEXT_PUBLIC_API_BASE_URL;
+    else process.env.NEXT_PUBLIC_API_BASE_URL = previous;
+  });
+  t.mock.method(globalThis, 'fetch', async () => {
+    advanceSessionRevision();
+    return Response.json(
+      access('/v1/groups/g/albums/a/photos/v/video/content')
+    );
+  });
+  await assert.rejects(
+    videoAccess('g', 'a', 'v', 'play', new AbortController().signal),
+    { status: 401 }
+  );
 });

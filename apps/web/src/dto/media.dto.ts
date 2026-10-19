@@ -41,8 +41,8 @@ export interface PhotoResponse {
   mediaKind?: 'PHOTO' | 'VIDEO';
   durationMs?: number | null;
 }
-// GET .../photos/{photoId}/video: a 10-minute signed R2 URL used as is
-// (<video src> or a download link); no cookies, re-requested when expired.
+// Session-authenticated API media URL; each GET/HEAD/Range rechecks access.
+// expiresAt is a metadata refresh hint, not a permission bypass deadline.
 export interface VideoAccess {
   url: string;
   expiresAt: string;

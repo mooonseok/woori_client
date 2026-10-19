@@ -1,7 +1,7 @@
 {
   "name": "woori_client",
   "product": "우리",
-  "status": "family-beta-prep-implemented-deploy-pending",
+  "status": "family-beta-deployed-user-reported-acceptance-pending",
   "plans": "/Users/parkmoonseok/.Codex/projects/woori_client/plans",
   "sharedPlan": "/Users/parkmoonseok/.Codex/projects/woori/plans/00-product-plan.md",
   "implemented": [
@@ -34,27 +34,28 @@
   ],
   "notImplemented": [
     "native token authentication",
-    "production cloud deployment",
+    "production end-to-end acceptance and physical-device validation",
     "HEIC conversion",
     "native FCM/APNs push subscriptions and delivery",
     "automatic memory push notifications",
     "operator identity, privacy contact, retention periods and finalized privacy policy text (placeholders shown)",
     "group join approval and join notifications (enum/preference only)",
     "manual album cover selection, server-side album search and taken-date sort (after beta)",
-    "Cloudflare Pages production deployment and HTTPS acceptance (W07)"
+    "Cloudflare Pages admin deployment and full HTTPS acceptance (W07)"
   ],
   "deployment": {
-    "api": "Railway paid; Serverless off",
-    "worker": "Railway paid; separate service; Serverless off",
-    "database": "Supabase Pro PostgreSQL",
+    "api": "AWS Lightsail Seoul; separate Ubuntu instance; Docker API behind Caddy HTTPS (user-reported 2026-10-19)",
+    "worker": "AWS Lightsail Seoul; separate Ubuntu instance; Docker worker polling (user-reported 2026-10-19)",
+    "database": "Supabase Pro PostgreSQL in Seoul",
     "objects": "Cloudflare R2 Standard private buckets",
     "web": "Cloudflare Pages static hosting for apps/web (woori.stream) and apps/admin (admin.woori.stream)",
-    "region": "Singapore for Railway API/worker and Supabase (Railway has no Seoul region)",
+    "region": "Seoul for Lightsail API/worker and Supabase; supersedes the 2026-10-16 Railway/Singapore plan",
     "domain": "woori.stream (Cloudflare Registrar/DNS): web woori.stream, admin admin.woori.stream, API api.woori.stream",
     "mail": "Resend from the mail.woori.stream subdomain with SPF/DKIM/DMARC",
-    "backup": "Supabase daily backups (7 days) + weekly R2 copy to a separate backup bucket; monthly restore drill; RPO 24 h, RTO half a day; no PITR",
-    "costCap": "USD 60/month with a usage alert at USD 45",
-    "status": "decided 2026-10-16; not provisioned"
+    "backup": "Supabase daily backups (7 days) + daily R2 copy to a separate private backup bucket; monthly restore drill; RPO target 24 h, RTO target half a day; no PITR. Scheduling, latest-success monitoring and restore verification are not deployed.",
+    "costCap": "Previous Railway USD 60/month limit and USD 45 alert are historical; current Lightsail/provider cost limits and alerts require confirmation.",
+    "status": "2026-10-19 user-reported: API healthz/readyz HTTP 200, worker polling with lastPassOk/videoReady true, production R2 configured, Cloudflare Pages woori.stream login visible. Not independently reverified in this documentation update; full production acceptance, physical devices and daily backup scheduling remain unverified.",
+    "backupSchedule": "Daily R2 backup remains the target; deploy/railway.backup.json belongs to the previous hosting plan. Current scheduler, latest-success alerts and restore drill remain unverified; do not assume the Railway configuration is active."
   },
   "localSetupPlan": "/Users/parkmoonseok/.Codex/projects/woori/plans/05-local-auth-setup.md",
   "localDevelopment": {
@@ -93,11 +94,11 @@
     "remaining": "Physical iPhone/Android photo picker, save/share behavior, EXIF orientation with pin comments and deployment memory/load measurement remain unverified; W04 stays in_progress."
   },
   "accountSettings": {
-    "scope": "MyPage settings, authenticated password change and new-email verification; account deletion is described separately below. W05 service guidance remains pending.",
+    "scope": "MyPage settings, authenticated password change and new-email verification; account deletion is described separately below. W05 service guidance is implemented; physical-device and operational policy acceptance remain pending.",
     "password": "Current password required; 12+ character new password; success revokes all sessions, push bindings and outstanding email tokens.",
     "email": "Current password required to request; old email remains until authenticated account confirms a single-use 30-minute token; latest request only. New email becomes verified.",
     "revocation": "Confirmation revokes all sessions, push bindings and outstanding email tokens; client clears private state and requires login and per-device push reconnection. Already handed-off provider messages cannot be recalled.",
-    "mail": "Resend new-address confirmation and old-address notice; notice is best-effort after commit. Durable mail retries remain W07.",
+    "mail": "Resend new-address confirmation and old-address notice; encrypted durable mail outbox and worker retries implemented in W07. Production delivery acceptance remains pending.",
     "verification": "Server policy:quality: 18 policy, 73 unit, 75 isolated PostgreSQL integration; client quality: 16 policy, 82 functional, builds/typecheck/lint/boundaries/format. Real Chrome password change/new login and email confirmation verified against DB, including all prior session/push revocation and unaffected member account. Resend new-address verification and old-address notice both delivered.",
     "database": "Additive nullable email_tokens.targetEmail only; no new runtime grants. Keep column on rollback; completed credential changes and revoked sessions remain.",
     "localMigration": "20261021000000_account_settings applied to 127.0.0.1:55439/woori_dev with explicit approval; nullable VARCHAR(254) verified, no new grants or existing-data deletion.",
@@ -129,17 +130,19 @@
     "mobile": "Touch devices force form controls to at least 16px to prevent iOS Safari focus zoom; viewport zoom stays enabled."
   },
   "adminOperations": {
-    "scope": "apps/admin (Next.js static export) on feature/admin-operations, aligned with OpenAPI 0.19.0.",
+    "scope": "W06 merged via PR #16 (9abac7f); implementation adb4340; OpenAPI now 0.26.0 with W07 extensions.",
     "screens": "Login, MFA setup/verify, re-auth dialog, dashboard metrics, audit logs, notices, inquiries, reports, members, groups/albums with the audited content viewer.",
-    "security": "Every admin request sends X-Woori-Request; member text rendered as plain text; viewed photos only as revoked blob URLs (raster types only, no cache/download); re-auth retry once; next/id parameters validated.",
+    "security": "Admin JSON requests send X-Woori-Request; native video uses credentialed API streaming with a short-lived session-bound audited grant and exact admin Origin; user content is plain text; photo Blob URLs are revoked on close; session changes and grant expiry clear media.",
     "memberWeb": "Login shows the 403 ACCOUNT_SUSPENDED notice without retry.",
     "remaining": "Real screen-reader/200% zoom and Safari/Firefox datetime-local checks."
   },
   "familyBeta": {
-    "scope": "W07 on feature/family-beta-ops, aligned with OpenAPI 0.25.0",
+    "scope": "W07 baseline merged via PR #17 (eb9588b); follow-up on fix/production-readiness; production acceptance pending. Video proxy follow-up aligns with OpenAPI 0.26.0.",
     "gallery": "480px grid thumbnails (display variant only in the viewer), album date range, 30-per-page \"더 불러오기\", background refresh keeps scroll/focus/pages.",
     "notifications": "Bundle text (사진 N장 / 동영상 N개 / 외 N명), id replacement sorted by latestAt, ALBUM navigation across groups, unread re-transition.",
-    "video": "Upload pre-check (duration/size), XHR progress, queue-only processing, poster+play badge, viewer playback with signed URL re-fetch and position restore, download, pin comments hidden for video; admin audited view without download.",
-    "deploy": "pnpm pages:web / pages:admin with per-page sha256 meta CSP, _headers security headers, WOORI_R2_ORIGIN, woori.stream origin allowlist; see SETUP.md."
+    "video": "Upload pre-check (duration/size), XHR progress, queue-only processing, poster+play badge, viewer playback with credentialed API stream URL refresh and position restore, download, pin comments hidden for video; admin audited session-bound view without download.",
+    "deploy": "pnpm pages:web / pages:admin with per-page sha256 meta CSP, _headers security headers, WOORI_R2_ORIGIN, woori.stream origin allowlist; see SETUP.md.",
+    "videoSecurityFollowup": "fix/production-readiness: API streams replace R2 GET links; membership/session/block checks for each request; previously issued R2 URLs can survive up to their original 600-second expiry. In-flight/downloaded bytes cannot be recalled. New API requires matching updated web/admin; refresh stale clients after coordinated rollout.",
+    "readinessVerification": "2026-10-16: client 261 functional tests, 321-file boundaries, types/lint and plain-copy production Pages builds (29 web/18 admin) passed. Baseline worker linux/arm64 image/Debian ffmpeg synthetic conversion passed. Actual development R2 synthetic full/range byte checks, abort and own-object cleanup passed. Chrome UI validation blocked with ERR_BLOCKED_BY_CLIENT (also user direct navigation); no production/physical-device acceptance claimed. Server final build/typecheck, 139 unit and 199 isolated PostgreSQL integration tests passed. Existing local/production databases and grants were not modified."
   }
 }

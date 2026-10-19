@@ -1,11 +1,11 @@
 # Cloudflare Pages headers: member web (https://woori.stream).
-# `pnpm pages:web` fills {{API_ORIGIN}} / {{R2_ORIGIN}} (presigned uploads and
-# signed video playback) from the Pages build environment and adds each page's
+# `pnpm pages:web` fills {{API_ORIGIN}} / {{R2_ORIGIN}} (presigned uploads)
+# from the Pages build environment and adds each page's
 # inline-script hashes as a <meta> CSP. media-src blob: lets the browser read a
 # selected video's length before upload.
 # Both policies are enforced, so inline scripts run only with a matching hash.
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self'; img-src 'self' blob: data:; font-src 'self'; connect-src 'self' {{API_ORIGIN}} {{R2_ORIGIN}}; media-src 'self' blob: {{R2_ORIGIN}}; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self'; img-src 'self' blob: data:; font-src 'self'; connect-src 'self' {{API_ORIGIN}} {{R2_ORIGIN}}; media-src 'self' blob: {{API_ORIGIN}}; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY

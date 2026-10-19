@@ -62,7 +62,7 @@ export function ContentViewer({
         : '댓글';
   const video = useRef<HTMLVideoElement>(null),
     [videoError, setVideoError] = useState(false);
-  // Closing (unmount) stops playback and drops the signed URL.
+  // Closing or expiring the grant stops playback and drops the API URL.
   useEffect(() => {
     const element = video.current;
     return () => {
@@ -154,6 +154,7 @@ export function ContentViewer({
                 ref={video}
                 src={viewer.videoUrl}
                 controls
+                crossOrigin='use-credentials'
                 playsInline
                 preload='metadata'
                 // Viewing only: no download or picture-in-picture controls.
@@ -167,8 +168,8 @@ export function ContentViewer({
           )}
           {videoError && (
             <Notice tone='error'>
-              동영상을 재생하지 못했어요. 링크는 10분 동안만 유효해요. 닫고 다시
-              열람해 주세요.
+              동영상을 재생하지 못했어요. 권한이나 열람 시간이 바뀌었을 수
+              있어요. 닫고 다시 열람해 주세요.
             </Notice>
           )}
           {comment && (
