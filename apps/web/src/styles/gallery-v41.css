@@ -1,0 +1,449 @@
+/* v4.1 gallery surfaces: quiet canvas, tactile controls, media first. */
+html {
+  scrollbar-color: var(--field) var(--wash);
+}
+::selection {
+  background: var(--soft);
+  color: var(--soft-text);
+}
+input,
+textarea {
+  caret-color: var(--accent);
+}
+.ui-button,
+.secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 10px 16px;
+  border: 1px solid var(--field);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--ink);
+  font-weight: 600;
+  line-height: 1.4;
+  transition:
+    background-color 140ms ease-out,
+    border-color 140ms ease-out,
+    transform 140ms var(--ease);
+}
+.primary,
+.ui-button--primary {
+  background: var(--primary);
+  color: var(--on-primary);
+  border: 1px solid var(--primary-border);
+}
+.primary:hover,
+.ui-button--primary:hover {
+  background: var(--primary-hover);
+}
+.primary:active,
+.ui-button--primary:active {
+  background: var(--primary-pressed);
+}
+.ui-button--quiet {
+  border-color: transparent;
+  background: transparent;
+  color: var(--accent);
+}
+.ui-button--icon {
+  padding: 10px;
+  border-color: transparent;
+  background: transparent;
+}
+.ui-button:not(:disabled):active,
+.secondary-button:not(:disabled):active {
+  transform: scale(0.98);
+}
+.ui-button--secondary:hover,
+.secondary-button:hover {
+  background: var(--wash);
+}
+.text-button {
+  color: var(--accent);
+  border-radius: 8px;
+  padding-inline: 8px;
+}
+.text-button:hover {
+  background: var(--soft);
+}
+.text-button:disabled {
+  background: transparent;
+}
+.desktop-header {
+  height: 80px;
+}
+.desktop-header nav a {
+  border-bottom: 2px solid transparent;
+}
+.desktop-header nav a[aria-current] {
+  color: var(--accent);
+  border-color: var(--indicator);
+}
+.group-header {
+  padding-block: 24px;
+}
+.group-picker summary {
+  font-size: 1.25rem;
+  letter-spacing: -0.025em;
+}
+.mobile-brand-header {
+  display: none;
+}
+.app-content {
+  padding-top: 8px;
+}
+.group-menu,
+.entry-dialog {
+  background: var(--card);
+}
+.group-picker summary:focus-visible {
+  border-radius: 8px;
+}
+.notification-bell {
+  border: 1px solid var(--line);
+  background: var(--card);
+}
+.section-header,
+.page-heading {
+  margin-bottom: 20px;
+}
+.home-layout {
+  display: grid;
+  gap: 40px;
+}
+.memory-section {
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  gap: 40px;
+}
+.hero-photo {
+  aspect-ratio: 4 / 3;
+  border-radius: 14px;
+  position: relative;
+}
+.memory-caption {
+  padding: 12px 0;
+}
+.memory-title {
+  font-size: clamp(1.375rem, 2.4vw, 2rem);
+  margin: 0 0 10px;
+  overflow-wrap: anywhere;
+}
+.memory-caption > .text-button {
+  margin-top: 12px;
+}
+.memory-quote {
+  display: none;
+}
+.recent-section {
+  margin-top: 0;
+}
+.moments-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+}
+.moments-grid .photo-tile {
+  border-radius: 10px;
+}
+.album-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 32px 24px;
+}
+.album-cover {
+  aspect-ratio: 4 / 3;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+.album-card .album-title {
+  font-weight: 650;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.album-card .album-meta {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.album-card:focus-visible {
+  outline-offset: 6px;
+  border-radius: 12px;
+}
+.album-controls {
+  flex-wrap: wrap;
+}
+.control-actions {
+  margin-left: auto;
+  gap: 8px;
+}
+.sort-select {
+  background: transparent;
+  cursor: pointer;
+  border-radius: 10px;
+  min-height: 44px;
+}
+.search-row {
+  padding: 4px 4px 24px;
+  gap: 8px;
+}
+.search-field {
+  background: var(--card);
+  border-radius: 12px;
+}
+.search-field:focus-within {
+  border-color: var(--focus);
+  box-shadow: none;
+  outline: 2px solid var(--focus);
+  outline-offset: 0;
+}
+.search-field input:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+.search-row > button {
+  padding-inline: 12px;
+}
+.album-heading {
+  align-items: flex-start;
+  margin-top: 0;
+  margin-bottom: 24px;
+}
+.album-heading > .icon-button {
+  margin-left: -8px;
+}
+.album-heading-info {
+  padding-block: 6px;
+}
+.album-heading-actions {
+  padding-top: 2px;
+}
+.photo-grid {
+  gap: 8px;
+}
+.photo-tile {
+  border-radius: 8px;
+  position: relative;
+}
+.preview-note {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--wash);
+  color: var(--muted);
+}
+.upload-status {
+  border: 1px solid var(--line);
+  padding: 16px;
+  border-radius: 14px;
+  background: var(--card);
+}
+.upload-progress-fill {
+  background: var(--indicator);
+}
+.memory-filters {
+  gap: 6px;
+  margin-top: 4px;
+}
+.memory-filters .text-button {
+  padding: 8px 14px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+}
+.memory-filters [aria-pressed='true'] {
+  text-decoration: none;
+  color: var(--soft-text);
+  background: var(--soft);
+  border-color: var(--indicator);
+}
+.memories-home {
+  margin-bottom: 0;
+}
+.memories-grid {
+  gap: 24px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.memory-card:first-child {
+  grid-column: 1 / -1;
+}
+.memory-card:first-child .memory-card-photo {
+  max-height: 520px;
+}
+.memory-card-title {
+  font-size: 1.125rem;
+}
+.memory-date-note {
+  font-size: 0.875rem;
+}
+.profile {
+  margin: 24px 0 32px;
+  padding: 24px;
+  background: var(--wash);
+  border-radius: 18px;
+}
+.avatar {
+  background: var(--soft);
+  color: var(--soft-text);
+  border: 1px solid var(--line);
+}
+.menu-row {
+  padding-inline: 12px;
+  border-radius: 10px;
+}
+.menu-row:hover {
+  background: var(--wash);
+}
+.field,
+.stack-form input {
+  background: var(--card);
+  color: var(--ink);
+  border-color: var(--field);
+  border-radius: 10px;
+}
+.field::placeholder,
+.stack-form input::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+.entry-dialog {
+  border-radius: 18px;
+}
+@media (max-width: 900px) {
+  .album-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .moments-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 600px) {
+  .mobile-brand-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: calc(100% - 40px);
+    margin: 0 auto;
+    padding: 20px 0 4px;
+  }
+  .mobile-brand-header .wordmark {
+    font-size: 1.75rem;
+  }
+  .mobile-brand-header + .group-header {
+    padding-top: 8px;
+    padding-bottom: 16px;
+  }
+  .mobile-brand-header + .group-header .group-picker summary {
+    font-size: 0.9375rem;
+  }
+  .mobile-brand-header + .group-header .notification-bell {
+    border-color: transparent;
+    background: transparent;
+  }
+  .group-header {
+    padding-block: 20px 16px;
+  }
+  .group-picker summary {
+    font-size: 1.25rem;
+  }
+  .home-layout {
+    gap: 32px;
+  }
+  .memory-section {
+    gap: 0;
+  }
+  .memory-caption {
+    padding-top: 18px;
+  }
+  .memory-title {
+    font-size: 1.375rem;
+  }
+  .memory-caption .muted {
+    font-size: 0.875rem;
+  }
+  .album-grid,
+  .recent-grid {
+    gap: 24px 14px;
+  }
+  .album-card .album-title {
+    font-size: 1rem;
+  }
+  .album-card .album-meta {
+    font-size: 0.8125rem;
+  }
+  .album-cover {
+    aspect-ratio: 4 / 3;
+  }
+  .album-controls > .muted {
+    font-size: 0.875rem;
+  }
+  .control-actions .primary {
+    padding: 10px 12px;
+    font-size: 0.875rem;
+  }
+  .album-heading {
+    gap: 8px;
+  }
+  .album-heading-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .photo-grid {
+    gap: 6px;
+  }
+  .photo-tile {
+    border-radius: 7px;
+  }
+  .bottom-nav {
+    background: color-mix(in srgb, var(--card) 94%, transparent);
+    backdrop-filter: blur(18px);
+  }
+  .bottom-nav a {
+    min-width: 80px;
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+  }
+  .bottom-nav a[aria-current] {
+    color: var(--soft-text);
+    background: var(--soft);
+  }
+  .profile {
+    padding: 18px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .memories-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .memory-card .text-button {
+    font-size: 0.875rem;
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .bottom-nav {
+    background: var(--card);
+    backdrop-filter: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-button,
+  .primary,
+  .secondary-button {
+    transition: none;
+  }
+  .ui-button:not(:disabled):active,
+  .primary:active,
+  .secondary-button:not(:disabled):active {
+    transform: none;
+  }
+}
+
+.profile > div:nth-child(2) {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.avatar {
+  flex-shrink: 0;
+}

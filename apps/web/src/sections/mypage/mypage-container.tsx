@@ -1,4 +1,5 @@
 'use client';
+import { useTheme } from '@/hooks/use-theme';
 import { useAuth } from '@/hooks/use-auth';
 import { DEMO_MODE } from '@/constants/app-mode';
 import { useState } from 'react';
@@ -16,6 +17,8 @@ export function MypageContainer() {
     [edit, setEdit] = useState(false),
     [guide, setGuide] = useState<'view' | 'pin' | null>(null);
   const auth = useAuth();
+  const theme = useTheme();
+  const [themeOpen, setThemeOpen] = useState(false);
   const [logoutPending, setLogoutPending] = useState(false);
   async function logout() {
     if (logoutPending) return;
@@ -33,6 +36,17 @@ export function MypageContainer() {
   }
   return (
     <MypageView
+      themePreference={theme.preference}
+      resolvedTheme={theme.resolvedTheme}
+      onThemeChange={theme.setPreference}
+      themeOpen={themeOpen}
+      onThemeOpen={() => setThemeOpen(true)}
+      onThemeClose={() => {
+        setThemeOpen(false);
+        requestAnimationFrame(() =>
+          document.getElementById('theme-settings-button')?.focus()
+        );
+      }}
       live={!DEMO_MODE}
       email={auth.user?.email || ''}
       verified={!!auth.user?.emailVerified}

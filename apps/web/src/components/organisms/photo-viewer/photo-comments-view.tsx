@@ -11,6 +11,7 @@ import {
 import { PhotoCommentItem } from './photo-comment';
 import { Icon } from '@/components/atoms/icon';
 interface Props {
+  mediaKind?: 'PHOTO' | 'VIDEO';
   comments: PhotoComment[];
   draft: string;
   onChange(value: string): void;
@@ -33,6 +34,7 @@ interface Props {
   onBlock?: (comment: PhotoComment) => void;
 }
 export function PhotoCommentsView({
+  mediaKind,
   comments,
   draft,
   onChange,
@@ -54,17 +56,20 @@ export function PhotoCommentsView({
   onReport,
   onBlock,
 }: Props) {
+  const mediaLabel = mediaKind === 'VIDEO' ? '동영상' : '사진';
   return (
     <Box
       className='viewer-comments'
       role='region'
-      aria-label='사진 정보와 댓글'
+      aria-label={`${mediaLabel} 정보와 댓글`}
       tabIndex={-1}
       data-viewer-interactive='true'
     >
       <Header>
         <Box>
-          <Heading>사진 속 이야기 {total > 0 ? total : ''}</Heading>
+          <Heading>
+            {mediaLabel} 속 이야기 {total > 0 ? total : ''}
+          </Heading>
           <Text>{photoDescription}</Text>
         </Box>
         <Button aria-label='댓글 닫기' onClick={onClose}>
@@ -99,7 +104,7 @@ export function PhotoCommentsView({
           <Box className='viewer-no-comments'>
             <Icon name='comment' size={32} />
             <Text>아직 이야기가 없어요.</Text>
-            <Text>이 사진에 첫 한마디를 남겨 보세요.</Text>
+            <Text>이 {mediaLabel}에 첫 한마디를 남겨 보세요.</Text>
           </Box>
         )}
         {comments.map((comment) => {
@@ -141,7 +146,7 @@ export function PhotoCommentsView({
       >
         <Textarea
           aria-label='일반 댓글'
-          placeholder='사진에 한마디 남겨 주세요'
+          placeholder={`${mediaLabel}에 한마디 남겨 주세요`}
           rows={2}
           disabled={pending}
           value={draft}

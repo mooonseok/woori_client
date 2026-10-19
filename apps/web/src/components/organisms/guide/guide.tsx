@@ -28,15 +28,18 @@ export function Guide({ kind, onClose }: GuideProps) {
       if (previous?.isConnected) previous.focus({ preventScroll: true });
     };
   }, []);
-  const close = () => {
+  const close = (result: 'completed' | 'skipped' = 'skipped') => {
     if (closing) return;
     setClosing(true);
-    timer.current = setTimeout(onClose, timeline.reduced ? 0 : 180);
+    timer.current = setTimeout(
+      () => onClose(result),
+      timeline.reduced ? 0 : 180
+    );
   };
   const move = (direction: number) => {
     const step = timeline.step + direction;
     if (step > 2) {
-      close();
+      close('completed');
       return;
     }
     timeline.setStep(Math.max(0, step));
@@ -59,7 +62,7 @@ export function Guide({ kind, onClose }: GuideProps) {
             {kind === 'view' ? '사진 감상 사용법' : '위치 댓글 사용법'} ·{' '}
             {timeline.step + 1} / 3
           </Text>
-          <Button onClick={close}>
+          <Button onClick={() => close()}>
             {timeline.step === 2 ? '닫기' : '건너뛰기'}
           </Button>
         </Header>

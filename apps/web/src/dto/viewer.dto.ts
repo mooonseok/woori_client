@@ -32,5 +32,5 @@ export interface PhotoViewerProps {
 }
 export interface GuideProps {
   kind: 'view' | 'pin';
-  onClose: () => void;
+  onClose: (result?: 'completed' | 'skipped') => void;
 }

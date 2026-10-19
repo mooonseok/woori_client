@@ -12,9 +12,13 @@ import { formatDuration } from '@/utils/media';
 export function PhotoVideo({
   photo,
   source,
+  pauseRequested,
+  onPlaybackChange,
 }: {
   photo: Photo;
   source: VideoSourceView;
+  pauseRequested: boolean;
+  onPlaybackChange(playing: boolean): void;
 }) {
   const element = useRef<HTMLVideoElement>(null);
   // Where playback stood when the URL failed, so the fresh URL's element
@@ -43,6 +47,7 @@ export function PhotoVideo({
         time: video.currentTime,
         playing: !video.paused,
       };
+    onPlaybackChange(false);
     source.failed();
   };
   const restore = (event: SyntheticEvent<HTMLVideoElement>) => {
@@ -52,8 +57,14 @@ export function PhotoVideo({
     const video = event.currentTarget;
     if (saved.time > 0) video.currentTime = saved.time;
     // The earlier play was the user's; a refused resume leaves it paused.
-    if (saved.playing) video.play().catch(() => {});
+    if (saved.playing && !pauseRequested) video.play().catch(() => {});
   };
+  // A panel opening is a deliberate pause, including a pending source retry.
+  useEffect(() => {
+    if (!pauseRequested) return;
+    resume.current = null;
+    element.current?.pause();
+  }, [pauseRequested]);
   const duration = formatDuration(photo.durationMs);
   return (
     <>
@@ -70,7 +81,17 @@ export function PhotoVideo({
         aria-label={`${photo.alt.includes('동영상') ? photo.alt : `${photo.alt} 동영상`}${duration ? `, 길이 ${duration}` : ''}`}
         onError={failed}
         onLoadedMetadata={restore}
-        onPlaying={() => source.played()}
+        onPlay={(event) => {
+          if (pauseRequested) event.currentTarget.pause();
+        }}
+        onPlaying={() => {
+          source.played();
+          onPlaybackChange(true);
+        }}
+        onPause={() => onPlaybackChange(false)}
+        onEnded={() => onPlaybackChange(false)}
+        onSeeking={() => onPlaybackChange(false)}
+        onSeeked={(event) => onPlaybackChange(!event.currentTarget.paused)}
       />
       {source.status === 'loading' && (
         <Text className='viewer-video-status' role='status'>

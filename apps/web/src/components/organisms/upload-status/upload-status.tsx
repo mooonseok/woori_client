@@ -67,6 +67,10 @@ export function UploadStatus({
             ' 동영상은 변환에 1~2분 걸릴 수 있어요.'}
         </Text>
       )}
+      <Text className='muted'>
+        새로고침하면 서버에 접수된 작업은 다시 확인해요. 아직 접수하지 못한
+        파일은 다시 선택해 주세요.
+      </Text>
       {jobs.jobs.length > 0 && (
         <Text role='status'>
           최근 접수한 파일 · 저장 완료 {done}개 · 처리 중{' '}

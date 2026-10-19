@@ -4,16 +4,15 @@ import {
   Section,
   Header,
   Heading,
-  Text,
   Button,
   Image,
-  Span,
 } from '@/components/atoms/ui';
 import { Icon } from '@/components/atoms/icon';
 import { AlbumCard } from '@/components/molecules/album-card';
 import { EmptyState } from '@/components/molecules/empty-state';
 import type { Album, Photo } from '@/dto/album.dto';
 import { AlbumMeta } from '@/components/molecules/album-meta';
+import { MediaBadge } from '@/components/molecules/media-badge';
 import { mediaCountLabel } from '@/utils/media';
 interface Props {
   demo?: boolean;
@@ -27,7 +26,6 @@ interface Props {
   onAlbums: () => void;
 }
 export function HomeView({
-  demo = true,
   memories,
   albums,
   photos,
@@ -62,20 +60,20 @@ export function HomeView({
             <Button
               className='hero-photo'
               onClick={() => onPhoto(hero.id)}
-              aria-label='추억 사진 크게 보기'
+              aria-label={
+                hero.mediaKind === 'VIDEO'
+                  ? '추억 동영상 크게 보기'
+                  : '추억 사진 크게 보기'
+              }
             >
               <Image src={hero.src} alt={hero.alt} fetchPriority='high' />
+              {hero.mediaKind === 'VIDEO' && (
+                <MediaBadge durationMs={hero.durationMs} />
+              )}
             </Button>
             <Box className='memory-caption'>
-              <Text className='muted'>다시 꺼내 보는 우리</Text>
               <Heading className='memory-title'>{albums[0].title}</Heading>
               <AlbumMeta className='muted' album={albums[0]} count={count} />
-              {demo && (
-                <Text className='memory-quote'>
-                  “이날 바닷바람이 참 시원했지.
-                  <Span> 다 같이 걸어서 좋았다.”</Span>
-                </Text>
-              )}
               <Button
                 className='text-button'
                 onClick={() => onAlbum(albums[0].id)}
@@ -86,6 +84,38 @@ export function HomeView({
             </Box>
           </Section>
         ))}
+      {photos.some((photo) =>
+        albums.some((album) => album.id === photo.albumId)
+      ) && (
+        <Section className='moments-section'>
+          <Header className='section-header'>
+            <Heading>함께 모은 순간</Heading>
+            <Button className='text-button' onClick={onAlbums}>
+              앨범 보기 <Icon name='chevron-right' size={18} />
+            </Button>
+          </Header>
+          <Box className='moments-grid'>
+            {photos
+              .filter((photo) =>
+                albums.some((album) => album.id === photo.albumId)
+              )
+              .slice(0, 6)
+              .map((photo) => (
+                <Button
+                  className='photo-tile'
+                  key={photo.id}
+                  onClick={() => onPhoto(photo.id)}
+                  aria-label={`${photo.alt}, ${photo.mediaKind === 'VIDEO' ? '동영상' : '사진'} 크게 보기`}
+                >
+                  <Image src={photo.src} alt='' loading='lazy' />
+                  {photo.mediaKind === 'VIDEO' && (
+                    <MediaBadge durationMs={photo.durationMs} />
+                  )}
+                </Button>
+              ))}
+          </Box>
+        </Section>
+      )}
       <Section className='recent-section'>
         <Header className='section-header'>
           <Heading>최근 앨범</Heading>

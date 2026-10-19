@@ -48,7 +48,7 @@
 }
 .woori-viewer button:focus-visible,
 .woori-viewer a:focus-visible {
-  outline: 2px solid #9fbef4;
+  outline: 2px solid var(--viewer-accent);
   outline-offset: -3px;
 }
 .viewer-canvas {
@@ -241,15 +241,15 @@
   box-shadow:
     0 0 0 2px #fff,
     0 1px 6px #0005;
-  background: #284e91;
-  color: #fff;
+  background: var(--primary);
+  color: var(--on-primary);
   font-size: 12px;
   font-weight: 650;
 }
 .viewer-pin.is-selected > span {
-  background: #fff;
-  color: #214d95;
-  box-shadow: 0 0 0 3px #264f94;
+  background: var(--card);
+  color: var(--accent);
+  box-shadow: 0 0 0 3px var(--indicator);
 }
 .viewer-pin--draft {
   display: flex;
@@ -270,15 +270,15 @@
   width: min(320px, calc(100% - 40px));
   padding: 6px 10px 14px 16px;
   border-radius: 14px;
-  background: #fff;
-  color: #202226;
+  background: var(--card);
+  color: var(--ink);
   box-shadow: 0 8px 30px #0004;
 }
 .viewer-pin-bubble > div {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: #696d73;
+  color: var(--muted);
   font-size: 13px;
 }
 .viewer-pin-bubble > p {
@@ -292,8 +292,8 @@
   top: calc(env(safe-area-inset-top) + 64px);
   z-index: 8;
   width: 230px;
-  background: #fff;
-  color: #202226;
+  background: var(--card);
+  color: var(--ink);
   border-radius: 14px;
   padding: 8px;
   box-shadow: 0 8px 36px #0005;
@@ -320,8 +320,8 @@
   width: min(360px, calc(100% - 32px));
   padding: 8px;
   border-radius: 16px;
-  background: #fff;
-  color: #202226;
+  background: var(--card);
+  color: var(--ink);
   box-shadow: 0 8px 30px #0004;
 }
 .viewer-reactions button {
@@ -338,7 +338,7 @@
   white-space: nowrap;
 }
 .viewer-reactions button[aria-pressed='true'] {
-  background: #e9effa;
+  background: var(--soft);
 }
 .viewer-comments {
   position: relative;
@@ -348,8 +348,8 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: #fff;
-  color: #202226;
+  background: var(--card);
+  color: var(--ink);
 }
 .viewer-comments > header {
   display: flex;
@@ -369,7 +369,7 @@
 }
 .viewer-comments > header p {
   font-size: 12px;
-  color: #757981;
+  color: var(--muted);
   line-height: 1.5;
 }
 .viewer-comment-list {
@@ -403,7 +403,7 @@
 .viewer-comment-date {
   margin-left: auto;
   font-size: 11px;
-  color: #868a90;
+  color: var(--muted);
 }
 .viewer-comment > p {
   padding: 8px 0 0 34px;
@@ -415,12 +415,12 @@
 .viewer-comment-pin-link {
   margin-left: 22px;
   font-size: 12px !important;
-  color: #284e91 !important;
+  color: var(--accent) !important;
 }
 .viewer-no-comments {
   text-align: center;
   padding: 50px 10px;
-  color: #757981;
+  color: var(--muted);
 }
 .viewer-no-comments svg {
   margin: 0 auto 16px;
@@ -442,14 +442,14 @@
   border: 1px solid #d5d8dd;
   border-radius: 10px;
   outline: none;
-  color: #202226;
-  background: #fff;
+  color: var(--ink);
+  background: var(--card);
   padding: 11px 12px;
   line-height: 1.5;
 }
 .woori-viewer textarea:focus {
-  border-color: #284e91;
-  box-shadow: inset 0 0 0 1px #284e91;
+  border-color: var(--focus);
+  box-shadow: inset 0 0 0 1px var(--focus);
 }
 .viewer-comment-form textarea {
   min-width: 0;
@@ -458,8 +458,8 @@
 }
 .viewer-comment-form button,
 .viewer-pin-composer button[type='submit'] {
-  background: #284e91;
-  color: white;
+  background: var(--primary);
+  color: var(--on-primary);
   padding: 0 14px;
 }
 .viewer-pin-composer {
@@ -469,8 +469,8 @@
   transform: translateX(-50%);
   z-index: 9;
   width: min(520px, 100%);
-  background: #fff;
-  color: #202226;
+  background: var(--card);
+  color: var(--ink);
   border-radius: 18px 18px 0 0;
   padding: 20px 20px calc(env(safe-area-inset-bottom) + 20px);
   box-sizing: border-box;
@@ -492,15 +492,15 @@
 }
 .viewer-pin-composer p {
   font-size: 12px;
-  color: #737780;
+  color: var(--muted);
 }
 .viewer-confirm {
   max-width: calc(100vw - 40px);
   width: 360px;
   border: 0;
   border-radius: 18px;
-  background: #fff;
-  color: #202226;
+  background: var(--card);
+  color: var(--ink);
   padding: 24px;
   box-shadow: 0 10px 50px #0005;
 }
@@ -513,7 +513,7 @@
 }
 .viewer-confirm p {
   margin: 12px 0 22px;
-  color: #6b7078;
+  color: var(--muted);
   font-size: 14px;
   line-height: 1.6;
 }
@@ -620,7 +620,7 @@
   gap: 12px;
   margin-top: 8px;
   font-size: 12px;
-  color: #626975;
+  color: var(--muted);
 }
 .viewer-comment-actions button,
 .viewer-comment-refresh {
@@ -668,8 +668,86 @@
   width: 100%;
   text-align: center;
   font-size: 11px;
-  color: #626975;
+  color: var(--muted);
 }
 .viewer-reactions button > .viewer-reaction-count {
   font-size: 12px;
+}
+
+/* V4.1: restrained glass on media; solid surfaces for readable comments. */
+.viewer-top button,
+.viewer-bottom button,
+.viewer-desktop-arrows button {
+  border-radius: 999px;
+}
+.viewer-bottom button {
+  background: var(--viewer-glass-fallback);
+}
+@supports (backdrop-filter: blur(12px)) {
+  .viewer-bottom button,
+  .viewer-desktop-arrows button {
+    background: var(--viewer-glass);
+    backdrop-filter: blur(12px);
+  }
+}
+.viewer-bottom button[aria-pressed='true'] {
+  background: var(--viewer-accent);
+  color: var(--viewer-on-accent);
+}
+.viewer-comments,
+.viewer-menu,
+.viewer-pin-composer,
+.viewer-pin-bubble {
+  color: var(--ink);
+  background: var(--card);
+}
+.viewer-comments > header,
+.viewer-comment,
+.viewer-comment-form {
+  border-color: var(--line);
+}
+.viewer-comments p,
+.viewer-pin-composer p {
+  color: var(--muted);
+}
+.viewer-comment > p {
+  color: var(--ink);
+}
+.woori-viewer textarea {
+  border-color: var(--field);
+  color: var(--ink);
+  background: var(--paper);
+}
+.viewer-menu button:hover {
+  background: var(--soft);
+}
+
+.viewer-menu button:focus-visible,
+.viewer-comments button:focus-visible,
+.viewer-pin-composer button:focus-visible,
+.viewer-pin-bubble button:focus-visible,
+.viewer-confirm button:focus-visible {
+  outline-color: var(--focus);
+}
+
+/* Shared secondary buttons use light theme surfaces. Media controls stay dark
+   on hover/press so their white icons remain readable over every season. */
+.woori-viewer .viewer-desktop-arrows button:not(:disabled):hover,
+.woori-viewer .viewer-desktop-arrows button:not(:disabled):active,
+.woori-viewer .viewer-image-error button:not(:disabled):hover,
+.woori-viewer .viewer-image-error button:not(:disabled):active,
+.woori-viewer .viewer-interaction-status button:not(:disabled):hover,
+.woori-viewer .viewer-interaction-status button:not(:disabled):active {
+  background: var(--viewer-glass-fallback);
+  color: #fff;
+}
+.woori-viewer .viewer-comment-form button:not(:disabled):hover,
+.woori-viewer .viewer-pin-composer button[type='submit']:not(:disabled):hover {
+  background: var(--primary-hover);
+  color: var(--on-primary);
+}
+.woori-viewer .viewer-comment-form button:not(:disabled):active,
+.woori-viewer .viewer-pin-composer button[type='submit']:not(:disabled):active {
+  background: var(--primary-pressed);
+  color: var(--on-primary);
 }
