@@ -8,6 +8,9 @@ import {
   Span,
   Text,
 } from '@/components/atoms/ui';
+import { REACTION_OPTIONS } from '@/constants/reactions';
+import { ReactionIcon } from '@/components/atoms/reaction-icon';
+import { ReactionFan } from '@/components/molecules/reaction-fan';
 import { Icon } from '@/components/atoms/icon';
 import { photoDateLabel } from '@/utils/photo-date';
 import type { ReactionSummary } from '@/dto/photo-interactions.dto';
@@ -37,13 +40,6 @@ interface Props {
   onRetryInteractions?: () => void;
   onReact(emoji: string): Promise<boolean>;
 }
-const EMOJI = [
-  { emoji: '❤️', label: '좋아요' },
-  { emoji: '🥰', label: '사랑해요' },
-  { emoji: '😂', label: '웃겨요' },
-  { emoji: '👏', label: '멋져요' },
-  { emoji: '😮', label: '놀라워요' },
-];
 export function ViewerToolbarView({
   interactionsEnabled,
   menuButtonRef,
@@ -74,6 +70,20 @@ export function ViewerToolbarView({
     ? reactionSummary.myReaction
     : reactions.find((reaction) => reaction.userId === 'me')?.emoji;
   const total = reactionSummary ? reactionSummary.total : reactions.length;
+  const counts =
+    reactionSummary?.reactions ??
+    REACTION_OPTIONS.map((item) => ({
+      emoji: item.emoji,
+      count: reactions.filter((r) => r.emoji === item.emoji).length,
+    }));
+  const reactionLabel = counts
+    .filter((item) => item.count > 0)
+    .map(
+      (item) =>
+        `${REACTION_OPTIONS.find((option) => option.emoji === item.emoji)?.label ?? '반응'} ${item.count}`
+    )
+    .join(', ');
+
   return (
     <>
       <Header
@@ -82,7 +92,10 @@ export function ViewerToolbarView({
       >
         {m.mode === 'browse' ? (
           <>
-            <Button aria-label='사진 보기 닫기' onClick={m.requestClose}>
+            <Button
+              aria-label={video ? '동영상 보기 닫기' : '사진 보기 닫기'}
+              onClick={m.requestClose}
+            >
               <Icon name='close' />
             </Button>
             <Text aria-live='polite'>
@@ -90,7 +103,7 @@ export function ViewerToolbarView({
             </Text>
             {interactionsEnabled && (
               <Button
-                aria-label='사진 정보와 댓글'
+                aria-label={video ? '동영상 정보와 댓글' : '사진 정보와 댓글'}
                 onClick={() => m.setPanel(!m.panel)}
               >
                 <Icon name='info' />
@@ -98,7 +111,7 @@ export function ViewerToolbarView({
             )}
             <Button
               ref={menuButtonRef}
-              aria-label='사진 메뉴'
+              aria-label={video ? '동영상 메뉴' : '사진 메뉴'}
               aria-expanded={m.more}
               onClick={() => m.setMore(!m.more)}
             >
@@ -127,13 +140,11 @@ export function ViewerToolbarView({
                 m.setReacting(!m.reacting);
                 m.setMore(false);
               }}
-              aria-label='반응 고르기'
+              aria-label={`반응 ${total}개${reactionLabel ? `: ${reactionLabel}` : ''}. 반응 고르기`}
               aria-expanded={m.reacting}
             >
-              <Span className={mine ? 'viewer-my-reaction' : ''}>
-                {mine ? mine : <Icon name='heart' />}
-              </Span>
-              <Span>{total || '반응'}</Span>
+              <ReactionFan reactions={counts} mine={mine} />
+              {total > 0 && <Span>{total}</Span>}
             </Button>
             <Button onClick={() => m.setPanel(!m.panel)}>
               <Icon name='comment' />
@@ -148,7 +159,7 @@ export function ViewerToolbarView({
             )}
           </>
         )}
-        {!onDownloadOriginal && (
+        {!onDownloadOriginal && !video && (
           <Anchor
             href={m.photo.src}
             download={`woori-${m.photo.id}.jpg`}
@@ -179,7 +190,7 @@ export function ViewerToolbarView({
               ? '저장 중…'
               : '선택한 반응을 다시 누르면 취소돼요.'}
           </Text>
-          {EMOJI.map((item) => (
+          {REACTION_OPTIONS.map((item) => (
             <Button
               key={item.emoji}
               aria-label={item.label}
@@ -191,8 +202,7 @@ export function ViewerToolbarView({
                 });
               }}
             >
-              <Span>{item.emoji}</Span>
-              <Text>{item.label}</Text>
+              <ReactionIcon emoji={item.emoji} size={26} />
               <Span className='viewer-reaction-count'>
                 {reactionSummary
                   ? reactionSummary.reactions.find(
@@ -205,7 +215,11 @@ export function ViewerToolbarView({
         </Box>
       )}
       {m.more && (
-        <Box className='viewer-menu' role='group' aria-label='사진 메뉴'>
+        <Box
+          className='viewer-menu'
+          role='group'
+          aria-label={video ? '동영상 메뉴' : '사진 메뉴'}
+        >
           {uploaderLabel && (
             <Text className='muted memory-date-note'>{uploaderLabel}</Text>
           )}
@@ -214,7 +228,7 @@ export function ViewerToolbarView({
               {photoDateLabel(
                 m.photo.effectiveDate || m.photo.capturedAt,
                 m.photo.dateSource
-              )}
+              ).replaceAll('사진', video ? '동영상' : '사진')}
             </Text>
           )}
           {onDownloadOriginal && (
@@ -292,7 +306,11 @@ export function ViewerToolbarView({
               위치 댓글 핀 {m.pins ? '숨기기' : '보이기'}
             </Button>
           )}
-          <Button onClick={() => m.openGuide('view')}>사진 감상 사용법</Button>
+          {!video && (
+            <Button onClick={() => m.openGuide('view')}>
+              사진 감상 사용법
+            </Button>
+          )}
           {interactionsEnabled && !video && (
             <Button onClick={() => m.openGuide('pin')}>위치 댓글 사용법</Button>
           )}
@@ -302,14 +320,14 @@ export function ViewerToolbarView({
         <Box className={`viewer-desktop-arrows ${video ? 'is-video' : ''}`}>
           <Button
             disabled={!m.index}
-            aria-label='이전 사진'
+            aria-label='이전 사진·동영상'
             onClick={() => g.navigate(-1)}
           >
             <Icon name='chevron-left' />
           </Button>
           <Button
             disabled={m.index >= count - 1}
-            aria-label='다음 사진'
+            aria-label='다음 사진·동영상'
             onClick={() => g.navigate(1)}
           >
             <Icon name='chevron-right' />

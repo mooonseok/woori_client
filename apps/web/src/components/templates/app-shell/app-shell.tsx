@@ -26,6 +26,7 @@ import { AccountGate } from '@/components/organisms/account-gate/account-gate';
 import { DEMO_MODE } from '@/constants/app-mode';
 import { ROUTES } from '@/constants/routes';
 import { forgetEmailChangeToken } from '@/services/email-change-token';
+import { ThemeProvider } from '@/hooks/use-theme';
 import { currentTab } from '@/utils/auth-navigation';
 function Shell({ children }: { children: ReactNode }) {
   const path = usePathname(),
@@ -70,6 +71,16 @@ function Shell({ children }: { children: ReactNode }) {
           ))}
         </Nav>
       </Header>
+      {(DEMO_MODE || user) && path === '/' && (
+        <Header className='mobile-brand-header'>
+          <Link className='wordmark' href={ROUTES.HOME}>
+            우리
+          </Link>
+          <Button variant='secondary' onClick={() => router.push('/albums')}>
+            <Icon name='upload' size={18} /> 올리기
+          </Button>
+        </Header>
+      )}
       {(DEMO_MODE || user) && (
         <Header className='group-header'>
           <Details className='group-picker'>
@@ -114,7 +125,7 @@ function Shell({ children }: { children: ReactNode }) {
           </Link>
         </Header>
       )}
-      <Main className='app-content'>
+      <Main className='app-content' id='main-content'>
         <AccountGate>{children}</AccountGate>
       </Main>
       <Nav className='bottom-nav' aria-label='주요 메뉴'>
@@ -169,12 +180,14 @@ function Shell({ children }: { children: ReactNode }) {
 }
 export function AppShell({ children }: { children: ReactNode }) {
   return (
-    <AuthProvider>
-      <GalleryProvider>
-        <NotificationProvider>
-          <Shell>{children}</Shell>
-        </NotificationProvider>
-      </GalleryProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <GalleryProvider>
+          <NotificationProvider>
+            <Shell>{children}</Shell>
+          </NotificationProvider>
+        </GalleryProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

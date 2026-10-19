@@ -1,6 +1,10 @@
 import type { SVGProps } from 'react';
 
 const paths: Record<string, string[]> = {
+  palette: [
+    'M12 3a9 9 0 1 0 0 18h1a2 2 0 0 0 1-3.7c-.9-.6-.4-2.3.7-2.3H17a4 4 0 0 0 4-4c0-4.5-4-8-9-8',
+    'M7 10h.01M10 7h.01M15 7h.01M18 10h.01',
+  ],
   home: ['m3 10 9-7 9 7', 'M5 9v12h5v-7h4v7h5V9'],
   album: ['M4 3h16v18H4z', 'M4 16l5-5 4 4 3-3 4 4', 'M15 7h.01'],
   photo: ['M3 3h18v18H3z', 'm3 16 6-6 4 4 3-3 5 5', 'M16 7h.01'],

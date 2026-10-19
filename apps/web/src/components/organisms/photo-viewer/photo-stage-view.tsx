@@ -14,6 +14,8 @@ interface Props {
   model: PhotoViewerModel;
   gestures: PhotoGestureModel;
   video: VideoSourceView;
+  videoPausedByPanel: boolean;
+  onVideoPlaybackChange(playing: boolean): void;
 }
 export function PhotoStageView({
   photos,
@@ -21,6 +23,8 @@ export function PhotoStageView({
   model: m,
   gestures: { stageRef, imageRef, trackRef, size, stageEvents },
   video,
+  videoPausedByPanel,
+  onVideoPlaybackChange,
 }: Props) {
   const current = photos[m.index];
   return (
@@ -53,7 +57,12 @@ export function PhotoStageView({
                   className='viewer-photo is-video'
                   style={{ width: size.width, height: size.height }}
                 >
-                  <PhotoVideo photo={photo} source={video} />
+                  <PhotoVideo
+                    photo={photo}
+                    source={video}
+                    pauseRequested={videoPausedByPanel}
+                    onPlaybackChange={onVideoPlaybackChange}
+                  />
                 </Box>
               ) : offset === 0 ? (
                 <Box
@@ -69,7 +78,7 @@ export function PhotoStageView({
                     onError={() => m.setFailedPhoto(photo.id)}
                   />
                   <PhotoPinLayerView
-                    comments={comments}
+                    comments={m.guide === 'pin' ? [] : comments}
                     visible={m.pins}
                     selected={m.selectedPin}
                     draft={m.point}

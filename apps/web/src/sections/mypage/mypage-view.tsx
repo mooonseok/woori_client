@@ -1,3 +1,9 @@
+import { ThemePicker } from '@/components/molecules/theme-picker';
+import {
+  themeLabel,
+  type ThemeName,
+  type ThemePreference,
+} from '@/utils/theme';
 import {
   Box,
   Heading,
@@ -10,6 +16,12 @@ import { Icon } from '@/components/atoms/icon';
 import { Guide } from '@/components/organisms/guide/guide';
 import { EntryDialog } from '@/components/organisms/entry-dialog/entry-dialog';
 interface Props {
+  themePreference: ThemePreference;
+  resolvedTheme: ThemeName;
+  onThemeChange: (value: ThemePreference) => void;
+  themeOpen: boolean;
+  onThemeOpen: () => void;
+  onThemeClose: () => void;
   live: boolean;
   email: string;
   verified: boolean;
@@ -26,6 +38,12 @@ interface Props {
   onMessage: (message: string) => void;
 }
 export function MypageView({
+  themePreference,
+  resolvedTheme,
+  onThemeChange,
+  themeOpen,
+  onThemeOpen,
+  onThemeClose,
   name,
   live,
   email,
@@ -40,6 +58,34 @@ export function MypageView({
   setGuide,
   onNavigate,
 }: Props) {
+  if (themeOpen)
+    return (
+      <Section className='theme-settings'>
+        <Box className='theme-settings-header'>
+          <Button
+            className='icon-button'
+            aria-label='뒤로 가기'
+            onClick={onThemeClose}
+            autoFocus
+          >
+            <Icon name='arrow-left' />
+          </Button>
+          <Heading className='page-title'>화면 테마</Heading>
+        </Box>
+        <ThemePicker
+          preference={themePreference}
+          resolvedTheme={resolvedTheme}
+          onChange={onThemeChange}
+        />
+        <Text className='theme-settings-note'>
+          선택한 테마는 이 브라우저에 저장돼요. 자동 변경을 선택했을 때만 한국
+          시간의 계절에 맞춰 바뀌어요.
+        </Text>
+        <Text className='theme-settings-note'>
+          겨울 두 색상은 비교안이에요. 자동 테마에는 스노우를 적용해요.
+        </Text>
+      </Section>
+    );
   return (
     <Box className='mypage'>
       <Heading className='page-title'>마이페이지</Heading>
@@ -71,6 +117,19 @@ export function MypageView({
           </Button>
         </Section>
       )}
+      <Section>
+        <Heading className='setting-heading'>화면</Heading>
+        <Button
+          id='theme-settings-button'
+          className='menu-row'
+          onClick={onThemeOpen}
+        >
+          <Icon name='palette' />
+          <Span>화면 테마</Span>
+          <Text className='muted'>{themeLabel(themePreference)}</Text>
+          <Icon name='chevron-right' />
+        </Button>
+      </Section>
       <Section>
         <Heading className='setting-heading'>알림</Heading>
         <Button

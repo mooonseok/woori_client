@@ -29,6 +29,10 @@ export function AlbumContainer() {
     uploadRevision
   );
   const photos = gallery.data.photos.filter((p) => p.albumId === album?.id);
+  const retained = album ? gallery.uploadResults?.[album.id] : undefined;
+  const displayedFailures = [
+    ...new Set([...(retained?.failures ?? []), ...failures]),
+  ];
   const mediaRef = useRef(gallery),
     revision = useRef(0);
   useEffect(() => {
@@ -132,8 +136,8 @@ export function AlbumContainer() {
           ? gallery.uploadProgress || null
           : null
       }
-      canRetry={!!gallery.failedFiles?.length}
-      onRetryUpload={() => void add(gallery.failedFiles || [])}
+      canRetry={!!retained?.files.length}
+      onRetryUpload={() => void add(retained?.files || [])}
       onCancelUpload={() => gallery.cancelUploads?.()}
       onReload={() => {
         if (album) void gallery.loadPhotos?.(album.id);
@@ -143,7 +147,7 @@ export function AlbumContainer() {
       }}
       photos={photos}
       busy={busy}
-      failures={failures}
+      failures={displayedFailures}
       fileRef={fileRef}
       onFiles={add}
       onUpload={() => fileRef.current?.click()}

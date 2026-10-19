@@ -32,24 +32,13 @@ export function usePhotoViewer(props: PhotoViewerProps): PhotoViewerModel {
   const [selectedPin, setSelectedPin] = useState<string | null>(null),
     [pins, setPins] = useState(true);
   const [confirm, setConfirm] = useState<'close' | 'pin' | null>(null);
-  const [guide, setGuide] = useState<'view' | 'pin' | null>(null),
-    [afterGuide, setAfterGuide] = useState(false);
+  const [guide, setGuide] = useState<'view' | 'pin' | null>(null);
+  const [guideStep, setGuideStep] = useState(1);
   const index = Math.max(
       0,
       props.photos.findIndex((photo) => photo.id === photoId)
     ),
     photo = props.photos[index];
-  useEffect(() => {
-    let seen = false;
-    try {
-      seen = localStorage.getItem('woori.guide.view') === '1';
-    } catch {
-      /* Private browsing can disable storage. */
-    }
-    if (seen) return;
-    const timer = setTimeout(() => setGuide('view'), 340);
-    return () => clearTimeout(timer);
-  }, []);
   const beginPin = () => {
     setMode('place');
     setPoint(undefined);
@@ -61,32 +50,44 @@ export function usePhotoViewer(props: PhotoViewerProps): PhotoViewerModel {
     setReacting(false);
   };
   const startPin = () => {
+    if (photo?.mediaKind === 'VIDEO' || mode !== 'browse') return;
+    setPanel(false);
+    setMore(false);
+    setReacting(false);
     let seen = false;
     try {
-      seen = localStorage.getItem('woori.guide.pin') === '1';
+      seen = !!localStorage.getItem('woori.guide.pin');
     } catch {
       /* The guide remains usable without persistence. */
     }
     if (!seen) {
-      setAfterGuide(true);
+      beginPin();
+      setGuideStep(1);
       setGuide('pin');
     } else beginPin();
   };
-  const finishGuide = () => {
+  const finishGuide = (result: 'completed' | 'skipped' = 'completed') => {
     if (guide)
       try {
-        localStorage.setItem(`woori.guide.${guide}`, '1');
+        localStorage.setItem(`woori.guide.${guide}`, result);
       } catch {
         /* Optional preference only. */
       }
-    const place = guide === 'pin' && afterGuide;
+    if (guide === 'pin') {
+      setMode('browse');
+      setPoint(undefined);
+    }
     setGuide(null);
-    setAfterGuide(false);
-    if (place) beginPin();
   };
   const openGuide = (kind: 'view' | 'pin') => {
     setMore(false);
-    setAfterGuide(false);
+    setReacting(false);
+    setPanel(false);
+    if (kind === 'pin') {
+      if (photo?.mediaKind === 'VIDEO' || mode !== 'browse') return;
+      beginPin();
+      setGuideStep(1);
+    }
     setGuide(kind);
   };
   const draftCount =
@@ -123,6 +124,8 @@ export function usePhotoViewer(props: PhotoViewerProps): PhotoViewerModel {
     setCommentError('');
     if (!next) return;
     setPhotoId(next.id);
+    setChrome(true);
+    setMore(false);
     setSelectedPin(null);
     setReacting(false);
     setPoint(undefined);
@@ -131,7 +134,8 @@ export function usePhotoViewer(props: PhotoViewerProps): PhotoViewerModel {
     if (mode === 'place') {
       if (selected) {
         setPoint(selected);
-        setMode('write');
+        if (guide === 'pin') setGuideStep(2);
+        else setMode('write');
       }
       return;
     }
@@ -185,6 +189,7 @@ export function usePhotoViewer(props: PhotoViewerProps): PhotoViewerModel {
     photo,
     index,
     chrome,
+    setChrome,
     panel,
     setPanel,
     more,
@@ -205,6 +210,18 @@ export function usePhotoViewer(props: PhotoViewerProps): PhotoViewerModel {
     confirm,
     setConfirm,
     guide,
+    guideStep,
+    nextGuide: () => {
+      if (guideStep === 1) {
+        setPoint({ x: 0.5, y: 0.5 });
+        setGuideStep(2);
+      } else if (guideStep === 2) setGuideStep(3);
+      else finishGuide('completed');
+    },
+    previousGuide: () => {
+      if (guideStep === 2) setPoint(undefined);
+      setGuideStep((step) => Math.max(1, step - 1));
+    },
     finishGuide,
     openGuide,
     startPin,

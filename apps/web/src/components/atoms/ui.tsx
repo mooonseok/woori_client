@@ -38,9 +38,24 @@ export function Time(props: ComponentPropsWithRef<'time'>) {
 }
 export function Button({
   type = 'button',
+  variant,
+  className,
   ...props
-}: ComponentPropsWithRef<'button'>) {
-  return <button type={type} {...props} />;
+}: ComponentPropsWithRef<'button'> & {
+  variant?: 'primary' | 'secondary' | 'quiet' | 'icon';
+}) {
+  const style = variant
+    ? `ui-button ui-button--${variant}`
+    : className
+      ? ''
+      : 'ui-button ui-button--secondary';
+  return (
+    <button
+      type={type}
+      className={[style, className].filter(Boolean).join(' ')}
+      {...props}
+    />
+  );
 }
 export function Input(props: ComponentPropsWithRef<'input'>) {
   return <input {...props} />;
@@ -57,7 +72,7 @@ export function Option(props: ComponentPropsWithRef<'option'>) {
 export function Image({ alt, ...props }: ComponentPropsWithRef<'img'>) {
   return <img alt={alt ?? ''} {...props} />;
 }
-// Signed video URLs only; never autoplays (callers pass controls etc.).
+// Authenticated API video streams; playback remains user initiated.
 export function Video(props: ComponentPropsWithRef<'video'>) {
   return <video {...props} />;
 }

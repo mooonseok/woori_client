@@ -1,0 +1,74 @@
+.reaction-icon {
+  display: inline-block;
+  flex: 0 0 auto;
+  background-color: currentColor;
+  mask: var(--reaction-image) center / contain no-repeat;
+  -webkit-mask: var(--reaction-image) center / contain no-repeat;
+}
+.reaction-fan {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  height: 32px;
+  flex: 0 0 auto;
+}
+.reaction-leaf {
+  position: absolute;
+  left: 0;
+  top: 1px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--card);
+  color: var(--accent);
+  transform: translateX(var(--fan-x)) rotate(var(--fan-angle));
+  box-shadow: 0 2px 5px rgb(0 0 0 / 0.12);
+  transition: transform 180ms var(--ease);
+}
+.reaction-leaf.is-mine {
+  background: var(--soft);
+  border-color: var(--indicator);
+}
+.woori-viewer .reaction-leaf {
+  background: var(--viewer-glass-fallback);
+  color: var(--viewer-accent);
+  border-color: rgb(255 255 255 / 0.3);
+}
+.woori-viewer .reaction-leaf.is-mine {
+  background: var(--viewer-accent);
+  color: var(--viewer-on-accent);
+  border-color: var(--viewer-accent);
+}
+.woori-viewer .viewer-bottom > button:first-child {
+  gap: 8px;
+}
+.woori-viewer .viewer-reactions {
+  gap: 6px;
+  flex-wrap: wrap;
+  max-width: calc(100vw - 24px);
+}
+.woori-viewer .viewer-reactions button {
+  min-width: 54px;
+  flex: 1;
+  gap: 6px;
+  padding: 10px 6px;
+  border-radius: 12px;
+}
+.woori-viewer .viewer-reactions button[aria-pressed='true'] {
+  background: var(--viewer-accent);
+  color: var(--viewer-on-accent);
+}
+.woori-viewer .viewer-reactions button:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reaction-fan,
+  .reaction-leaf {
+    transition: none;
+  }
+}

@@ -4,7 +4,6 @@ import { useAuth } from '@/hooks/use-auth';
 import type { Album, GalleryData, Group, Photo } from '@/dto/album.dto';
 import type {
   AlbumResponse,
-  PendingUpload,
   PhotoResponse,
   UploadProgress,
 } from '@/dto/media.dto';
@@ -19,6 +18,7 @@ import { displayLoader } from '@/services/display-renditions';
 import { loadMoreAfterRefresh } from '@/utils/load-more';
 import { isVideoType, mediaPrecheck, uploadPercent } from '@/utils/media';
 import { probeVideoDuration } from '@/services/video-probe';
+import { UploadRetention, type UploadResult } from '@/utils/upload-retention';
 import { photoWindow, withTail } from '@/services/list-window';
 import { coverPhoto } from '@/lib/gallery';
 import {
@@ -116,7 +116,9 @@ export function useLiveGalleryState() {
   const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(
     null
   );
-  const [failedFiles, setFailedFiles] = useState<File[]>([]);
+  const [uploadResults, setUploadResults] = useState<
+    Record<string, UploadResult>
+  >({});
   // Uploads from this device that are videos: their jobs read "변환 중".
   const [videoUploads, setVideoUploads] = useState<string[]>([]);
   // Album list paging of one group; a refresh re-reads the loaded window.
@@ -190,7 +192,7 @@ export function useLiveGalleryState() {
     [applyStatus]
   );
   const uploadController = useRef<AbortController | null>(null);
-  const pending = useRef(new Map<File, PendingUpload>());
+  const pending = useRef(new UploadRetention());
   const dispose = useCallback(() => {
     scope.current.abort();
     uploadController.current?.abort();
@@ -228,7 +230,7 @@ export function useLiveGalleryState() {
         showCursor(null);
         setPhotoError('');
         setPhotoLoading(false);
-        setFailedFiles([]);
+        setUploadResults({});
         dataRef.current = { ...EMPTY, groups };
         setData(dataRef.current);
       } else {
@@ -412,7 +414,7 @@ export function useLiveGalleryState() {
       showCursor(null);
       setPhotoError('');
       setPhotoLoading(false);
-      setFailedFiles([]);
+      setUploadResults({});
       if (!groupId) {
         applyStatus('albums', NO_GROUP);
         return;
@@ -509,8 +511,6 @@ export function useLiveGalleryState() {
     setPhotoError('');
     if (loadedAlbum.current !== albumId) {
       loadedAlbum.current = '';
-      setFailedFiles([]);
-      pending.current.clear();
     }
     if (!cursor) showCursor(null);
     const photos: Photo[] = [];
@@ -773,8 +773,12 @@ export function useLiveGalleryState() {
     await media.deleteAlbum(groupId, albumId, signal);
     signal.throwIfAborted();
     removeLocalPhotos((p) => p.albumId === albumId);
-    pending.current.clear();
-    setFailedFiles([]);
+    pending.current.remove(albumId);
+    setUploadResults((results) => {
+      const next = { ...results };
+      delete next[albumId];
+      return next;
+    });
     loadedAlbum.current = '';
     setData((d) => ({
       ...d,
@@ -891,18 +895,21 @@ export function useLiveGalleryState() {
     const parent = scope.current.signal,
       controller = new AbortController();
     uploadController.current = controller;
-    for (const file of pending.current.keys()) {
-      if (!files.includes(file)) pending.current.delete(file);
-    }
+    pending.current.begin(albumId, selection.files);
     const cancel = () => controller.abort();
     parent.addEventListener('abort', cancel, { once: true });
     const failures: string[] = [],
       failed: File[] = [];
+    const retainFailure = (file: File, message: string, retryable = true) => {
+      if (parent.aborted) return;
+      pending.current.fail(albumId, file, message, retryable);
+    };
     let added = 0;
     try {
       const selected = selection.files;
       for (let index = 0; index < selected.length; index++) {
         const file = selected[index];
+        if (pending.current.accepted(albumId, file)) continue;
         if (controller.signal.aborted) {
           failed.push(...selected.slice(index));
           break;
@@ -931,12 +938,11 @@ export function useLiveGalleryState() {
         }
         const problem = mediaPrecheck(file, duration);
         if (problem) {
-          pending.current.delete(file);
+          retainFailure(file, `${file.name}: ${problem}`, false);
           failures.push(`${file.name}: ${problem}`);
           continue;
         }
-        const state = pending.current.get(file) || { uploaded: false };
-        pending.current.set(file, state);
+        const state = pending.current.pending(albumId, file);
         try {
           // Re-render only when the phase or the whole percent changes.
           let shown = '';
@@ -969,21 +975,29 @@ export function useLiveGalleryState() {
           const photoId = state.ticket?.photoId;
           if (video && photoId)
             setVideoUploads((ids) => [...ids.slice(-49), photoId]);
-          pending.current.delete(file);
+          pending.current.accept(albumId, file);
           added++;
         } catch (e) {
           if (controller.signal.aborted) {
             failed.push(...selected.slice(index));
             break;
           }
-          failed.push(file);
-          failures.push(
-            `${file.name}: ${e instanceof Error ? e.message : '접수하지 못했어요.'}`
-          );
+          const message = `${file.name}: ${e instanceof Error ? e.message : '접수하지 못했어요.'}`;
+          retainFailure(file, message);
+          failures.push(message);
         }
       }
-      if (!parent.aborted && loadedAlbum.current === albumId) {
-        setFailedFiles(failed);
+      if (!parent.aborted) {
+        failed.forEach((file) =>
+          retainFailure(
+            file,
+            `${file.name}: 전송을 중단했어요. 다시 시도할 수 있어요.`
+          )
+        );
+        setUploadResults((results) => ({
+          ...results,
+          [albumId]: pending.current.result(albumId),
+        }));
       }
       if (controller.signal.aborted && !parent.aborted)
         failures.push(
@@ -994,7 +1008,8 @@ export function useLiveGalleryState() {
       return { added, failures };
     } finally {
       parent.removeEventListener('abort', cancel);
-      uploadController.current = null;
+      if (uploadController.current === controller)
+        uploadController.current = null;
       if (!parent.aborted) setUploadProgress(null);
     }
   }
@@ -1151,7 +1166,7 @@ export function useLiveGalleryState() {
         }));
         selectedGroup.current = '';
         selectGroup('');
-        setFailedFiles([]);
+        setUploadResults({});
         showCursor(null);
         // Loading until the next group is chosen, not a "no group" flash.
         applyStatus('groups', freshLoad(GROUPS));
@@ -1193,7 +1208,7 @@ export function useLiveGalleryState() {
       notice: albumPaging.groupId === groupId ? albumPaging.notice : '',
     },
     loadMoreAlbums,
-    failedFiles,
+    uploadResults,
     uploadProgress: uploadProgress?.groupId === groupId ? uploadProgress : null,
     refreshProcessedPhotos: async (albumId: string) => {
       const signal = scope.current.signal;

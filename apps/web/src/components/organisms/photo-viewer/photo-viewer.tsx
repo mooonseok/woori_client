@@ -14,8 +14,10 @@ import { Icon } from '@/components/atoms/icon';
 import { usePhotoInteractions } from '@/hooks/use-photo-interactions';
 import { usePhotoViewer } from '@/hooks/use-photo-viewer';
 import { useDisplayRenditions } from '@/hooks/use-display-renditions';
+import { useVideoChrome } from '@/hooks/use-video-chrome';
 import { useVideoSource } from '@/hooks/use-video-source';
 import { usePhotoGestures } from '@/hooks/use-photo-gestures';
+import { PinGuide } from '@/components/organisms/guide/pin-guide';
 import { Guide } from '@/components/organisms/guide/guide';
 import { PhotoStageView } from './photo-stage-view';
 import { PhotoCommentsView } from './photo-comments-view';
@@ -68,8 +70,25 @@ function PhotoViewerContainer(props: PhotoViewerProps) {
     }),
     dialog = useRef<HTMLDialogElement>(null);
   const interactions = usePhotoInteractions(m.photo.id, !!props.live);
-  // A video plays from a signed URL fetched when it is on screen.
+  // The video source stays behind the existing authenticated API.
   const video = useVideoSource(m.photo, props.loadVideo);
+  const videoPausedByPanel = !!(
+    m.panel ||
+    m.more ||
+    m.reacting ||
+    m.guide ||
+    m.confirm ||
+    deleting ||
+    editingDate ||
+    reporting ||
+    blocking
+  );
+  const videoChrome = useVideoChrome(
+    m.photo.id,
+    m.photo.mediaKind === 'VIDEO',
+    videoPausedByPanel,
+    m.setChrome
+  );
   // Grid thumbnails stay on screen until the display rendition arrives.
   const stagePhotos = useDisplayRenditions(
     props.photos,
@@ -102,7 +121,8 @@ function PhotoViewerContainer(props: PhotoViewerProps) {
     canPrevious: m.index > 0,
     canNext: m.index < props.photos.length - 1,
     disabled:
-      !!m.guide ||
+      m.guide === 'view' ||
+      (m.guide === 'pin' && m.guideStep !== 1) ||
       !!m.confirm ||
       deleting ||
       editingDate ||
@@ -156,10 +176,12 @@ function PhotoViewerContainer(props: PhotoViewerProps) {
     <Dialog
       ref={dialog}
       className={`woori-viewer ${m.panel ? 'has-comments' : ''}`}
-      aria-label='사진 보기'
+      aria-label={m.photo.mediaKind === 'VIDEO' ? '동영상 보기' : '사진 보기'}
+      {...videoChrome.events}
       onCancel={(event) => {
         event.preventDefault();
-        if (m.more) m.setMore(false);
+        if (m.guide === 'pin') m.finishGuide('skipped');
+        else if (m.more) m.setMore(false);
         else if (m.reacting) m.setReacting(false);
         else if (m.mode !== 'browse') m.cancelPin();
         else if (m.panel) m.setPanel(false);
@@ -174,100 +196,104 @@ function PhotoViewerContainer(props: PhotoViewerProps) {
           photos={stagePhotos}
           comments={m.photo.mediaKind === 'VIDEO' ? [] : comments}
           video={video}
+          videoPausedByPanel={videoPausedByPanel}
+          onVideoPlaybackChange={videoChrome.playback}
         />
-        <ViewerToolbarView
-          model={m}
-          gestures={g}
-          menuButtonRef={menuButton}
-          interactionsEnabled
-          reactionSummary={props.live ? interactions : undefined}
-          reactionPending={
-            props.live && (interactions.pending || interactions.loading)
-          }
-          reactionError={props.live ? interactions.reactionError : ''}
-          interactionError={props.live ? interactions.error : ''}
-          onRetryInteractions={props.live ? interactions.reload : undefined}
-          count={props.photos.length}
-          downloading={downloading}
-          downloadError={downloadError}
-          onDownloadOriginal={
-            props.onDownloadOriginal
-              ? async () => {
-                  if (downloadLock.current) return;
-                  downloadLock.current = true;
-                  setDownloading(true);
-                  setDownloadError('');
-                  try {
-                    await props.onDownloadOriginal?.(m.photo);
-                  } catch (e) {
-                    if (mounted.current)
-                      setDownloadError(
-                        e instanceof Error
-                          ? e.message
-                          : '다운로드하지 못했어요. 다시 시도해 주세요.'
-                      );
-                  } finally {
-                    downloadLock.current = false;
-                    if (mounted.current) setDownloading(false);
+        <Box inert={m.guide === 'pin'}>
+          <ViewerToolbarView
+            model={m}
+            gestures={g}
+            menuButtonRef={menuButton}
+            interactionsEnabled
+            reactionSummary={props.live ? interactions : undefined}
+            reactionPending={
+              props.live && (interactions.pending || interactions.loading)
+            }
+            reactionError={props.live ? interactions.reactionError : ''}
+            interactionError={props.live ? interactions.error : ''}
+            onRetryInteractions={props.live ? interactions.reload : undefined}
+            count={props.photos.length}
+            downloading={downloading}
+            downloadError={downloadError}
+            onDownloadOriginal={
+              props.onDownloadOriginal
+                ? async () => {
+                    if (downloadLock.current) return;
+                    downloadLock.current = true;
+                    setDownloading(true);
+                    setDownloadError('');
+                    try {
+                      await props.onDownloadOriginal?.(m.photo);
+                    } catch (e) {
+                      if (mounted.current)
+                        setDownloadError(
+                          e instanceof Error
+                            ? e.message
+                            : '다운로드하지 못했어요. 다시 시도해 주세요.'
+                        );
+                    } finally {
+                      downloadLock.current = false;
+                      if (mounted.current) setDownloading(false);
+                    }
                   }
-                }
-              : undefined
-          }
-          onDelete={
-            props.onDeletePhoto && m.photo.canDelete
-              ? () => {
-                  m.setMore(false);
-                  setDeleting(true);
-                }
-              : undefined
-          }
-          onEditCaptureDate={
-            props.onSetCaptureDate && m.photo.canEditCaptureDate
-              ? () => {
-                  m.setMore(false);
-                  setEditingDate(true);
-                }
-              : undefined
-          }
-          uploaderLabel={
-            props.live && m.photo.authorName
-              ? m.photo.authorId === user?.id
-                ? '내가 올린 사진'
-                : `올린 사람 · ${m.photo.authorName}`
-              : ''
-          }
-          onReport={
-            uploader
-              ? () => {
-                  startFlow('photo');
-                  m.setMore(false);
-                  setReporting({
-                    targetType: 'PHOTO',
-                    targetId: m.photo.id,
-                    name: '사진',
-                    subject: uploader,
-                  });
-                }
-              : undefined
-          }
-          blockLabel={uploader ? `${uploader.name}님 차단` : undefined}
-          onBlockUploader={
-            uploader
-              ? () => {
-                  startFlow('photo');
-                  m.setMore(false);
-                  setBlocking(uploader);
-                }
-              : undefined
-          }
-          comments={props.live ? interactions.commentTotal : comments.length}
-          reactions={reactions}
-          onReact={async (emoji) => {
-            if (props.live) return interactions.react(emoji);
-            props.onReact(m.photo.id, emoji);
-            return true;
-          }}
-        />
+                : undefined
+            }
+            onDelete={
+              props.onDeletePhoto && m.photo.canDelete
+                ? () => {
+                    m.setMore(false);
+                    setDeleting(true);
+                  }
+                : undefined
+            }
+            onEditCaptureDate={
+              props.onSetCaptureDate && m.photo.canEditCaptureDate
+                ? () => {
+                    m.setMore(false);
+                    setEditingDate(true);
+                  }
+                : undefined
+            }
+            uploaderLabel={
+              props.live && m.photo.authorName
+                ? m.photo.authorId === user?.id
+                  ? `내가 올린 ${m.photo.mediaKind === 'VIDEO' ? '동영상' : '사진'}`
+                  : `올린 사람 · ${m.photo.authorName}`
+                : ''
+            }
+            onReport={
+              uploader
+                ? () => {
+                    startFlow('photo');
+                    m.setMore(false);
+                    setReporting({
+                      targetType: 'PHOTO',
+                      targetId: m.photo.id,
+                      name: '사진',
+                      subject: uploader,
+                    });
+                  }
+                : undefined
+            }
+            blockLabel={uploader ? `${uploader.name}님 차단` : undefined}
+            onBlockUploader={
+              uploader
+                ? () => {
+                    startFlow('photo');
+                    m.setMore(false);
+                    setBlocking(uploader);
+                  }
+                : undefined
+            }
+            comments={props.live ? interactions.commentTotal : comments.length}
+            reactions={reactions}
+            onReact={async (emoji) => {
+              if (props.live) return interactions.react(emoji);
+              props.onReact(m.photo.id, emoji);
+              return true;
+            }}
+          />
+        </Box>
         {pin && (
           <Box className='viewer-pin-bubble' data-viewer-interactive='true'>
             <Box>
@@ -321,6 +347,7 @@ function PhotoViewerContainer(props: PhotoViewerProps) {
       </Box>
       {m.panel && (
         <PhotoCommentsView
+          mediaKind={m.photo.mediaKind}
           key={m.photo.id}
           comments={comments}
           loading={props.live ? interactions.loading : false}
@@ -372,7 +399,7 @@ function PhotoViewerContainer(props: PhotoViewerProps) {
             m.setPins(true);
             m.setPanel(false);
           }}
-          photoDescription={`${photoDateLabel(m.photo.effectiveDate || m.photo.capturedAt, m.photo.dateSource)} · ${m.photo.alt}`}
+          photoDescription={`${photoDateLabel(m.photo.effectiveDate || m.photo.capturedAt, m.photo.dateSource).replaceAll('사진', m.photo.mediaKind === 'VIDEO' ? '동영상' : '사진')} · ${m.photo.alt}`}
         />
       )}
       {editingDate && props.onSetCaptureDate && (
@@ -438,7 +465,18 @@ function PhotoViewerContainer(props: PhotoViewerProps) {
           {notice}
         </Text>
       )}
-      {m.guide && <Guide kind={m.guide} onClose={m.finishGuide} />}
+      {m.guide === 'view' && <Guide kind='view' onClose={m.finishGuide} />}
+      {m.guide === 'pin' && (
+        <PinGuide
+          step={m.guideStep}
+          photo={stagePhotos[m.index]}
+          point={m.point}
+          onNext={m.nextGuide}
+          onPrevious={m.previousGuide}
+          onClose={() => m.finishGuide('skipped')}
+        />
+      )}
+
       {m.confirm && (
         <ViewerConfirm
           count={m.confirm === 'pin' ? 1 : m.draftCount}

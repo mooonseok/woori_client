@@ -33,7 +33,10 @@ type GalleryStore = Omit<
   photoLoading?: boolean;
   photoError?: string;
   nextCursor?: string | null;
-  failedFiles?: File[];
+  uploadResults?: Record<
+    string,
+    import('@/utils/upload-retention').UploadResult
+  >;
   uploadProgress?: import('@/dto/media.dto').UploadProgress | null;
   refreshProcessedPhotos?: (albumId: string) => Promise<void>;
   cancelUploads?: () => void;

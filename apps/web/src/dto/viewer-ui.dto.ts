@@ -13,6 +13,7 @@ export interface PhotoViewerModel {
   photo: Photo;
   index: number;
   chrome: boolean;
+  setChrome: Setter<boolean>;
   panel: boolean;
   setPanel: Setter<boolean>;
   more: boolean;
@@ -33,7 +34,10 @@ export interface PhotoViewerModel {
   confirm: 'close' | 'pin' | null;
   setConfirm: Setter<'close' | 'pin' | null>;
   guide: 'view' | 'pin' | null;
-  finishGuide(): void;
+  guideStep: number;
+  nextGuide(): void;
+  previousGuide(): void;
+  finishGuide(result?: 'completed' | 'skipped'): void;
   openGuide(kind: 'view' | 'pin'): void;
   startPin(): void;
   cancelPin(): void;

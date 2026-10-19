@@ -1,0 +1,204 @@
+/* v4.1 palette. Seasonal selection changes surfaces and controls, not media. */
+:root[data-theme='spring'] {
+  --primary: #f5bdd0;
+  --on-primary: #54263a;
+  --primary-border: #c27693;
+  --primary-hover: #f1afc5;
+  --primary-pressed: #ea9eb8;
+  --soft: #fceaf0;
+  --soft-text: #7a2e4c;
+  --accent: #9d4163;
+  --focus: #9d4163;
+  --indicator: #b4527a;
+  --paper: #fff9fb;
+  --wash: #fbf1f5;
+  --card: #ffffff;
+  --line: #f0e2e8;
+  --field: #968a90;
+  --ink: #1d181a;
+  --muted: #5e5459;
+  --viewer-accent: #f5bdd0;
+  --viewer-on-accent: #3d1a2a;
+  --viewer-glass: rgba(30, 24, 27, 0.6);
+  --viewer-glass-fallback: #241e21;
+}
+:root[data-theme='summer'] {
+  --primary: #8dd3f5;
+  --on-primary: #123d56;
+  --primary-border: #4795bd;
+  --primary-hover: #7dc9f0;
+  --primary-pressed: #6abde7;
+  --soft: #e9f6fe;
+  --soft-text: #135473;
+  --accent: #17678f;
+  --focus: #17678f;
+  --indicator: #1e7baa;
+  --paper: #f7fcff;
+  --wash: #edf6fc;
+  --card: #ffffff;
+  --line: #dceaf3;
+  --field: #8695a1;
+  --ink: #14191d;
+  --muted: #4f5f6b;
+  --viewer-accent: #8dd3f5;
+  --viewer-on-accent: #0e2a3b;
+  --viewer-glass: rgba(18, 24, 30, 0.6);
+  --viewer-glass-fallback: #181e24;
+}
+:root[data-theme='autumn'] {
+  --primary: #79563e;
+  --on-primary: #ffffff;
+  --primary-border: #79563e;
+  --primary-hover: #6b4c36;
+  --primary-pressed: #5c412e;
+  --soft: #f0e7dc;
+  --soft-text: #5e412d;
+  --accent: #79563e;
+  --focus: #79563e;
+  --indicator: #79563e;
+  --paper: #fbf8f4;
+  --wash: #f4eee7;
+  --card: #ffffff;
+  --line: #e8dfd5;
+  --field: #968b81;
+  --ink: #1c1814;
+  --muted: #5d544b;
+  --viewer-accent: #d8bb9f;
+  --viewer-on-accent: #1c1814;
+  --viewer-glass: rgba(28, 24, 21, 0.6);
+  --viewer-glass-fallback: #221e1b;
+}
+:root[data-theme='winterA'] {
+  --primary: #e2edf4;
+  --on-primary: #243c52;
+  --primary-border: #7690a6;
+  --primary-hover: #d4e3ee;
+  --primary-pressed: #c4d7e5;
+  --soft: #e6eff6;
+  --soft-text: #29455e;
+  --accent: #385b79;
+  --focus: #385b79;
+  --indicator: #385b79;
+  --paper: #f8fafc;
+  --wash: #eef2f6;
+  --card: #ffffff;
+  --line: #dce3ea;
+  --field: #8392a0;
+  --ink: #161a1f;
+  --muted: #4e5a66;
+  --viewer-accent: #d5e5f1;
+  --viewer-on-accent: #14202c;
+  --viewer-glass: rgba(20, 25, 31, 0.6);
+  --viewer-glass-fallback: #1a1f25;
+}
+:root[data-theme='winterB'] {
+  --primary: #223b5b;
+  --on-primary: #ffffff;
+  --primary-border: #223b5b;
+  --primary-hover: #1b3150;
+  --primary-pressed: #152843;
+  --soft: #e8eef5;
+  --soft-text: #223b5b;
+  --accent: #2b4a70;
+  --focus: #2b4a70;
+  --indicator: #223b5b;
+  --paper: #f7f9fc;
+  --wash: #eef2f7;
+  --card: #ffffff;
+  --line: #dee4ec;
+  --field: #86909c;
+  --ink: #151a21;
+  --muted: #4e5866;
+  --viewer-accent: #c9ddea;
+  --viewer-on-accent: #152843;
+  --viewer-glass: rgba(18, 22, 30, 0.6);
+  --viewer-glass-fallback: #181c24;
+}
+
+.theme-picker {
+  display: grid;
+  gap: 10px;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.theme-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 74px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+  cursor: pointer;
+}
+.theme-option:has(input:checked) {
+  border-color: var(--indicator);
+  background: var(--soft);
+  box-shadow: inset 0 0 0 1px var(--indicator);
+}
+.theme-option:has(input:focus-visible) {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+.theme-option input {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  accent-color: var(--accent);
+}
+.theme-swatches {
+  display: flex;
+  gap: 3px;
+  flex: 0 0 auto;
+}
+.theme-swatch {
+  display: block;
+  width: 12px;
+  height: 36px;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 10%);
+}
+.theme-option-copy {
+  flex: 1;
+  min-width: 0;
+}
+.theme-option-title {
+  display: block;
+  font-weight: 650;
+}
+.theme-option-description {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+.theme-current {
+  color: var(--soft-text);
+  font-size: 0.8125rem;
+  white-space: nowrap;
+}
+.theme-settings {
+  max-width: 720px;
+  margin: 0 auto;
+}
+.theme-settings-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.theme-settings-note {
+  color: var(--muted);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+@media (max-width: 360px) {
+  .theme-current {
+    display: none;
+  }
+}

@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { UploadJobResponse } from '@/dto/media.dto';
 import { recoverUploads } from '@/services/media-client';
+import { currentSessionRevision } from '@/services/api-client';
 
 /** Processing belongs to the server. Only polling belongs to this mounted album. */
 export function useUploadJobs(
@@ -15,21 +16,28 @@ export function useUploadJobs(
   const [error, setError] = useState('');
   const [paused, setPaused] = useState(false);
   const [loading, setLoading] = useState(false);
-  const key = `${groupId}:${albumId}:${enabled}`;
+  const session = currentSessionRevision();
+  const key = `${session}:${groupId}:${albumId}:${enabled}`;
   const [jobScope, setJobScope] = useState('');
   const [refresh, setRefresh] = useState(0);
   const readyRef = useRef(onReady);
   const currentJobs = useRef<UploadJobResponse[]>([]);
+  const retainedScope = useRef('');
   useEffect(() => {
     readyRef.current = onReady;
   }, [onReady]);
   useEffect(() => {
     const controller = new AbortController();
-    currentJobs.current = [];
+    if (retainedScope.current !== key) {
+      currentJobs.current = [];
+      retainedScope.current = key;
+    }
     let timer: ReturnType<typeof setTimeout> | undefined;
     let busy = false,
       ticks = 0;
-    const known = new Map<string, string>();
+    const known = new Map(
+      currentJobs.current.map((job) => [job.photoId, job.status])
+    );
     const store = (next: UploadJobResponse[]) => {
       currentJobs.current = next;
       setJobs(next);
@@ -54,7 +62,8 @@ export function useUploadJobs(
           currentJobs.current,
           controller.signal
         );
-        if (controller.signal.aborted) return;
+        if (controller.signal.aborted || session !== currentSessionRevision())
+          return;
         const changed = values.some(
           (job) =>
             job.status === 'READY' && known.get(job.photoId) === 'PROCESSING'
@@ -64,11 +73,13 @@ export function useUploadJobs(
 
         setError('');
         if (changed) await readyRef.current();
-        if (controller.signal.aborted) return;
+        if (controller.signal.aborted || session !== currentSessionRevision())
+          return;
         // Also refresh on the first successful recovery: a job may have finished while away.
         if (ticks === 0 && values.some((job) => job.status === 'READY'))
           await readyRef.current();
-        if (controller.signal.aborted) return;
+        if (controller.signal.aborted || session !== currentSessionRevision())
+          return;
         ticks++;
         if (ticks >= 120) setPaused(true);
         else
@@ -79,7 +90,7 @@ export function useUploadJobs(
       } catch {
         if (!controller.signal.aborted) {
           setError(
-            '사진 처리 상태를 확인하지 못했어요. 연결을 확인하고 다시 불러와 주세요.'
+            '파일 처리 상태를 확인하지 못했어요. 연결을 확인하고 다시 불러와 주세요.'
           );
           setPaused(true);
         }
@@ -98,8 +109,9 @@ export function useUploadJobs(
       void run();
     };
     queueMicrotask(() => {
-      if (controller.signal.aborted) return;
-      setJobs([]);
+      if (controller.signal.aborted || session !== currentSessionRevision())
+        return;
+      setJobs(currentJobs.current);
       setError('');
       setPaused(false);
       setJobScope(key);
@@ -112,7 +124,7 @@ export function useUploadJobs(
       clearTimeout(timer);
       document.removeEventListener('visibilitychange', visible);
     };
-  }, [groupId, albumId, enabled, revision, refresh, key]);
+  }, [groupId, albumId, enabled, revision, refresh, key, session]);
   const current = jobScope === key;
   return {
     jobs: current ? jobs : [],
