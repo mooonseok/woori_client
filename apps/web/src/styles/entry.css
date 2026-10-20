@@ -357,15 +357,21 @@
 
 .auth-password-field {
   position: relative;
-  margin-top: 9px;
 }
 .auth-entry-panel .auth-password-field input {
   padding-right: 58px;
 }
+/* The 44px touch target sits inside the 48px field. It is centred without a
+   transform so the shared pressed scale cannot shift it. */
 .auth-entry-panel .auth-password-field button {
   position: absolute;
-  right: 3px;
-  top: 50%;
-  transform: translateY(-50%);
-  margin: 0;
+  inset: 0 2px 0 auto;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  margin: auto 0;
+}
+/* Keyboard focus ring drawn inside the button, so it stays within the field. */
+.auth-entry-panel .auth-password-field button:focus-visible {
+  outline-offset: -6px;
 }

@@ -1,5 +1,11 @@
 'use client';
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type FocusEvent,
+  type FormEvent,
+} from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { authDestination, safeReturnTo } from '@/utils/auth-navigation';
@@ -9,6 +15,11 @@ import { GuestHome } from '@/components/organisms/guest-home/guest-home';
 import { AuthDialog } from '@/components/organisms/auth-dialog/auth-dialog';
 import { beginAuthNavigation } from '@/services/auth-navigation-attempt';
 import { nicknameProblem, normalizeNickname } from '@/utils/nickname';
+import {
+  PASSWORD_MISMATCH,
+  confirmationProblem,
+  passwordsDiffer,
+} from '@/utils/password';
 import { AuthView } from './auth-view';
 export function AuthContainer({ signup = false }: { signup?: boolean }) {
   const auth = useAuth(),
@@ -18,8 +29,11 @@ export function AuthContainer({ signup = false }: { signup?: boolean }) {
   const [pending, setPending] = useState(false),
     [error, setError] = useState(''),
     [suspended, setSuspended] = useState(false),
-    [passwordVisible, setPasswordVisible] = useState(false);
+    [passwordVisible, setPasswordVisible] = useState(false),
+    [confirmation, setConfirmation] = useState<string | null>(null);
   const submitting = useRef(false);
+  // Once the confirmation field was left (or submitted), any difference shows.
+  const confirmationFinished = useRef(false);
   const mounted = useRef(true);
   useEffect(() => {
     mounted.current = true;
@@ -27,12 +41,44 @@ export function AuthContainer({ signup = false }: { signup?: boolean }) {
       mounted.current = false;
     };
   }, []);
+  function checkConfirmation(form: HTMLFormElement | null, finished = false) {
+    if (!form) return;
+    if (finished) confirmationFinished.current = true;
+    const value = (name: string) =>
+      (form.elements.namedItem(name) as HTMLInputElement | null)?.value ?? '';
+    setConfirmation(
+      confirmationProblem(
+        value('password'),
+        value('confirmPassword'),
+        confirmationFinished.current
+      )
+    );
+  }
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (submitting.current) return;
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    // Sign-up sends the password only when both fields match; nothing is
+    // requested and the member is taken to the confirmation field.
+    if (
+      signup &&
+      passwordsDiffer(
+        String(data.get('password')),
+        String(data.get('confirmPassword'))
+      )
+    ) {
+      confirmationFinished.current = true;
+      setConfirmation(PASSWORD_MISMATCH);
+      setError('');
+      setSuspended(false);
+      (
+        form.elements.namedItem('confirmPassword') as HTMLInputElement | null
+      )?.focus();
+      return;
+    }
     submitting.current = true;
     const navigation = beginAuthNavigation(window);
-    const data = new FormData(event.currentTarget);
     setPending(true);
     setError('');
     setSuspended(false);
@@ -89,6 +135,13 @@ export function AuthContainer({ signup = false }: { signup?: boolean }) {
           passwordVisible={passwordVisible}
           onPasswordVisibilityChange={() =>
             setPasswordVisible((current) => !current)
+          }
+          confirmationProblem={signup ? confirmation : null}
+          onPasswordInput={(event: FormEvent<HTMLInputElement>) =>
+            checkConfirmation(event.currentTarget.form)
+          }
+          onConfirmationBlur={(event: FocusEvent<HTMLInputElement>) =>
+            checkConfirmation(event.currentTarget.form, true)
           }
           invitation={next.startsWith('/invite')}
           pending={pending}
