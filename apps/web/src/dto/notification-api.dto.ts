@@ -7,7 +7,7 @@ export interface InboxNotification {
   kind: 'PHOTOS' | 'COMMENT' | 'PIN' | 'REACTION';
   groupId: string;
   groupName: string;
-  actor: { id: string; displayName: string };
+  actor: { id: string; displayName: string; nickname?: string };
   albumId: string;
   albumTitle: string;
   photoId: string;

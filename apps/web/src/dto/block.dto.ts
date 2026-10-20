@@ -2,6 +2,7 @@ import type { CursorPage } from './notice.dto.ts';
 export interface BlockedUser {
   userId: string;
   displayName: string;
+  nickname?: string;
   blockedAt: string;
 }
 export type BlockPage = CursorPage<BlockedUser>;

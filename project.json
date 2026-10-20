@@ -154,5 +154,17 @@
     "media": "Empty previews use icons; loading, transport failure/retry and unavailable states are distinct. Gallery and memories reconcile current previews against background list responses. Memory retry cancellation is independent from list refresh and remains bound to card/group/tab lifecycle.",
     "verification": "2026-10-20: final pnpm policy:quality passed: 16 policy tests and 289 functional tests (16 scripts, 192 web, 81 admin), lint, types, 340-source boundaries, format, web 29/admin 18 static pages. Chrome with synthetic HTTP API: public home, direct auth routes, login error, invite-aware header login/close, email-change inline-login token retention, memory thumbnail retry, 320/390px auth and 600/620/640px navigation verified. Previous-day synthetic browser checks covered owner/member isolation, invite verification/join, per-photo recovery and history departure during login. No production service acceptance is claimed.",
     "limits": "No production deployment, real mail/R2/DB acceptance or physical-device/screen-reader validation in this change. Nickname support is not included."
+  },
+  "memberNickname": {
+    "scope": "feature/member-nickname: signup nickname, public member labels and profile editing; server OpenAPI 0.27.0. Supersedes publicEntry historical nickname deferral.",
+    "policy": "Required client signup nickname, NFC+trim, 2–20 Unicode codepoints, letters/numbers/ASCII space/_/-, duplicates allowed. Existing members receive neutral temporary nicknames with nicknameNeedsUpdate guidance.",
+    "privacy": "Public member labels use nickname only; absent legacy nickname falls back to 회원. Recovery name stays in signup/recovery and self account settings; administrator identity management retains name and adds nickname.",
+    "verification": "2026-10-20: client policy:quality passed, 16 policy + 292 functional tests (16 scripts,195 web,81 admin), lint/types/boundaries/format and 29 web/18 admin static pages. Actual local API + isolated PostgreSQL Chrome checks: owner nickname edit, rejected one-character input, trim, name edit independent of nickname, peer roster sees changed nickname, legacy neutral name and guidance clears after edit, duplicate accepted; signup desktop and 375px emulation reviewed.",
+    "limits": "No production deployment, actual push delivery, real email or physical-device acceptance. Browser signup layout verified; signup persistence/validation verified via API and automated tests.",
+    "rollout": "Apply server migration, then API/worker, then client. Existing server signup without nickname remains compatible using a neutral temporary value."
+  },
+  "neutralProductCopy": {
+    "scope": "Group-based private sharing without family-only positioning; public UI, metadata, examples and generic push copy updated. Member-authored content and chosen nicknames are preserved.",
+    "verification": "2026-10-20: no family-specific Korean copy remains in web/admin runtime source, public assets or server source/contracts/schema; client 292 functional tests/types/format and server build plus 9 focused unit and 2 isolated PostgreSQL tests passed. Chrome desktop public home and signup copy/layout checked against the local API; mobile emulation was not rerun for this copy-only follow-up."
   }
 }

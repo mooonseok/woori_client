@@ -1,3 +1,4 @@
+import { memberNickname } from './nickname.ts';
 import type {
   InboxNotification,
   NotificationNavigation,
@@ -38,7 +39,7 @@ export function notificationTitle(
 const defaultNavigation = (kind: Kind): NotificationNavigation =>
   kind === 'PHOTOS' ? 'ALBUM' : kind === 'REACTION' ? 'PHOTO' : 'COMMENT';
 export function notificationModel(item: InboxNotification): NotificationItem {
-  const actor = item.actor.displayName;
+  const actor = memberNickname(item.actor);
   const count = Math.max(1, Math.floor(item.count) || 1);
   return {
     id: item.id,

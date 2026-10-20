@@ -59,7 +59,7 @@ export function GuideDemoView({ kind, step, phase }: Props) {
       )}
       {kind === 'pin' && step === 2 && phase >= 2 && (
         <Box className='guide-demo-bubble'>
-          <Text>엄마</Text>
+          <Text>윤슬</Text>
           <Text>함께여서 더 좋았던 날</Text>
         </Box>
       )}

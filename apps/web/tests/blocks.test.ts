@@ -67,6 +67,7 @@ test('block requests use PUT/DELETE on an encoded user id with the CSRF header a
         return Response.json({
           userId: other,
           displayName: '하은',
+          nickname: '하은',
           blockedAt: '2026-10-15T01:00:00Z',
         });
       return Response.json({ items: [], nextCursor: null });
@@ -76,6 +77,7 @@ test('block requests use PUT/DELETE on an encoded user id with the CSRF header a
   assert.deepEqual(blocked, {
     userId: other,
     displayName: '하은',
+    nickname: '하은',
     blockedAt: '2026-10-15T01:00:00Z',
   });
   assert.equal(await unblockUser('../v1/groups'), undefined);
@@ -131,13 +133,15 @@ test('block failures map to the real server state', async (t) => {
 
 test('uploader is mapped from MediaPhoto and unknown uploaders offer no report/block', () => {
   assert.deepEqual(
-    uploaderOf({ uploader: { id: other, displayName: '하은' } }),
+    uploaderOf({
+      uploader: { id: other, displayName: '하은', nickname: '하은' },
+    }),
     { authorId: other, authorName: '하은' }
   );
   // Memories carry it on `item.photo`, the same MediaPhoto shape.
   const memory = {
-    photo: { id: 'p', uploader: { id: me, displayName: '나' } },
-    uploader: { id: other, displayName: '무시' },
+    photo: { id: 'p', uploader: { id: me, displayName: '나', nickname: '나' } },
+    uploader: { id: other, displayName: '무시', nickname: '무시' },
   };
   assert.deepEqual(uploaderOf(memory.photo), {
     authorId: me,
@@ -145,9 +149,12 @@ test('uploader is mapped from MediaPhoto and unknown uploaders offer no report/b
   });
   assert.deepEqual(uploaderOf({}), { authorId: '' });
   assert.deepEqual(uploaderOf(null), { authorId: '' });
-  assert.deepEqual(uploaderOf({ uploader: { id: '', displayName: '?' } }), {
-    authorId: '',
-  });
+  assert.deepEqual(
+    uploaderOf({ uploader: { id: '', displayName: '?', nickname: '?' } }),
+    {
+      authorId: '',
+    }
+  );
   // Own photo, unknown uploader and signed-out viewer never get the actions.
   assert.equal(isOtherPerson(me, me), false);
   assert.equal(isOtherPerson('', me), false);
@@ -192,7 +199,7 @@ test('a block hides the person locally until refetch and closes a viewer showing
       kind: 'COMMENT',
       groupId: 'g',
       groupName: '가족',
-      actor: { id: other, displayName: '하은' },
+      actor: { id: other, displayName: '하은', nickname: '하은' },
       albumId: 'al',
       albumTitle: '여름',
       photoId: 'p',
@@ -306,7 +313,12 @@ test('a committed block is announced even after the caller unmounted, but not ac
     if (switchAccount) advanceSessionRevision();
     return init?.method === 'DELETE'
       ? new Response(null, { status: 204 })
-      : Response.json({ userId: other, displayName: '하은', blockedAt: 'x' });
+      : Response.json({
+          userId: other,
+          displayName: '하은',
+          nickname: '하은',
+          blockedAt: 'x',
+        });
   });
   assert.equal(await setBlocked(other, true), true);
   assert.equal(await setBlocked(other, false), true);
@@ -329,12 +341,14 @@ test('a roster refresh after a block keeps the rows until the new page replaces 
   const a = {
     userId: 'a',
     displayName: 'A',
+    nickname: 'A',
     role: 'OWNER',
     joinedAt: null,
   } as const;
   const b = {
     userId: 'b',
     displayName: 'B',
+    nickname: 'B',
     role: 'MEMBER',
     joinedAt: null,
   } as const;
@@ -353,7 +367,7 @@ test('notification-opened viewer maps its uploader and closes when that uploader
     albumId: 'al',
     photoId: 'p',
     commentId: null,
-    uploader: { id: other, displayName: '하은' },
+    uploader: { id: other, displayName: '하은', nickname: '하은' },
   };
   assert.deepEqual(uploaderOf(target), { authorId: other, authorName: '하은' });
   assert.equal(

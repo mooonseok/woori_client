@@ -12,7 +12,7 @@ export const notificationRows: NotificationSettingRow[] = [
   {
     key: 'photos',
     label: '새 사진',
-    description: '가족이 앨범에 올린 새 사진 소식이에요.',
+    description: '그룹 구성원이 앨범에 올린 새 사진·동영상 소식이에요.',
   },
   {
     key: 'comments',
@@ -33,7 +33,7 @@ export const notificationQuietRow: NotificationSettingRow = {
 export const notificationPreviewRow: NotificationSettingRow = {
   key: 'preview',
   label: '잠금 화면에 내용 표시',
-  description: '켜면 이름과 소식 내용이 다른 사람에게 보일 수 있어요.',
+  description: '켜면 닉네임과 소식 내용이 다른 사람에게 보일 수 있어요.',
 };
 export function createNotificationFixtures(now: number): NotificationItem[] {
   return [
@@ -43,7 +43,7 @@ export function createNotificationFixtures(now: number): NotificationItem[] {
       type: 'photos',
       photoId: 'p289',
       groupId: 'g1',
-      groupName: '윤슬네 가족',
+      groupName: '우리의 순간들',
       albumId: 'a1',
       navigation: 'ALBUM',
       actorName: '하은',
@@ -58,7 +58,7 @@ export function createNotificationFixtures(now: number): NotificationItem[] {
       type: 'comment',
       photoId: 'p129',
       groupId: 'g1',
-      groupName: '윤슬네 가족',
+      groupName: '우리의 순간들',
       albumId: 'a1',
       navigation: 'COMMENT',
       actorName: '성호',
@@ -73,7 +73,7 @@ export function createNotificationFixtures(now: number): NotificationItem[] {
       type: 'reaction',
       photoId: 'p129',
       groupId: 'g1',
-      groupName: '윤슬네 가족',
+      groupName: '우리의 순간들',
       albumId: 'a1',
       navigation: 'PHOTO',
       actorName: '정미',

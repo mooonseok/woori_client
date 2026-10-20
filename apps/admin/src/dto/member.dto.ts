@@ -4,6 +4,7 @@ export interface AdminMemberSummary {
   id: string;
   username: string;
   displayName: string;
+  nickname?: string;
   // "ab***@example.com"; null for deleted accounts. Never the full address.
   emailMasked: string | null;
   status: AdminMemberStatus;

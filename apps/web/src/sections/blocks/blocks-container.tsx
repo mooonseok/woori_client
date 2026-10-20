@@ -1,4 +1,5 @@
 'use client';
+import { memberNickname } from '@/utils/nickname';
 import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
@@ -40,7 +41,7 @@ function BlockList() {
         rows={list.items.map((block) => ({
           id: block.userId,
           buttonId: buttonId(block.userId),
-          name: block.displayName,
+          name: memberNickname(block),
           date: kstDateLabel(block.blockedAt),
           dateTime: block.blockedAt,
         }))}
@@ -63,7 +64,7 @@ function BlockList() {
       {unblocking && (
         <BlockConfirm
           key={unblocking.userId}
-          person={{ id: unblocking.userId, name: unblocking.displayName }}
+          person={{ id: unblocking.userId, name: memberNickname(unblocking) }}
           blocking={false}
           returnFocus={trigger}
           onDone={() => {

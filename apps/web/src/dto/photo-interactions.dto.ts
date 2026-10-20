@@ -2,7 +2,7 @@ import type { PhotoComment } from './album.dto';
 export interface CommentResponse {
   id: string;
   photoId: string;
-  author: { id: string; displayName: string };
+  author: { id: string; displayName: string; nickname?: string };
   body: string;
   kind: 'GENERAL' | 'PIN';
   x: number | null;

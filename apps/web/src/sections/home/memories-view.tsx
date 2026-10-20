@@ -65,7 +65,7 @@ export function MemoriesView(props: Props) {
       </Box>
       <Text className='muted'>
         {kind === 'hidden'
-          ? '나에게만 숨겨진 사진이에요. 앨범과 다른 가족의 추억에는 영향을 주지 않아요.'
+          ? '나에게만 숨겨진 사진이에요. 앨범과 다른 사람의 추억에는 영향을 주지 않아요.'
           : kind === 'today'
             ? '지난해와 그 이전, 같은 날에 남긴 사진이에요.'
             : '지난해와 그 이전의 같은 달 사진이에요. 오늘의 추억은 따로 모았어요.'}

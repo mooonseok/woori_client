@@ -51,7 +51,7 @@ export function RecoveryView({
           <Text role='status' className='muted'>
             {mode === 'reset'
               ? '기존 기기의 로그인이 해제됐어요. 새 비밀번호로 다시 로그인해 주세요. 알림도 기기마다 다시 켜 주세요.'
-              : '입력한 정보와 일치하는 계정이 있으면 이메일로 안내해 드려요. 스팸함도 확인해 주세요. 메일이 오지 않으면 현재 프로필 이름과 이메일을 확인하고 잠시 후 다시 요청해 주세요.'}
+              : '입력한 정보와 일치하는 계정이 있으면 이메일로 안내해 드려요. 스팸함도 확인해 주세요. 메일이 오지 않으면 계정에 등록한 이름과 이메일을 확인하고 잠시 후 다시 요청해 주세요.'}
           </Text>
           {mode !== 'reset' && (
             <Button className='text-button' onClick={onRetry}>
@@ -72,7 +72,7 @@ export function RecoveryView({
           <Text className='muted'>
             {mode === 'reset'
               ? '12자 이상으로 정해 주세요. 저장하면 기존 기기의 로그인도 해제돼요.'
-              : '현재 프로필 이름과 가입한 이메일을 입력해 주세요.'}
+              : '계정에 등록한 이름과 가입한 이메일을 입력해 주세요.'}
           </Text>
           <Form className='stack-form' onSubmit={onSubmit} aria-busy={pending}>
             {mode === 'reset' ? (

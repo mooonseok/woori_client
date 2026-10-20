@@ -2,7 +2,7 @@
   "groups": [
     {
       "id": "g1",
-      "name": "윤슬네 가족",
+      "name": "우리의 순간들",
       "members": 7
     },
     {
@@ -51,7 +51,7 @@
     {
       "id": "a5",
       "groupId": "g1",
-      "title": "할머니 팔순 잔치",
+      "title": "함께한 생일 파티",
       "startDate": "2026-03-01",
       "endDate": "2026-03-01",
       "coverId": "p156",
@@ -60,7 +60,7 @@
     {
       "id": "a6",
       "groupId": "g1",
-      "title": "추석 연휴, 할머니 댁",
+      "title": "가을 연휴 모임",
       "startDate": "2026-09-24",
       "endDate": "2026-09-26",
       "coverId": "p106",
@@ -194,7 +194,7 @@
       "src": "/demo/photos/p156.jpg",
       "width": 934,
       "height": 1400,
-      "alt": "할머니 팔순 잔치의 사진",
+      "alt": "함께한 생일 파티의 사진",
       "capturedAt": "2026-03-01",
       "authorId": "family"
     },
@@ -204,7 +204,7 @@
       "src": "/demo/photos/p842.jpg",
       "width": 1049,
       "height": 1400,
-      "alt": "할머니 팔순 잔치의 사진",
+      "alt": "함께한 생일 파티의 사진",
       "capturedAt": "2026-03-01",
       "authorId": "family"
     },
@@ -214,7 +214,7 @@
       "src": "/demo/photos/p845.jpg",
       "width": 1400,
       "height": 930,
-      "alt": "할머니 팔순 잔치의 사진",
+      "alt": "함께한 생일 파티의 사진",
       "capturedAt": "2026-03-01",
       "authorId": "family"
     },
@@ -224,7 +224,7 @@
       "src": "/demo/photos/p106.jpg",
       "width": 1400,
       "height": 933,
-      "alt": "추석 연휴, 할머니 댁의 사진",
+      "alt": "가을 연휴 모임의 사진",
       "capturedAt": "2026-09-24",
       "authorId": "family"
     },
@@ -234,7 +234,7 @@
       "src": "/demo/photos/p117.jpg",
       "width": 1400,
       "height": 928,
-      "alt": "추석 연휴, 할머니 댁의 사진",
+      "alt": "가을 연휴 모임의 사진",
       "capturedAt": "2026-09-25",
       "authorId": "family"
     },
@@ -244,7 +244,7 @@
       "src": "/demo/photos/p30.jpg",
       "width": 1400,
       "height": 985,
-      "alt": "추석 연휴, 할머니 댁의 사진",
+      "alt": "가을 연휴 모임의 사진",
       "capturedAt": "2026-09-26",
       "authorId": "family"
     }

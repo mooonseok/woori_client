@@ -8,6 +8,7 @@ import { loginFailure } from '@/utils/auth-errors';
 import { GuestHome } from '@/components/organisms/guest-home/guest-home';
 import { AuthDialog } from '@/components/organisms/auth-dialog/auth-dialog';
 import { beginAuthNavigation } from '@/services/auth-navigation-attempt';
+import { nicknameProblem, normalizeNickname } from '@/utils/nickname';
 import { AuthView } from './auth-view';
 export function AuthContainer({ signup = false }: { signup?: boolean }) {
   const auth = useAuth(),
@@ -41,9 +42,15 @@ export function AuthContainer({ signup = false }: { signup?: boolean }) {
         username: String(data.get('username')).trim(),
         password: String(data.get('password')),
       };
+      const nickname = normalizeNickname(String(data.get('nickname') ?? ''));
+      if (signup) {
+        const problem = nicknameProblem(nickname);
+        if (problem) throw new Error(problem);
+      }
       const user = signup
         ? await auth.signup({
             ...credentials,
+            nickname,
             displayName: String(data.get('displayName')).trim(),
             email: String(data.get('email')).trim(),
           })

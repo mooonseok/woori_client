@@ -1,4 +1,5 @@
 'use client';
+import { memberNickname } from '@/utils/nickname';
 import { useEffect, useState, type ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -95,7 +96,7 @@ function Shell({ children }: { children: ReactNode }) {
           <Details className='account-menu'>
             <Summary aria-label='내 계정 메뉴'>
               <Icon name='user' size={18} />
-              <Span>{user?.displayName} 님</Span>
+              <Span>{memberNickname(user)} 님</Span>
               <Icon name='chevron-down' size={16} />
             </Summary>
             <Box className='account-menu-items'>

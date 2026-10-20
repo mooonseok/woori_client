@@ -19,9 +19,12 @@ export function resetPassword(input: ResetPasswordInput, signal?: AbortSignal) {
     signal,
   });
 }
-export function updateProfile(displayName: string) {
+export function updateProfile(profile: {
+  displayName?: string;
+  nickname?: string;
+}) {
   return apiRequest<{ user: AuthUser }>('/v1/auth/profile', {
     method: 'PATCH',
-    body: JSON.stringify({ displayName }),
+    body: JSON.stringify(profile),
   });
 }

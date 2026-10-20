@@ -22,7 +22,7 @@ const bundle = (patch: Partial<InboxNotification> = {}): InboxNotification => ({
   kind: 'PHOTOS',
   groupId: 'group',
   groupName: '우리 가족',
-  actor: { id: 'member', displayName: '하은' },
+  actor: { id: 'member', displayName: '하은', nickname: '하은' },
   albumId: 'album',
   albumTitle: '제주 여행',
   photoId: 'photo',

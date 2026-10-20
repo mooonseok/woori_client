@@ -7,6 +7,7 @@ import {
   Label,
   Button,
 } from '@/components/atoms/ui';
+import { NICKNAME_HELP } from '@/utils/nickname';
 import { Icon } from '@/components/atoms/icon';
 import { Link } from '@/components/molecules/link';
 import type { FormEvent } from 'react';
@@ -48,8 +49,8 @@ export function AuthView({
       </Heading>
       <Text className='muted'>
         {signup
-          ? '간단한 정보로 가족의 사진 공간을 만들어요.'
-          : '가족의 새로운 순간이 기다리고 있어요.'}
+          ? '간단한 정보로 우리를 시작해 보세요.'
+          : '함께 나눈 순간을 다시 만나 보세요.'}
       </Text>
       {invitation && (
         <Text className='notice-panel'>
@@ -121,11 +122,30 @@ export function AuthView({
               <Input
                 name='displayName'
                 autoComplete='name'
+                aria-describedby='signup-name-help'
                 required
                 maxLength={80}
                 disabled={pending}
               />
             </Label>
+            <Text id='signup-name-help' className='field-help'>
+              이름은 아이디·비밀번호 찾기에 사용해요. 다른 사람에게는 닉네임이
+              보여요.
+            </Text>
+            <Label>
+              닉네임
+              <Input
+                name='nickname'
+                autoComplete='nickname'
+                required
+                maxLength={80}
+                aria-describedby='signup-nickname-help'
+                disabled={pending}
+              />
+            </Label>
+            <Text id='signup-nickname-help' className='field-help'>
+              {NICKNAME_HELP}
+            </Text>
             <Label>
               이메일
               <Input

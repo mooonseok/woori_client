@@ -111,6 +111,7 @@ function Member({
     <MemberView
       listHref={ROUTES.MEMBERS}
       name={member.displayName || '이름 없음'}
+      nickname={member.nickname || '미등록'}
       username={member.username ?? ''}
       status={member.status}
       statusLabel={labelOf(MEMBER_STATUS_LABELS, member.status)}

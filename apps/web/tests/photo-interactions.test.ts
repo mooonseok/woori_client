@@ -20,7 +20,7 @@ function setup(t: TestContext, fetcher: typeof fetch) {
 const comment: CommentResponse = {
   id: 'comment',
   photoId: 'photo',
-  author: { id: 'member', displayName: '구성원' },
+  author: { id: 'member', displayName: '구성원', nickname: '구성원' },
   body: '여기!',
   kind: 'PIN',
   x: 0.125,

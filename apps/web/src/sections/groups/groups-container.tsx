@@ -1,4 +1,5 @@
 'use client';
+import { memberNickname } from '@/utils/nickname';
 import { useRef, useState } from 'react';
 import { useGroupManagement } from '@/hooks/use-group-management';
 import { useGroupLifecycle } from '@/hooks/use-group-lifecycle';
@@ -37,9 +38,9 @@ function GroupContent() {
       : action?.kind === 'delete'
         ? '그룹을 삭제할까요?'
         : action?.kind === 'remove'
-          ? `${action.member.displayName} 님을 내보낼까요?`
+          ? `${memberNickname(action.member)} 님을 내보낼까요?`
           : action?.kind === 'transfer'
-            ? `${action.member.displayName} 님에게 그룹장을 넘길까요?`
+            ? `${memberNickname(action.member)} 님에게 그룹장을 넘길까요?`
             : '';
   const description =
     action?.kind === 'delete'
@@ -102,7 +103,7 @@ function GroupContent() {
             targetType: 'USER',
             targetId: reporting.userId,
             groupId: group.id,
-            name: `${reporting.displayName}님`,
+            name: `${memberNickname(reporting)}님`,
           }}
           returnFocus={trigger}
           fallbackFocus={rosterFallback(reporting.userId)}
@@ -111,7 +112,7 @@ function GroupContent() {
           followUp={(_, close) =>
             reporting.blockedByMe ? null : (
               <BlockOffer
-                name={reporting.displayName}
+                name={memberNickname(reporting)}
                 onBlock={() => {
                   close();
                   setBlocking({ member: reporting, blocked: true });
@@ -126,7 +127,7 @@ function GroupContent() {
           key={`${blocking.member.userId}:${blocking.blocked}`}
           person={{
             id: blocking.member.userId,
-            name: blocking.member.displayName,
+            name: memberNickname(blocking.member),
           }}
           blocking={blocking.blocked}
           returnFocus={trigger}

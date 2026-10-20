@@ -27,7 +27,7 @@ const row: InboxNotification = {
   kind: 'PIN',
   groupId: 'group',
   groupName: '가족',
-  actor: { id: 'member', displayName: '가족' },
+  actor: { id: 'member', displayName: '가족', nickname: '가족' },
   albumId: 'album',
   albumTitle: '여름',
   photoId: 'photo',
