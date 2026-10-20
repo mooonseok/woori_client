@@ -7,10 +7,14 @@ import {
   Label,
   Button,
 } from '@/components/atoms/ui';
+import { Icon } from '@/components/atoms/icon';
 import { Link } from '@/components/molecules/link';
 import type { FormEvent } from 'react';
 interface Props {
   signup: boolean;
+  passwordVisible: boolean;
+  onPasswordVisibilityChange: () => void;
+  invitation: boolean;
   pending: boolean;
   error: string;
   // 403 ACCOUNT_SUSPENDED: shown as its own notice, not a field error.
@@ -24,6 +28,9 @@ interface Props {
 }
 export function AuthView({
   signup,
+  passwordVisible,
+  onPasswordVisibilityChange,
+  invitation,
   pending,
   error,
   suspended,
@@ -35,16 +42,20 @@ export function AuthView({
   onSubmit,
 }: Props) {
   return (
-    <Box className='auth-panel'>
-      <Text className='eyebrow'>WOORI</Text>
-      <Heading>
-        {signup ? '우리와 함께 시작해요' : '다시 만나 반가워요'}
+    <Box className='auth-panel auth-entry-panel'>
+      <Heading id='auth-entry-title'>
+        {signup ? '우리의 첫 순간' : '다시 만나 반가워요'}
       </Heading>
       <Text className='muted'>
         {signup
           ? '간단한 정보로 가족의 사진 공간을 만들어요.'
           : '가족의 새로운 순간이 기다리고 있어요.'}
       </Text>
+      {invitation && (
+        <Text className='notice-panel'>
+          로그인과 이메일 확인을 마치면 초대받은 그룹으로 이어져요.
+        </Text>
+      )}
       {!signup && passwordReset && (
         <Text role='status' className='notice-panel'>
           비밀번호를 바꿨어요. 새 비밀번호로 로그인해 주세요. 기존 기기의
@@ -74,19 +85,29 @@ export function AuthView({
           />
         </Label>
         <Box>
-          <Label>
-            비밀번호
+          <Label htmlFor='auth-password'>비밀번호</Label>
+          <Box className='auth-password-field'>
             <Input
+              id='auth-password'
               name='password'
               aria-describedby={signup ? 'signup-password-help' : undefined}
-              type='password'
+              type={passwordVisible ? 'text' : 'password'}
               autoComplete={signup ? 'new-password' : 'current-password'}
               required
               minLength={signup ? 12 : 1}
               maxLength={128}
               disabled={pending}
             />
-          </Label>
+            <Button
+              variant='icon'
+              aria-label={passwordVisible ? '비밀번호 숨기기' : '비밀번호 보기'}
+              aria-pressed={passwordVisible}
+              disabled={pending}
+              onClick={onPasswordVisibilityChange}
+            >
+              <Icon name={passwordVisible ? 'eye-off' : 'eye'} size={20} />
+            </Button>
+          </Box>
           {signup && (
             <Text id='signup-password-help' className='field-help'>
               12자 이상으로 입력해 주세요.
@@ -132,11 +153,11 @@ export function AuthView({
               {error}
             </Text>
           ))}
-        <Button type='submit' className='primary-button' disabled={pending}>
+        <Button type='submit' variant='primary' disabled={pending}>
           {pending ? '잠시만 기다려 주세요…' : signup ? '회원가입' : '로그인'}
         </Button>
       </Form>
-      {!signup && (
+      {!signup && !pending && (
         <Box className='inline-actions'>
           <Link href={`/find-id?next=${encodeURIComponent(recoveryNext)}`}>
             아이디 찾기
@@ -148,16 +169,18 @@ export function AuthView({
           </Link>
         </Box>
       )}
-      {signup && privacyHref && (
+      {signup && privacyHref && !pending && (
         <Text className='field-help auth-privacy'>
           회원 정보와 사진을 다루는 방식은{' '}
           <Link href={privacyHref}>개인정보 안내</Link>에서 확인할 수 있어요.
         </Text>
       )}
-      <Text className='auth-alternate'>
-        {signup ? '이미 계정이 있나요?' : '처음 오셨나요?'}{' '}
-        <Link href={alternate}>{signup ? '로그인' : '회원가입'}</Link>
-      </Text>
+      {!pending && (
+        <Text className='auth-alternate'>
+          {signup ? '이미 계정이 있나요?' : '처음 오셨나요?'}{' '}
+          <Link href={alternate}>{signup ? '로그인' : '회원가입'}</Link>
+        </Text>
+      )}
     </Box>
   );
 }

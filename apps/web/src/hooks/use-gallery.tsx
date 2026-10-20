@@ -9,6 +9,8 @@ type GalleryStore = Omit<
   'mode' | 'createAlbum' | 'setGroupId'
 > & {
   mode: 'demo' | 'live';
+  retryPreview?: (photo: import('@/dto/album.dto').Photo) => Promise<void>;
+  markPreviewError?: (photo: import('@/dto/album.dto').Photo) => void;
   forgetGroup?: (id: string) => void;
   openMemoryPhoto?: (
     photo: import('@/dto/media.dto').PhotoResponse,

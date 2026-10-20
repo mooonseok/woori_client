@@ -11,6 +11,7 @@ textarea {
   caret-color: var(--accent);
 }
 .ui-button,
+.primary-button,
 .secondary-button {
   display: inline-flex;
   align-items: center;
@@ -31,16 +32,19 @@ textarea {
     transform 140ms var(--ease);
 }
 .primary,
+.primary-button,
 .ui-button--primary {
   background: var(--primary);
   color: var(--on-primary);
   border: 1px solid var(--primary-border);
 }
 .primary:hover,
+.primary-button:hover,
 .ui-button--primary:hover {
   background: var(--primary-hover);
 }
 .primary:active,
+.primary-button:active,
 .ui-button--primary:active {
   background: var(--primary-pressed);
 }

@@ -38,7 +38,7 @@ test('normalized pin coordinates reject non-finite and out-of-image values', () 
   assert.equal(validPoint({ x: 0, y: 1 }), true);
   assert.equal(validPoint(undefined), true);
 });
-test('album period shows a range, one date for a single day, and "사진 없음" without photos', async () => {
+test('album period shows a range, one date for a single day, and "사진 0장" without photos', async () => {
   const { albumMeta, albumPeriod } = await import('../src/lib/gallery.ts');
   const createdAt = '2026-10-01T03:00:00.000Z';
   assert.equal(
@@ -60,7 +60,7 @@ test('album period shows a range, one date for a single day, and "사진 없음"
   );
   assert.equal(
     albumMeta({ startDate: null, endDate: null, createdAt }, 0),
-    '사진 없음'
+    '사진 0장'
   );
   assert.equal(
     albumMeta(

@@ -76,3 +76,11 @@ export function authDestination(
 ) {
   return `${path}?next=${encodeURIComponent(safeReturnTo(next))}`;
 }
+
+// The header must retain the same allowlisted destination as the page's own
+// login action, including invitation codes and query-only navigation updates.
+export function entryLoginDestination(path: string, query: string) {
+  const current = safeReturnTo(`${path}${query ? `?${query}` : ''}`);
+  const inherited = safeReturnTo(new URLSearchParams(query).get('next'));
+  return authDestination('/login', current === '/' ? inherited : current);
+}

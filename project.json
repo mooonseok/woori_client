@@ -30,7 +30,9 @@
     "authenticated password/email changes with current-password reauthentication, single-use account-bound email confirmation and all-session/push revocation",
     "member account deletion with ownership preflight, password reauthentication, atomic identity/private-record erasure, shared-content retention and fresh-signup isolation",
     "read-only published notices; member inquiries with own list/detail and exact rolling 24-hour limit; operator-only photo/comment/member reports with own status list",
-    "personal one-directional user blocks hiding blocked members' photos, comments, reactions, memories and notifications/push for the blocker only; block-time notification erasure; roster blockedByMe and photo uploader exposure"
+    "personal one-directional user blocks hiding blocked members' photos, comments, reactions, memories and notifications/push for the blocker only; block-time notification erasure; roster blockedByMe and photo uploader exposure",
+    "public guest home, route-preserving desktop auth dialog/mobile full-screen entry, header account actions and versioned logo/PWA/push assets",
+    "icon-based media placeholders with per-thumbnail error/retry and refresh-safe gallery/memory Blob lifecycle"
   ],
   "notImplemented": [
     "native token authentication",
@@ -144,5 +146,13 @@
     "deploy": "pnpm pages:web / pages:admin with per-page sha256 meta CSP, _headers security headers, WOORI_R2_ORIGIN, woori.stream origin allowlist; see SETUP.md.",
     "videoSecurityFollowup": "fix/production-readiness: API streams replace R2 GET links; membership/session/block checks for each request; previously issued R2 URLs can survive up to their original 600-second expiry. In-flight/downloaded bytes cannot be recalled. New API requires matching updated web/admin; refresh stale clients after coordinated rollout.",
     "readinessVerification": "2026-10-16: client 261 functional tests, 321-file boundaries, types/lint and plain-copy production Pages builds (29 web/18 admin) passed. Baseline worker linux/arm64 image/Debian ffmpeg synthetic conversion passed. Actual development R2 synthetic full/range byte checks, abort and own-object cleanup passed. Chrome UI validation blocked with ERR_BLOCKED_BY_CLIENT (also user direct navigation); no production/physical-device acceptance claimed. Server final build/typecheck, 139 unit and 199 isolated PostgreSQL integration tests passed. Existing local/production databases and grants were not modified."
+  },
+  "publicEntry": {
+    "scope": "feature/public-entry-design: phase 1 public entry and shared media states; nickname signup/profile API and DB remain a separate next phase.",
+    "auth": "Existing login/signup/recovery/verification routes, HttpOnly sessions and safe next allowlist preserved. Header login keeps invitation queries; closing returns to the invitation. Pending forms cannot be closed by in-app controls; browser history departures suppress late forced navigation.",
+    "privacy": "Guest images are explicitly labelled public illustration assets. No private content or demo fallback appears for anonymous/error states. Existing account-keyed providers and upload scope remain.",
+    "media": "Empty previews use icons; loading, transport failure/retry and unavailable states are distinct. Gallery and memories reconcile current previews against background list responses. Memory retry cancellation is independent from list refresh and remains bound to card/group/tab lifecycle.",
+    "verification": "2026-10-20: final pnpm policy:quality passed: 16 policy tests and 289 functional tests (16 scripts, 192 web, 81 admin), lint, types, 340-source boundaries, format, web 29/admin 18 static pages. Chrome with synthetic HTTP API: public home, direct auth routes, login error, invite-aware header login/close, email-change inline-login token retention, memory thumbnail retry, 320/390px auth and 600/620/640px navigation verified. Previous-day synthetic browser checks covered owner/member isolation, invite verification/join, per-photo recovery and history departure during login. No production service acceptance is claimed.",
+    "limits": "No production deployment, real mail/R2/DB acceptance or physical-device/screen-reader validation in this change. Nickname support is not included."
   }
 }

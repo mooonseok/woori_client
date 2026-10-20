@@ -55,7 +55,7 @@ export function albumPeriod({ startDate, endDate, createdAt }: AlbumDates) {
     ? displayDate(start)
     : `${displayDate(start)} ~ ${displayDate(end)}`;
 }
-/** Album card/header line: period and media count, or "사진 없음". */
+/** Album card/header line: period and media count, or "사진 0장". */
 export function albumMeta(
   album: AlbumDates & Pick<Album, 'videoCount'>,
   count: number
@@ -63,7 +63,7 @@ export function albumMeta(
   const period = albumPeriod(album);
   return period
     ? `${period} · ${mediaCountLabel(count, album.videoCount)}`
-    : '사진 없음';
+    : '사진 0장';
 }
 /**
  * An album cover loaded on its own (thumbnail, natural size). OpenAPI 0.24.0

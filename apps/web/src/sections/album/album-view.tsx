@@ -1,3 +1,4 @@
+import { MediaPreview, MediaRetry } from '@/components/molecules/media-preview';
 import type { RefObject } from 'react';
 import type { Album, Photo } from '@/dto/album.dto';
 import {
@@ -7,7 +8,6 @@ import {
   Text,
   Button,
   Input,
-  Image,
   Ul,
   Li,
 } from '@/components/atoms/ui';
@@ -20,6 +20,8 @@ import { AlbumMeta } from '@/components/molecules/album-meta';
 import { MediaBadge } from '@/components/molecules/media-badge';
 import { formatDuration } from '@/utils/media';
 interface Props {
+  onRetryPreview?: (photo: Photo) => void;
+  onImageError?: (photo: Photo) => void;
   videoIds?: string[];
   // The album may be on a list page not loaded yet (live paging).
   seeking?: boolean;
@@ -49,6 +51,8 @@ interface Props {
   onBack: () => void;
 }
 export function AlbumView({
+  onRetryPreview,
+  onImageError,
   videoIds,
   seeking = false,
   seekError = '',
@@ -205,21 +209,29 @@ export function AlbumView({
       {photos.length ? (
         <Box className='photo-grid'>
           {photos.map((p, i) => (
-            <Button
-              className='photo-tile'
-              key={p.id}
-              onClick={() => onPhoto(p.id)}
-              aria-label={
-                p.mediaKind === 'VIDEO'
-                  ? `${i + 1}번째 동영상${p.durationMs ? `, 길이 ${formatDuration(p.durationMs)}` : ''}, 크게 보기`
-                  : `${i + 1}번째 사진 크게 보기`
-              }
-            >
-              <Image src={p.src} alt={p.alt} loading='lazy' />
-              {p.mediaKind === 'VIDEO' && (
-                <MediaBadge durationMs={p.durationMs} />
-              )}
-            </Button>
+            <Box className='media-card-frame' key={p.id}>
+              <Button
+                className='photo-tile'
+                onClick={() => onPhoto(p.id)}
+                aria-label={
+                  p.mediaKind === 'VIDEO'
+                    ? `${i + 1}번째 동영상${p.durationMs ? `, 길이 ${formatDuration(p.durationMs)}` : ''}, 크게 보기`
+                    : `${i + 1}번째 사진 크게 보기`
+                }
+              >
+                <MediaPreview
+                  src={p.src}
+                  status={p.previewStatus}
+                  video={p.mediaKind === 'VIDEO'}
+                  alt={p.alt}
+                  onError={() => onImageError?.(p)}
+                />
+                {p.mediaKind === 'VIDEO' && (
+                  <MediaBadge durationMs={p.durationMs} />
+                )}
+              </Button>
+              <MediaRetry photo={p} onRetry={onRetryPreview} />
+            </Box>
           ))}
         </Box>
       ) : !loading && !error ? (

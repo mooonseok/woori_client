@@ -1,12 +1,6 @@
+import { MediaPreview, MediaRetry } from '@/components/molecules/media-preview';
 import type { ReactNode } from 'react';
-import {
-  Box,
-  Section,
-  Header,
-  Heading,
-  Button,
-  Image,
-} from '@/components/atoms/ui';
+import { Box, Section, Header, Heading, Button } from '@/components/atoms/ui';
 import { Icon } from '@/components/atoms/icon';
 import { AlbumCard } from '@/components/molecules/album-card';
 import { EmptyState } from '@/components/molecules/empty-state';
@@ -15,6 +9,8 @@ import { AlbumMeta } from '@/components/molecules/album-meta';
 import { MediaBadge } from '@/components/molecules/media-badge';
 import { mediaCountLabel } from '@/utils/media';
 interface Props {
+  onRetryPreview?: (photo: Photo) => void;
+  onImageError?: (photo: Photo) => void;
   demo?: boolean;
   memories?: ReactNode;
   albums: Album[];
@@ -26,6 +22,8 @@ interface Props {
   onAlbums: () => void;
 }
 export function HomeView({
+  onRetryPreview,
+  onImageError,
   memories,
   albums,
   photos,
@@ -57,20 +55,30 @@ export function HomeView({
       {memories ||
         (hero && (
           <Section className='memory-section'>
-            <Button
-              className='hero-photo'
-              onClick={() => onPhoto(hero.id)}
-              aria-label={
-                hero.mediaKind === 'VIDEO'
-                  ? '추억 동영상 크게 보기'
-                  : '추억 사진 크게 보기'
-              }
-            >
-              <Image src={hero.src} alt={hero.alt} fetchPriority='high' />
-              {hero.mediaKind === 'VIDEO' && (
-                <MediaBadge durationMs={hero.durationMs} />
-              )}
-            </Button>
+            <Box className='media-card-frame'>
+              <Button
+                className='hero-photo'
+                onClick={() => onPhoto(hero.id)}
+                aria-label={
+                  hero.mediaKind === 'VIDEO'
+                    ? '추억 동영상 크게 보기'
+                    : '추억 사진 크게 보기'
+                }
+              >
+                <MediaPreview
+                  src={hero.src}
+                  status={hero.previewStatus}
+                  video={hero.mediaKind === 'VIDEO'}
+                  alt={hero.alt}
+                  onError={() => onImageError?.(hero)}
+                  priority
+                />
+                {hero.mediaKind === 'VIDEO' && (
+                  <MediaBadge durationMs={hero.durationMs} />
+                )}
+              </Button>
+              <MediaRetry photo={hero} onRetry={onRetryPreview} />
+            </Box>
             <Box className='memory-caption'>
               <Heading className='memory-title'>{albums[0].title}</Heading>
               <AlbumMeta className='muted' album={albums[0]} count={count} />
@@ -101,17 +109,24 @@ export function HomeView({
               )
               .slice(0, 6)
               .map((photo) => (
-                <Button
-                  className='photo-tile'
-                  key={photo.id}
-                  onClick={() => onPhoto(photo.id)}
-                  aria-label={`${photo.alt}, ${photo.mediaKind === 'VIDEO' ? '동영상' : '사진'} 크게 보기`}
-                >
-                  <Image src={photo.src} alt='' loading='lazy' />
-                  {photo.mediaKind === 'VIDEO' && (
-                    <MediaBadge durationMs={photo.durationMs} />
-                  )}
-                </Button>
+                <Box className='media-card-frame' key={photo.id}>
+                  <Button
+                    className='photo-tile'
+                    onClick={() => onPhoto(photo.id)}
+                    aria-label={`${photo.alt}, ${photo.mediaKind === 'VIDEO' ? '동영상' : '사진'} 크게 보기`}
+                  >
+                    <MediaPreview
+                      src={photo.src}
+                      status={photo.previewStatus}
+                      video={photo.mediaKind === 'VIDEO'}
+                      onError={() => onImageError?.(photo)}
+                    />
+                    {photo.mediaKind === 'VIDEO' && (
+                      <MediaBadge durationMs={photo.durationMs} />
+                    )}
+                  </Button>
+                  <MediaRetry photo={photo} onRetry={onRetryPreview} />
+                </Box>
               ))}
           </Box>
         </Section>
@@ -139,6 +154,8 @@ export function HomeView({
             .map((a) => (
               <AlbumCard
                 key={a.id}
+                onRetry={onRetryPreview}
+                onImageError={onImageError}
                 album={a}
                 cover={photos.find((p) => p.id === a.coverId)}
                 count={

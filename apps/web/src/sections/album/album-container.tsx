@@ -113,6 +113,8 @@ export function AlbumContainer() {
     return <GalleryStatus />;
   return (
     <AlbumView
+      onRetryPreview={(photo) => void gallery.retryPreview?.(photo)}
+      onImageError={gallery.markPreviewError}
       videoIds={gallery.videoUploads}
       album={album}
       seeking={seeking}
