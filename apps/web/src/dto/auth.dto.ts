@@ -6,6 +6,8 @@ export interface AuthUser {
   nicknameNeedsUpdate?: boolean;
   email: string;
   emailVerified: boolean;
+  // Profile photo version (/v1/users/{id}/avatar?v=), null without one.
+  avatarVersion?: number | null;
 }
 export interface SignupInput {
   username: string;

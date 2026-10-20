@@ -1,8 +1,17 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import type { PhotoComment } from '@/dto/album.dto';
-import { Box, Button, Form, Span, Text, Textarea } from '@/components/atoms/ui';
+import {
+  Box,
+  Button,
+  Form,
+  Image,
+  Span,
+  Text,
+  Textarea,
+} from '@/components/atoms/ui';
 import { Icon } from '@/components/atoms/icon';
+import { useAvatarImage } from '@/hooks/use-avatar-image';
 interface Props {
   comment: PhotoComment;
   disabled: boolean;
@@ -28,6 +37,7 @@ export function PhotoCommentItem({
     [error, setError] = useState('');
   const lock = useRef(false),
     mounted = useRef(true);
+  const avatar = useAvatarImage(comment.authorId, comment.authorAvatarVersion);
   useEffect(() => {
     mounted.current = true;
     return () => {
@@ -61,8 +71,15 @@ export function PhotoCommentItem({
   return (
     <Box className='viewer-comment'>
       <Box className='viewer-comment-meta'>
-        <Span className='viewer-avatar' aria-hidden='true'>
-          <Icon name='user' size={18} />
+        <Span
+          className={`viewer-avatar${avatar ? ' has-photo' : ''}`}
+          aria-hidden='true'
+        >
+          {avatar ? (
+            <Image src={avatar} alt='' />
+          ) : (
+            <Icon name='user' size={18} />
+          )}
         </Span>
         <Span>{comment.authorName}</Span>
         <Span className='viewer-comment-date'>

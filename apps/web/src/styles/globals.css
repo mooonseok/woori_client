@@ -641,6 +641,49 @@ svg {
 .mypage > section:not(.profile) {
   margin: 30px 0;
 }
+/* 마이페이지 프로필: 72px 사진 + 카메라 버튼(보이는 28px, 누르는 영역 44px).
+   이메일은 한 줄로 줄이고 '프로필 수정'은 이름 아래에 둔다. */
+.profile-photo {
+  position: relative;
+  flex: none;
+}
+.profile-photo-button {
+  position: absolute;
+  right: calc(-1 * var(--space-1));
+  bottom: calc(-1 * var(--space-1));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 2px 6px rgba(23, 25, 28, 0.12);
+}
+.profile-photo-button::before {
+  content: '';
+  position: absolute;
+  inset: calc(-1 * var(--space-2));
+}
+.profile-photo-button:hover {
+  background: var(--wash);
+}
+.profile-text {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.profile-text .profile-email {
+  max-width: 100%;
+  overflow: hidden;
+  overflow-wrap: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 /* Member initial (atoms/avatar). */
 .initial-avatar {
   flex: none;
@@ -664,6 +707,20 @@ svg {
 .initial-avatar--36 {
   width: 36px;
   height: 36px;
+}
+.initial-avatar--72 {
+  width: 72px;
+  height: 72px;
+  font-size: 1.75rem;
+}
+.initial-avatar.has-photo {
+  overflow: hidden;
+  background: var(--wash);
+}
+.initial-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .setting-heading {
   font-size: 0.875rem;

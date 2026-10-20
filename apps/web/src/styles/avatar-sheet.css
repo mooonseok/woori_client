@@ -1,0 +1,151 @@
+/* 프로필 사진 시트: 초대 시트와 같은 틀(모바일 바텀시트, 데스크톱 다이얼로그). */
+.avatar-sheet {
+  box-sizing: border-box;
+  width: min(400px, calc(100% - 32px));
+  max-width: none;
+  max-height: calc(100dvh - 48px);
+  margin: auto;
+  padding: var(--space-5) var(--space-6) var(--space-6);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* Transparent until forced-colors mode draws it as the sheet's edge. */
+  border: 1px solid transparent;
+  border-radius: 20px;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 14px 44px rgba(30, 32, 35, 0.07);
+}
+.avatar-sheet[open] {
+  display: flex;
+  flex-direction: column;
+  animation: invite-sheet-pop var(--duration) var(--ease);
+}
+.avatar-sheet::backdrop {
+  background: rgba(23, 25, 28, 0.45);
+}
+.avatar-sheet-handle {
+  display: none;
+}
+.avatar-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.avatar-sheet-title {
+  font-size: 1.25rem;
+  font-weight: 650;
+  line-height: 1.35;
+  letter-spacing: -0.03em;
+}
+.avatar-sheet-title:focus {
+  outline: none;
+}
+/* The 22px icon's edge, not the 44px target's, lines up with the content. */
+.avatar-sheet-close {
+  margin-right: calc((22px - 44px) / 2);
+  color: var(--ink);
+}
+.avatar-sheet-preview {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-4);
+}
+/* Shows exactly the server's centre-square crop, as a circle. */
+.avatar-sheet-frame {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--soft);
+  color: var(--soft-text);
+  font-size: 3.5rem;
+  font-weight: 650;
+  line-height: 1;
+}
+.avatar-sheet-frame.has-photo {
+  background: var(--wash);
+}
+.avatar-sheet-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.avatar-sheet-note {
+  margin-top: var(--space-4);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted);
+  text-align: center;
+  word-break: keep-all;
+}
+.avatar-sheet-status {
+  margin-top: var(--space-2);
+  min-height: 1.5em;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--accent);
+  text-align: center;
+}
+.avatar-sheet-error {
+  margin-top: var(--space-1);
+  text-align: center;
+}
+.avatar-sheet-actions {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+.avatar-sheet-actions > .ui-button {
+  width: 100%;
+  min-height: 48px;
+  font-size: 1rem;
+}
+.avatar-sheet-pick {
+  cursor: pointer;
+}
+.avatar-sheet-pick:focus-within {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.avatar-sheet-pick.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+@media (max-width: 600px) {
+  .avatar-sheet {
+    width: 100%;
+    max-height: calc(100dvh - 24px - env(safe-area-inset-top));
+    margin: auto 0 0;
+    padding: var(--space-2) max(20px, env(safe-area-inset-right))
+      calc(var(--space-6) + env(safe-area-inset-bottom))
+      max(20px, env(safe-area-inset-left));
+    border-bottom-width: 0;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -14px 44px rgba(30, 32, 35, 0.07);
+  }
+  .avatar-sheet[open] {
+    animation-name: invite-sheet-rise;
+  }
+  .avatar-sheet-handle {
+    display: block;
+    flex: none;
+    align-self: center;
+    width: 36px;
+    height: 4px;
+    margin-bottom: var(--space-3);
+    border-radius: 2px;
+    background: var(--field);
+    opacity: 0.5;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .avatar-sheet[open] {
+    animation: none;
+  }
+}

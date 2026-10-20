@@ -16,6 +16,8 @@ import {
 import { Icon } from '@/components/atoms/icon';
 import { Guide } from '@/components/organisms/guide/guide';
 import { EntryDialog } from '@/components/organisms/entry-dialog/entry-dialog';
+import { MemberAvatar } from '@/components/organisms/member-avatar/member-avatar';
+import { AvatarSheet } from '@/components/organisms/avatar-sheet/avatar-sheet';
 interface Props {
   themePreference: ThemePreference;
   resolvedTheme: ThemeName;
@@ -29,6 +31,11 @@ interface Props {
   logoutPending: boolean;
   onLogout: () => void;
   name: string;
+  userId?: string;
+  avatarVersion?: number | null;
+  avatarOpen: boolean;
+  onAvatarOpen: () => void;
+  onAvatarClose: () => void;
   nicknameNeedsUpdate: boolean;
   edit: boolean;
   guide: 'view' | 'pin' | null;
@@ -47,6 +54,11 @@ export function MypageView({
   onThemeOpen,
   onThemeClose,
   name,
+  userId,
+  avatarVersion,
+  avatarOpen,
+  onAvatarOpen,
+  onAvatarClose,
   nicknameNeedsUpdate,
   live,
   email,
@@ -60,6 +72,7 @@ export function MypageView({
   setEdit,
   setGuide,
   onNavigate,
+  onMessage,
 }: Props) {
   if (themeOpen)
     return (
@@ -93,17 +106,45 @@ export function MypageView({
     <Box className='mypage'>
       <Heading className='page-title'>마이페이지</Heading>
       <Section className='profile'>
-        <Box className='avatar' role='img' aria-label='기본 프로필'>
-          <Icon name='user' size={30} />
+        <Box className='profile-photo'>
+          <MemberAvatar
+            userId={userId}
+            name={name}
+            version={avatarVersion}
+            size={72}
+            label
+          />
+          {live && (
+            <Button
+              id='profile-photo-button'
+              className='profile-photo-button'
+              aria-label='프로필 사진 바꾸기'
+              onClick={onAvatarOpen}
+            >
+              <Icon name='camera' size={16} />
+            </Button>
+          )}
         </Box>
-        <Box>
+        <Box className='profile-text'>
           <Heading>{name}</Heading>
-          <Text className='muted'>{live ? email : '미리보기 계정'}</Text>
+          <Text className='muted profile-email'>
+            {live ? email : '미리보기 계정'}
+          </Text>
+          <Button
+            className='text-button flush-start profile-edit'
+            onClick={() => setEdit(true)}
+          >
+            프로필 수정
+          </Button>
         </Box>
-        <Button className='text-button' onClick={() => setEdit(true)}>
-          프로필 수정
-        </Button>
       </Section>
+      {live && (
+        <AvatarSheet
+          open={avatarOpen}
+          onClose={onAvatarClose}
+          onMessage={onMessage}
+        />
+      )}
       {live && nicknameNeedsUpdate && (
         <Text role='status' className='notice-panel'>
           이름 대신 임시 닉네임이 표시되고 있어요. 프로필 수정에서 원하는

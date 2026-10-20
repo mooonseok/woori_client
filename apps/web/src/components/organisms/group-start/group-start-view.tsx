@@ -10,7 +10,7 @@ import {
   Text,
   Ul,
 } from '@/components/atoms/ui';
-import { Avatar } from '@/components/atoms/avatar';
+import { MemberAvatar } from '@/components/organisms/member-avatar/member-avatar';
 import { Icon } from '@/components/atoms/icon';
 import { Link } from '@/components/molecules/link';
 import type { GroupStart } from '@/utils/group-start';
@@ -21,6 +21,7 @@ export interface GroupStartPerson {
   name: string;
   me: boolean;
   owner: boolean;
+  avatarVersion?: number | null;
 }
 export interface GroupStartViewProps {
   groupName: string;
@@ -170,7 +171,14 @@ function People(p: GroupStartViewProps) {
     const me = p.people.find((person) => person.me);
     return (
       <Text className='group-start-people'>
-        {me && <Avatar name={me.name} label />}
+        {me && (
+          <MemberAvatar
+            userId={me.id}
+            name={me.name}
+            version={me.avatarVersion}
+            label
+          />
+        )}
         <Span>{p.owner ? '1명 · 그룹장' : '1명'}</Span>
       </Text>
     );
@@ -184,7 +192,12 @@ function People(p: GroupStartViewProps) {
     <Ul className='group-start-chips' aria-label='구성원'>
       {shown.map((person) => (
         <Li className='group-start-chip' key={person.id}>
-          <Avatar name={person.name} size={24} />
+          <MemberAvatar
+            userId={person.id}
+            name={person.name}
+            version={person.avatarVersion}
+            size={24}
+          />
           <Span className='group-start-chip-name'>
             {person.name}
             {person.me && <Span className='group-start-me'> · 나</Span>}
@@ -223,7 +236,12 @@ function Rail(p: GroupStartViewProps) {
           <Ul className='group-start-roster'>
             {shown.map((person) => (
               <Li key={person.id}>
-                <Avatar name={person.name} size={36} />
+                <MemberAvatar
+                  userId={person.id}
+                  name={person.name}
+                  version={person.avatarVersion}
+                  size={36}
+                />
                 <Span className='group-start-roster-text'>
                   <Span className='group-start-roster-name'>
                     {person.name}

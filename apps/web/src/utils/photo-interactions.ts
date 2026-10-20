@@ -7,6 +7,7 @@ export function commentModel(comment: CommentResponse): PhotoComment {
     photoId: comment.photoId,
     authorId: comment.author.id,
     authorName: memberNickname(comment.author),
+    authorAvatarVersion: comment.author.avatarVersion ?? null,
     body: comment.body,
     createdAt: comment.createdAt,
     canEdit: comment.canEdit,

@@ -7,7 +7,7 @@ import {
   Button,
   Span,
 } from '@/components/atoms/ui';
-import { Avatar } from '@/components/atoms/avatar';
+import { MemberAvatar } from '@/components/organisms/member-avatar/member-avatar';
 import type { Group } from '@/dto/album.dto';
 import type { GroupAction, GroupMember } from '@/dto/group.dto';
 import { ROSTER_TITLE_ID, rosterBlockButtonId } from '@/utils/group-members';
@@ -79,7 +79,11 @@ export function GroupMembersView(p: Props) {
             member.userId === p.currentUserId ? [] : menuItems(member);
           return (
             <Box className='group-member-row' key={member.userId}>
-              <Avatar name={memberNickname(member)} />
+              <MemberAvatar
+                userId={member.userId}
+                name={memberNickname(member)}
+                version={member.avatarVersion}
+              />
               <Box className='group-member-text'>
                 <Text className='group-member-name'>
                   {memberNickname(member)}

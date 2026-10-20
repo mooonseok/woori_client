@@ -19,6 +19,7 @@ export interface StartMember {
   name: string;
   me: boolean;
   owner: boolean;
+  avatarVersion?: number | null;
 }
 
 // Focus and visibilitychange both fire when the tab comes back.
@@ -162,7 +163,13 @@ export function useGroupStart() {
   }, []);
 
   const me: StartMember | null = user
-    ? { id: user.id, name: memberNickname(user), me: true, owner }
+    ? {
+        id: user.id,
+        name: memberNickname(user),
+        me: true,
+        owner,
+        avatarVersion: user.avatarVersion,
+      }
     : null;
   const people: StartMember[] = (
     needRoster
@@ -172,6 +179,7 @@ export function useGroupStart() {
             name: memberNickname(member),
             me: member.userId === user?.id,
             owner: member.role === 'OWNER',
+            avatarVersion: member.avatarVersion,
           }))
         : []
       : me

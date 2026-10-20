@@ -19,6 +19,7 @@ import { HeaderLogin } from '@/components/organisms/header-login/header-login';
 import { BrandMark } from '@/components/molecules/brand-mark';
 import { EntryDialog } from '@/components/organisms/entry-dialog/entry-dialog';
 import { InviteSheet } from '@/components/organisms/invite-sheet/invite-sheet';
+import { MemberAvatar } from '@/components/organisms/member-avatar/member-avatar';
 import { PhotoViewer } from '@/components/organisms/photo-viewer/photo-viewer';
 import { GalleryProvider, useGallery } from '@/hooks/use-gallery';
 import { useCreateGroup } from '@/hooks/use-create-group';
@@ -108,7 +109,12 @@ function Shell({ children }: { children: ReactNode }) {
         {memberShell && !DEMO_MODE ? (
           <Details className='account-menu'>
             <Summary aria-label='내 계정 메뉴'>
-              <Icon name='user' size={18} />
+              <MemberAvatar
+                userId={user?.id}
+                name={memberNickname(user)}
+                version={user?.avatarVersion}
+                size={24}
+              />
               <Span>{memberNickname(user)} 님</Span>
               <Icon name='chevron-down' size={16} />
             </Summary>
