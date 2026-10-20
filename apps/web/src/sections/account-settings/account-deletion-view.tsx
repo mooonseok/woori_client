@@ -116,23 +116,25 @@ export function AccountDeletionView(p: Props) {
               disabled={p.pending}
             />
           </Label>
-          <Label>
-            확인 문구
-            <Input
-              name='confirmation'
-              autoComplete='off'
-              spellCheck={false}
-              required
-              pattern='탈퇴'
-              title='탈퇴를 정확히 입력해 주세요.'
-              aria-describedby='deletion-confirm-help'
-              disabled={p.pending}
-            />
-          </Label>
-          <Text id='deletion-confirm-help' className='field-help'>
-            안내 내용을 확인했다면 ‘탈퇴’를 입력해 주세요. 아래 버튼을 누르면
-            즉시 탈퇴하며 되돌릴 수 없어요.
-          </Text>
+          <Box className='form-field'>
+            <Label>
+              확인 문구
+              <Input
+                name='confirmation'
+                autoComplete='off'
+                spellCheck={false}
+                required
+                pattern='탈퇴'
+                title='탈퇴를 정확히 입력해 주세요.'
+                aria-describedby='deletion-confirm-help'
+                disabled={p.pending}
+              />
+            </Label>
+            <Text id='deletion-confirm-help' className='field-help'>
+              안내 내용을 확인했다면 ‘탈퇴’를 입력해 주세요. 아래 버튼을 누르면
+              즉시 탈퇴하며 되돌릴 수 없어요.
+            </Text>
+          </Box>
           {p.error && (
             <Text role='alert' className='form-error'>
               {p.error}

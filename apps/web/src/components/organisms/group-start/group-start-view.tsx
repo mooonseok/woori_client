@@ -10,6 +10,7 @@ import {
   Text,
   Ul,
 } from '@/components/atoms/ui';
+import { Avatar } from '@/components/atoms/avatar';
 import { Icon } from '@/components/atoms/icon';
 import { Link } from '@/components/molecules/link';
 import type { GroupStart } from '@/utils/group-start';
@@ -43,20 +44,6 @@ const MAX_PEOPLE = 5;
 const UPLOAD_HINT_ID = 'group-start-upload-hint';
 /** The invite step's action; focus falls back here after the invite sheet. */
 export const INVITE_ACTION_ID = 'group-start-invite-action';
-const initial = (name: string) => Array.from(name.trim())[0] ?? '?';
-
-function Avatar({ name, label }: { name: string; label?: boolean }) {
-  return label ? (
-    <Span className='group-start-avatar' role='img' aria-label={name}>
-      {initial(name)}
-    </Span>
-  ) : (
-    <Span className='group-start-avatar' aria-hidden='true'>
-      {initial(name)}
-    </Span>
-  );
-}
-
 function StepIcon({ name }: { name: string }) {
   return (
     <Span className='group-start-step-icon' aria-hidden='true'>
@@ -197,7 +184,7 @@ function People(p: GroupStartViewProps) {
     <Ul className='group-start-chips' aria-label='구성원'>
       {shown.map((person) => (
         <Li className='group-start-chip' key={person.id}>
-          <Avatar name={person.name} />
+          <Avatar name={person.name} size={24} />
           <Span className='group-start-chip-name'>
             {person.name}
             {person.me && <Span className='group-start-me'> · 나</Span>}
@@ -236,7 +223,7 @@ function Rail(p: GroupStartViewProps) {
           <Ul className='group-start-roster'>
             {shown.map((person) => (
               <Li key={person.id}>
-                <Avatar name={person.name} />
+                <Avatar name={person.name} size={36} />
                 <Span className='group-start-roster-text'>
                   <Span className='group-start-roster-name'>
                     {person.name}
@@ -271,7 +258,7 @@ function Rail(p: GroupStartViewProps) {
 }
 
 // Home while a group has no photos yet (A안): who is here, two start steps
-// with exactly one primary action, and where the photos will appear.
+// with exactly one primary action, and a note that photos will gather here.
 export function GroupStartView(p: GroupStartViewProps) {
   const { state } = p;
   const together = p.memberCount > 1;
@@ -337,20 +324,9 @@ export function GroupStartView(p: GroupStartViewProps) {
             </Box>
           )}
         </Section>
-        <Section
-          className='group-start-moments'
-          aria-labelledby='group-start-moments-title'
-        >
-          <Heading id='group-start-moments-title'>함께 모은 순간</Heading>
-          <Text className='group-start-moments-note'>
-            사진이 모이면 여기에서 한눈에 봐요.
-          </Text>
-          <Box className='group-start-placeholders' aria-hidden='true'>
-            <Box />
-            <Box />
-            <Box />
-          </Box>
-        </Section>
+        <Text className='group-start-moments-note'>
+          사진이 모이면 여기에서 한눈에 봐요.
+        </Text>
       </Box>
       <Rail {...p} />
     </Box>

@@ -115,14 +115,16 @@ function Shell({ children }: { children: ReactNode }) {
             <Box className='account-menu-items'>
               <Link
                 href='/mypage'
+                className='account-menu-item'
                 onClick={(e) =>
                   e.currentTarget.closest('details')?.removeAttribute('open')
                 }
               >
+                <Icon name='user' size={18} />
                 마이페이지
               </Link>
               <Button
-                variant='quiet'
+                className='account-menu-item account-menu-logout'
                 disabled={logoutPending}
                 onClick={() => void logout()}
               >

@@ -219,14 +219,14 @@ export function MypageView({
             </Text>
             {!verified && (
               <Button
-                className='text-button'
+                className='text-button flush-start'
                 onClick={() => onNavigate('/verify-email')}
               >
                 이메일 확인하기
               </Button>
             )}
             <Button
-              className='text-button'
+              className='text-button flush-start'
               disabled={logoutPending}
               onClick={onLogout}
             >

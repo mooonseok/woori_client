@@ -44,15 +44,48 @@
   display: grid;
   gap: 4px;
 }
-.account-menu-items a {
+/* Both rows (link and logout button) share one row style: left-aligned,
+   18px icon, so their labels start on the same line. */
+.account-menu-item {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
+  gap: var(--space-3);
+  width: 100%;
   min-height: 44px;
-  padding: 8px 12px;
+  padding: var(--space-2) var(--space-3);
+  border: 0;
   border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 400;
+  text-align: left;
+  cursor: pointer;
 }
-.account-menu-items a:hover {
+.account-menu-item svg {
+  flex: none;
+  color: var(--muted);
+}
+.account-menu-item:hover {
   background: var(--wash);
+}
+.account-menu-item:disabled {
+  cursor: progress;
+  opacity: 0.6;
+}
+/* Session action set apart from navigation by a centred hairline. */
+.account-menu-logout {
+  position: relative;
+  margin-top: var(--space-2);
+}
+.account-menu-logout::before {
+  content: '';
+  position: absolute;
+  inset: -6px var(--space-3) auto;
+  height: 1px;
+  background: var(--line);
 }
 .guest-home {
   padding-top: 34px;
@@ -209,8 +242,7 @@
   line-height: 1.65;
 }
 .auth-entry-panel .stack-form {
-  gap: 16px;
-  margin-top: 8px;
+  margin-top: var(--space-2);
 }
 .auth-entry-panel .stack-form input {
   background: var(--paper);
@@ -218,9 +250,6 @@
   border-radius: 12px;
   color: var(--ink);
   font-size: 16px;
-}
-.auth-entry-panel .field-help {
-  font-size: 14px;
 }
 .auth-entry-panel .inline-actions {
   justify-content: center;

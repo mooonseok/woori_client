@@ -48,32 +48,39 @@ export function GroupInvitationsView(p: GroupsViewProps) {
           {!p.listLoading && !p.listError && !p.invitations.length && (
             <Text className='muted'>아직 만든 초대가 없어요.</Text>
           )}
-          {p.invitations.map((invitation) => {
-            const expiry = inviteExpiryLabel(invitation.expiresAt);
-            const closed = closedReason(invitation, new Date(p.listLoadedAt));
-            return (
-              <Box key={invitation.id} className='invitation-row'>
-                <Box>
-                  <Text>{expiry}</Text>
-                  <Text className='muted'>
-                    {invitation.useCount ?? invitation.uses ?? 0}/
-                    {invitation.maxUses}명 참여
-                    {closed ? ` · ${closed}` : ''}
-                  </Text>
-                </Box>
-                {!closed && (
-                  <Button
-                    className='text-button'
-                    disabled={p.pending}
-                    aria-label={`${expiry} 초대 취소`}
-                    onClick={() => void p.revoke(invitation.id)}
-                  >
-                    초대 취소
-                  </Button>
-                )}
-              </Box>
-            );
-          })}
+          {p.invitations.length > 0 && (
+            <Box className='invitation-list'>
+              {p.invitations.map((invitation) => {
+                const expiry = inviteExpiryLabel(invitation.expiresAt);
+                const closed = closedReason(
+                  invitation,
+                  new Date(p.listLoadedAt)
+                );
+                return (
+                  <Box key={invitation.id} className='invitation-row'>
+                    <Box>
+                      <Text>{expiry}</Text>
+                      <Text className='muted'>
+                        {invitation.useCount ?? invitation.uses ?? 0}/
+                        {invitation.maxUses}명 참여
+                        {closed ? ` · ${closed}` : ''}
+                      </Text>
+                    </Box>
+                    {!closed && (
+                      <Button
+                        className='text-button flush-end'
+                        disabled={p.pending}
+                        aria-label={`${expiry} 초대 취소`}
+                        onClick={() => void p.revoke(invitation.id)}
+                      >
+                        초대 취소
+                      </Button>
+                    )}
+                  </Box>
+                );
+              })}
+            </Box>
+          )}
         </>
       )}
     </Section>

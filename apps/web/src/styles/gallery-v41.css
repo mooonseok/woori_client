@@ -71,6 +71,14 @@ textarea {
   border-radius: 8px;
   padding-inline: 8px;
 }
+/* The 8px side padding keeps the hover shape; where a text button starts or
+   ends a line of content, pull its label back onto that line. */
+.text-button.flush-start {
+  margin-inline-start: calc(-1 * var(--space-2));
+}
+.text-button.flush-end {
+  margin-inline-end: calc(-1 * var(--space-2));
+}
 .text-button:hover {
   background: var(--soft);
 }

@@ -21,6 +21,16 @@
   --viewer-glass: rgba(22, 24, 25, 0.6);
   --viewer-glass-fallback: #25272a;
   --radius: 14px;
+  /* Spacing scale (4px base). New and touched layout rules use these steps. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --duration: 220ms;
   --page-width: 1180px;

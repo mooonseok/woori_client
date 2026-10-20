@@ -52,12 +52,7 @@ export function GroupsView(p: GroupsViewProps) {
   const empty = !p.gallery.loading && !p.gallery.error && !groups.length;
   return (
     <Box className='groups-page'>
-      <Box className='section-heading'>
-        <Heading className='page-title'>그룹 설정</Heading>
-        <Link className='text-button' href='/invite'>
-          초대 코드 입력
-        </Link>
-      </Box>
+      <Heading className='page-title'>그룹 설정</Heading>
       {!p.verified && (
         <Box className='notice-panel'>
           <Text>이메일 확인 후 그룹을 만들고 초대할 수 있어요.</Text>
@@ -98,36 +93,39 @@ export function GroupsView(p: GroupsViewProps) {
       )}
       {p.group && (
         <Section
-          className='settings-card group-summary'
+          className='group-summary'
           aria-labelledby='group-summary-title'
         >
-          <Box className='section-heading'>
-            <Box className='group-summary-text'>
-              <Heading id='group-summary-title'>{p.group.name}</Heading>
-              <Text className='muted'>
-                {p.group.members}명 · {roleLabel(p.group)}
-              </Text>
-            </Box>
-            {owner && (
-              <Button
-                className='text-button'
-                disabled={p.pending}
-                onClick={() => p.setAction({ kind: 'rename' })}
-              >
-                그룹 이름 수정
-              </Button>
-            )}
+          <Box className='group-summary-text'>
+            <Heading id='group-summary-title'>{p.group.name}</Heading>
+            <Text className='muted'>
+              {p.group.members}명 · {roleLabel(p.group)}
+            </Text>
           </Box>
+          {owner && (
+            <Button
+              className='text-button flush-end'
+              disabled={p.pending}
+              onClick={() => p.setAction({ kind: 'rename' })}
+            >
+              그룹 이름 수정
+            </Button>
+          )}
         </Section>
       )}
       {p.members}
       {p.group && <GroupInvitationsView {...p} />}
       {empty && (
         <>
-          <Text className='muted'>
-            아직 참여한 그룹이 없어요. 새 그룹을 만들거나 초대 코드를 입력해
-            주세요.
-          </Text>
+          <Box className='groups-empty'>
+            <Text className='muted'>
+              아직 참여한 그룹이 없어요. 새 그룹을 만들거나 초대 코드를 입력해
+              주세요.
+            </Text>
+            <Link className='text-button flush-start' href='/invite'>
+              초대 코드 입력
+            </Link>
+          </Box>
           <Section className='settings-card'>
             <Heading>새 그룹 만들기</Heading>
             <Form

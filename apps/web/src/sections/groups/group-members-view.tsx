@@ -7,6 +7,7 @@ import {
   Button,
   Span,
 } from '@/components/atoms/ui';
+import { Avatar } from '@/components/atoms/avatar';
 import type { Group } from '@/dto/album.dto';
 import type { GroupAction, GroupMember } from '@/dto/group.dto';
 import { ROSTER_TITLE_ID, rosterBlockButtonId } from '@/utils/group-members';
@@ -78,14 +79,15 @@ export function GroupMembersView(p: Props) {
             member.userId === p.currentUserId ? [] : menuItems(member);
           return (
             <Box className='group-member-row' key={member.userId}>
-              <Box>
-                <Text>
+              <Avatar name={memberNickname(member)} />
+              <Box className='group-member-text'>
+                <Text className='group-member-name'>
                   {memberNickname(member)}
                   {member.userId === p.currentUserId && (
                     <Span className='muted'> · 나</Span>
                   )}
                 </Text>
-                <Text className='muted'>
+                <Text className='muted group-member-role'>
                   {member.role === 'OWNER' ? '그룹장' : '멤버'}
                   {member.blockedByMe && ' · 차단함'}
                 </Text>

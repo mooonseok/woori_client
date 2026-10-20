@@ -228,6 +228,25 @@ svg {
   padding-bottom: 80px;
   min-height: 60vh;
 }
+/* Member pages start on the same line as the logo and group picker. Narrow
+   pages keep their reading width but are no longer centred (centring moved
+   their titles 210–240px right of the picker on desktop). */
+.member-shell
+  .app-content
+  :is(
+    .groups-page,
+    .mypage,
+    .service-page,
+    .theme-settings,
+    .notification-screen,
+    .auth-panel,
+    .state-panel
+  ) {
+  margin-inline: 0;
+}
+.member-shell .app-content .notification-screen {
+  padding-inline: 0;
+}
 .bottom-nav {
   display: none;
 }
@@ -621,6 +640,30 @@ svg {
 }
 .mypage > section:not(.profile) {
   margin: 30px 0;
+}
+/* Member initial (atoms/avatar). */
+.initial-avatar {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--soft);
+  color: var(--soft-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 650;
+  line-height: 1;
+}
+.initial-avatar--24 {
+  width: 24px;
+  height: 24px;
+  font-size: 0.75rem;
+}
+.initial-avatar--36 {
+  width: 36px;
+  height: 36px;
 }
 .setting-heading {
   font-size: 0.875rem;

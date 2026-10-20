@@ -1,13 +1,13 @@
-/* 그룹 첫 화면 시작 안내 (A안). 토큰만 사용, 새 색 없음. */
+/* 그룹 첫 화면 시작 안내 (A안). 색은 토큰만, 여백은 --space 단계만 쓴다. */
 .group-start {
   display: grid;
-  gap: 28px;
+  gap: var(--space-6);
   min-width: 0;
 }
 .group-start-main {
   display: grid;
   align-content: start;
-  gap: 24px;
+  gap: var(--space-6);
   min-width: 0;
 }
 
@@ -28,62 +28,43 @@
   color: var(--muted);
 }
 .group-start-lede {
-  margin-top: 8px;
+  margin-top: var(--space-2);
   font-size: 0.9375rem;
   line-height: 1.6;
   color: var(--muted);
   word-break: keep-all;
 }
 .group-start-people {
-  margin-top: 16px;
+  margin-top: var(--space-4);
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-2);
   font-size: 0.875rem;
   line-height: 1.5;
   color: var(--muted);
 }
-.group-start-avatar {
-  flex: none;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--soft);
-  color: var(--soft-text);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.875rem;
-  font-weight: 650;
-  line-height: 1;
-}
 .group-start-chips {
   list-style: none;
-  margin: 16px 0 0;
+  margin: var(--space-4) 0 0;
   padding: 0;
   min-height: 32px;
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--space-2);
 }
 .group-start-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-2);
   min-height: 32px;
   max-width: 100%;
-  padding: 0 12px 0 4px;
+  padding: 0 var(--space-3) 0 var(--space-1);
   border-radius: 999px;
   background: var(--wash);
   color: var(--ink);
   font-size: 0.875rem;
   font-weight: 500;
   line-height: 1.2;
-}
-.group-start-chip .group-start-avatar {
-  width: 24px;
-  height: 24px;
-  font-size: 0.75rem;
 }
 .group-start-chip-name {
   min-width: 0;
@@ -99,14 +80,15 @@
   display: inline-flex;
   align-items: center;
   min-height: 32px;
-  padding: 0 4px;
+  padding: 0 var(--space-1);
   color: var(--muted);
   font-size: 0.875rem;
 }
 
-/* 시작 단계 */
+/* 시작 단계: 아이콘 열 32 + 글 열. 행동 버튼은 설명 바로 아래에 두고,
+   좁은 화면에서는 카드 폭 전체를 쓴다(들여쓰기 없이 한 기준선). */
 .group-start-steps {
-  padding: 4px 16px;
+  padding: var(--space-1) var(--space-4);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--card);
@@ -117,18 +99,18 @@
   padding: 0;
 }
 .group-start-step {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  padding: 16px 0;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) 0;
 }
 .group-start-step + .group-start-step {
   border-top: 1px solid var(--line);
 }
 .group-start-step-icon {
-  flex: none;
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: var(--soft);
   color: var(--soft-text);
@@ -137,16 +119,10 @@
   justify-content: center;
 }
 .group-start-step-body {
-  flex: 1 1 auto;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 12px;
+  display: contents;
 }
 .group-start-step-text {
   min-width: 0;
-  max-width: 100%;
 }
 .group-start-step-title {
   font-size: 1rem;
@@ -155,7 +131,7 @@
   letter-spacing: -0.01em;
 }
 .group-start-step-desc {
-  margin-top: 2px;
+  margin-top: var(--space-1);
   font-size: 0.875rem;
   line-height: 1.5;
   color: var(--muted);
@@ -164,29 +140,41 @@
 }
 .group-start-step-body > .ui-button,
 .group-start-step-body > .text-button {
+  grid-column: 1 / -1;
   max-width: 100%;
+}
+.group-start-step-body > .ui-button {
+  width: 100%;
+}
+.group-start-step-body > .text-button {
+  justify-self: start;
+  margin-inline-start: calc(-1 * var(--space-2));
 }
 .group-start .ui-button--primary {
   min-height: 48px;
 }
+/* 끝난 단계: 한 줄로 접고 '더 초대하기'만 오른쪽에 둔다. */
 .group-start-step.is-done {
-  align-items: center;
-  padding: 10px 0;
+  padding: var(--space-3) 0;
 }
 .group-start-step.is-done .group-start-step-icon {
-  width: 28px;
-  height: 28px;
-  margin-inline: 6px;
+  width: 24px;
+  height: 24px;
+  margin-inline: var(--space-1);
 }
 .group-start-step.is-done .group-start-step-body {
-  flex-direction: row;
+  display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 4px 12px;
+  gap: var(--space-1) var(--space-3);
+  min-width: 0;
 }
 .group-start-step.is-done .group-start-step-text {
   flex: 1 1 140px;
+}
+.group-start-step.is-done .group-start-step-body > .text-button {
+  margin-inline-end: calc(-1 * var(--space-2));
 }
 .group-start-step.is-done .group-start-step-title {
   font-size: 0.9375rem;
@@ -194,7 +182,7 @@
   color: var(--muted);
 }
 .group-start-step.is-done .group-start-step-desc {
-  margin-top: 1px;
+  margin-top: 0;
   font-size: 0.8125rem;
   line-height: 1.4;
   display: -webkit-box;
@@ -208,8 +196,8 @@
 }
 .group-start-upload {
   display: grid;
-  gap: 10px;
-  padding: 16px 0;
+  gap: var(--space-2);
+  padding: var(--space-4) 0;
   border-top: 1px solid var(--line);
 }
 .group-start-upload .ui-button {
@@ -233,30 +221,12 @@
   text-align: center;
 }
 
-/* 함께 모은 순간 자리 */
-.group-start-moments h2 {
-  font-size: 1.25rem;
-  font-weight: 650;
-  line-height: 1.4;
-  letter-spacing: -0.03em;
-}
+/* 사진이 모이면 이 화면이 바뀐다는 한 줄 안내(빈 사진 자리는 두지 않는다). */
 .group-start-moments-note {
-  margin-top: 4px;
   font-size: 0.875rem;
   line-height: 1.5;
   color: var(--muted);
-}
-.group-start-placeholders {
-  margin-top: 14px;
-  max-width: 540px;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-.group-start-placeholders > div {
-  aspect-ratio: 1;
-  border: 1px dashed var(--line);
-  border-radius: 10px;
+  word-break: keep-all;
 }
 
 /* 오른쪽 칸: 좁은 화면에서는 중복을 빼고 그룹 설정 링크만 */
@@ -266,13 +236,14 @@
 .group-start-rail-block {
   display: none;
 }
+/* 아이콘이 본문 기준선에 오도록 안쪽 여백만큼 왼쪽으로 당긴다. */
 .group-start-settings {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-2);
   min-height: 44px;
-  margin-left: -8px;
-  padding: 0 8px;
+  margin-left: calc(-1 * var(--space-2));
+  padding: 0 var(--space-2);
   border-radius: 10px;
   color: var(--accent);
   font-size: 0.9375rem;
@@ -287,20 +258,21 @@
 }
 
 @media (min-width: 1024px) {
+  /* 안내 열은 680까지만: 글과 버튼이 한 시선 안에 머문다. */
   .group-start {
-    grid-template-columns: minmax(0, 1fr) 300px;
+    grid-template-columns: minmax(0, 680px) 300px;
     align-items: start;
-    gap: 48px;
+    gap: var(--space-12);
   }
   .group-start-main {
-    gap: 36px;
+    gap: var(--space-8);
   }
   .group-start-title {
     font-size: 1.75rem;
     line-height: 1.34;
   }
   .group-start-lede {
-    margin-top: 10px;
+    margin-top: var(--space-2);
     font-size: 1rem;
   }
   /* 구성원은 오른쪽 칸에서 보여 준다. */
@@ -309,63 +281,62 @@
     display: none;
   }
   .group-start-steps {
-    padding: 4px 28px;
+    padding: var(--space-1) var(--space-6);
   }
   .group-start-step {
-    align-items: center;
-    gap: 20px;
-    padding: 24px 0;
+    grid-template-columns: 40px minmax(0, 1fr);
+    column-gap: var(--space-4);
+    row-gap: var(--space-3);
+    padding: var(--space-6) 0;
   }
   .group-start-step-icon {
-    width: 48px;
-    height: 48px;
-  }
-  .group-start-step-body {
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px 20px;
-  }
-  .group-start-step-text {
-    flex: 1 1 220px;
+    width: 40px;
+    height: 40px;
   }
   .group-start-step-title {
     font-size: 1.0625rem;
   }
   .group-start-step-desc {
-    margin-top: 4px;
     font-size: 0.9375rem;
     line-height: 1.6;
   }
+  /* 버튼은 글 열에 맞춰 설명 바로 아래, 내용 폭으로. */
+  .group-start-step-body > .ui-button,
+  .group-start-step-body > .text-button {
+    grid-column: 2;
+    justify-self: start;
+  }
   .group-start-step-body > .ui-button {
-    min-width: 156px;
+    width: auto;
+    min-width: 160px;
+  }
+  /* 테두리 없는 버튼은 글자(아이콘)가 글 열 기준선에서 시작하게 한다. */
+  .group-start-step-body > .ui-button--quiet {
+    min-width: 0;
+    padding-inline: var(--space-2);
+    margin-inline-start: calc(-1 * var(--space-2));
   }
   .group-start-step.is-done {
-    padding: 14px 0;
+    padding: var(--space-4) 0;
   }
   .group-start-step.is-done .group-start-step-icon {
-    margin-inline: 10px;
+    margin-inline: var(--space-2);
   }
   .group-start-upload {
-    padding: 20px 0 24px;
+    padding: var(--space-5) 0 var(--space-6);
   }
   .group-start-moments-note {
     font-size: 0.9375rem;
     line-height: 1.6;
   }
-  .group-start-placeholders {
-    margin-top: 16px;
-    gap: 12px;
-  }
   .group-start-rail {
-    padding: 4px 20px;
+    padding: var(--space-1) var(--space-5);
     border: 1px solid var(--line);
     border-radius: var(--radius);
   }
   .group-start-rail-block {
     display: block;
-    padding: 18px 0;
+    padding: var(--space-5) 0;
     border-bottom: 1px solid var(--line);
   }
   .group-start-rail h2 {
@@ -378,7 +349,7 @@
     display: flex;
     align-items: baseline;
     justify-content: space-between;
-    gap: 8px;
+    gap: var(--space-2);
   }
   .group-start-rail-count {
     font-size: 0.875rem;
@@ -386,20 +357,16 @@
   }
   .group-start-roster {
     list-style: none;
-    margin: 14px 0 0;
+    margin: var(--space-3) 0 0;
     padding: 0;
     display: grid;
-    gap: 12px;
+    gap: var(--space-3);
   }
   .group-start-roster li {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--space-3);
     min-width: 0;
-  }
-  .group-start-roster .group-start-avatar {
-    width: 36px;
-    height: 36px;
   }
   .group-start-roster-text {
     display: flex;
@@ -420,21 +387,23 @@
     color: var(--muted);
   }
   .group-start-rail-line {
-    margin-top: 10px;
+    margin-top: var(--space-2);
     display: flex;
     align-items: flex-start;
-    gap: 8px;
+    gap: var(--space-2);
     font-size: 0.875rem;
     line-height: 1.5;
     color: var(--muted);
     overflow-wrap: anywhere;
   }
+  /* 18px 아이콘을 첫 줄(1.5em) 가운데에 맞춘다. */
   .group-start-rail-line svg {
-    margin-top: 1px;
+    flex: none;
+    margin-top: calc((1.5em - 18px) / 2);
   }
   .group-start-settings {
     display: flex;
-    margin: 10px -8px 14px;
+    margin: var(--space-2) calc(-1 * var(--space-2)) var(--space-3);
   }
   .group-start-settings > span {
     flex: 1;
