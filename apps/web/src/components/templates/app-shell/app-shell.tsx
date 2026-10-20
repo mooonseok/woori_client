@@ -1,6 +1,6 @@
 'use client';
 import { memberNickname } from '@/utils/nickname';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   Box,
@@ -18,8 +18,10 @@ import { Link } from '@/components/molecules/link';
 import { HeaderLogin } from '@/components/organisms/header-login/header-login';
 import { BrandMark } from '@/components/molecules/brand-mark';
 import { EntryDialog } from '@/components/organisms/entry-dialog/entry-dialog';
+import { InviteSheet } from '@/components/organisms/invite-sheet/invite-sheet';
 import { PhotoViewer } from '@/components/organisms/photo-viewer/photo-viewer';
 import { GalleryProvider, useGallery } from '@/hooks/use-gallery';
+import { useCreateGroup } from '@/hooks/use-create-group';
 import {
   NotificationProvider,
   useNotifications,
@@ -56,7 +58,18 @@ function Shell({ children }: { children: ReactNode }) {
     }
   }
   const router = useRouter();
-  const [create, setCreate] = useState(false);
+  const createGroup = useCreateGroup();
+  // The invite sheet belongs to the group it was opened for.
+  const [create, setCreate] = useState(false),
+    [inviteFor, setInviteFor] = useState<string | null>(null);
+  // The picker closes on every choice. Focus moves to its summary first so a
+  // dialog or sheet opened from the menu returns there, not to a hidden item.
+  const picker = useRef<HTMLDetailsElement>(null),
+    pickerSummary = useRef<HTMLElement>(null);
+  function closePicker() {
+    pickerSummary.current?.focus();
+    picker.current?.removeAttribute('open');
+  }
   useEffect(() => {
     if (path.replace(/\/$/, '') !== '/change-email') forgetEmailChangeToken();
   }, [path]);
@@ -126,8 +139,17 @@ function Shell({ children }: { children: ReactNode }) {
       </Header>
       {memberShell && (
         <Header className='group-header'>
-          <Details className='group-picker'>
-            <Summary>
+          <Details
+            ref={picker}
+            className='group-picker'
+            onKeyDown={(e) => {
+              if (e.key === 'Escape' && picker.current?.open) {
+                e.stopPropagation();
+                closePicker();
+              }
+            }}
+          >
+            <Summary ref={pickerSummary}>
               {group?.name || '그룹 선택'}
               <Icon name='chevron-down' size={20} />
             </Summary>
@@ -135,9 +157,9 @@ function Shell({ children }: { children: ReactNode }) {
               {gallery.data.groups.map((g) => (
                 <Button
                   key={g.id}
-                  onClick={(e) => {
+                  onClick={() => {
                     gallery.setGroupId(g.id);
-                    e.currentTarget.closest('details')?.removeAttribute('open');
+                    closePicker();
                   }}
                 >
                   <Span>{g.name}</Span>
@@ -146,16 +168,50 @@ function Shell({ children }: { children: ReactNode }) {
                   </Span>
                 </Button>
               ))}
-              <Button
-                onClick={(e) => {
-                  if (DEMO_MODE) setCreate(true);
-                  else router.push('/groups');
-                  e.currentTarget.closest('details')?.removeAttribute('open');
-                }}
-              >
-                <Icon name='plus' />
-                {DEMO_MODE ? '그룹 만들기' : '그룹 관리·초대'}
-              </Button>
+              <Box className='group-menu-actions'>
+                {!DEMO_MODE && !user?.emailVerified && (
+                  <Link href='/verify-email' onClick={closePicker}>
+                    <Icon name='shield' />
+                    <Span>이메일 확인하기</Span>
+                  </Link>
+                )}
+                {!DEMO_MODE &&
+                  user?.emailVerified &&
+                  group?.role === 'OWNER' && (
+                    <Button
+                      onClick={() => {
+                        closePicker();
+                        setInviteFor(group.id);
+                      }}
+                    >
+                      <Icon name='users' />
+                      <Span>초대하기</Span>
+                    </Button>
+                  )}
+                {(DEMO_MODE || user?.emailVerified) && (
+                  <Button
+                    onClick={() => {
+                      closePicker();
+                      setCreate(true);
+                    }}
+                  >
+                    <Icon name='plus' />
+                    <Span>새 그룹 만들기</Span>
+                  </Button>
+                )}
+                {!DEMO_MODE && (
+                  <>
+                    <Link href='/invite' onClick={closePicker}>
+                      <Icon name='arrow-right' />
+                      <Span>초대 코드 입력</Span>
+                    </Link>
+                    <Link href='/groups' onClick={closePicker}>
+                      <Icon name='settings' />
+                      <Span>그룹 설정</Span>
+                    </Link>
+                  </>
+                )}
+              </Box>
             </Box>
           </Details>
           <Link
@@ -191,12 +247,26 @@ function Shell({ children }: { children: ReactNode }) {
       )}
       {create && (
         <EntryDialog
-          title='그룹 만들기'
+          title='새 그룹 만들기'
           label='그룹 이름'
-          onSubmit={gallery.createGroup}
+          maxLength={40}
+          submitLabel='만들기'
+          note={DEMO_MODE ? undefined : '만든 그룹으로 바로 이동해요.'}
+          onSubmit={DEMO_MODE ? gallery.createGroup : createGroup}
           onClose={() => setCreate(false)}
         />
       )}
+      {memberShell &&
+        !DEMO_MODE &&
+        user?.emailVerified &&
+        group?.role === 'OWNER' && (
+          <InviteSheet
+            key={group.id}
+            group={group}
+            open={inviteFor === group.id}
+            onClose={() => setInviteFor(null)}
+          />
+        )}
       {gallery.viewer && (
         <PhotoViewer
           key={`${user?.id || 'demo'}:${gallery.groupId}:${gallery.viewer.id}`}

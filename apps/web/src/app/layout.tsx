@@ -7,6 +7,8 @@ import '@/styles/gallery-v41.css';
 import '@/styles/reactions.css';
 import '@/styles/entry.css';
 import '@/styles/media-fallback.css';
+import '@/styles/group-start.css';
+import '@/styles/invite-sheet.css';
 export const metadata: Metadata = {
   referrer: 'no-referrer',
   manifest: '/manifest.webmanifest',

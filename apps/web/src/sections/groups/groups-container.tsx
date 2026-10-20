@@ -7,6 +7,7 @@ import { useGallery } from '@/hooks/use-gallery';
 import { GroupsView } from './groups-view';
 import { GroupMembersView } from './group-members-view';
 import { EntryDialog } from '@/components/organisms/entry-dialog/entry-dialog';
+import { InviteSheet } from '@/components/organisms/invite-sheet/invite-sheet';
 import { ActionConfirm } from '@/components/organisms/action-confirm/action-confirm';
 import { ReportDialog } from '@/components/organisms/report-dialog/report-dialog';
 import type { GroupMember } from '@/dto/group.dto';
@@ -18,13 +19,14 @@ function GroupContent() {
   const model = useGroupManagement(),
     lifecycle = useGroupLifecycle();
   const { group, action, setAction, submit } = lifecycle;
-  const [reporting, setReporting] = useState<GroupMember | null>(null);
+  const [reporting, setReporting] = useState<GroupMember | null>(null),
+    [inviting, setInviting] = useState(false);
   // Report/block flows return focus to the roster button that started them.
   const trigger = useRef<HTMLElement | null>(null);
   const remember = () => {
     trigger.current = document.activeElement as HTMLElement | null;
   };
-  // If that button is gone, use the same member's 차단 button, else the title.
+  // If that button is gone, use the same member's 메뉴 button, else the title.
   const rosterFallback = (userId: string) => () =>
     document.getElementById(rosterBlockButtonId(userId)) ??
     document.getElementById(ROSTER_TITLE_ID);
@@ -61,7 +63,9 @@ function GroupContent() {
       <GroupsView
         {...model}
         pending={model.pending || lifecycle.busy}
-        management={
+        setAction={setAction}
+        onInvite={() => setInviting(true)}
+        members={
           <GroupMembersView
             {...lifecycle}
             busy={model.pending || lifecycle.busy}
@@ -84,6 +88,13 @@ function GroupContent() {
           />
         }
       />
+      {group?.role === 'OWNER' && (
+        <InviteSheet
+          group={group}
+          open={inviting}
+          onClose={() => setInviting(false)}
+        />
+      )}
       {group && action?.kind === 'rename' && (
         <EntryDialog
           title='그룹 이름 수정'

@@ -10,6 +10,7 @@ import {
 import type { Group } from '@/dto/album.dto';
 import type { GroupAction, GroupMember } from '@/dto/group.dto';
 import { ROSTER_TITLE_ID, rosterBlockButtonId } from '@/utils/group-members';
+import { GroupMemberMenu, type MemberMenuItem } from './group-member-menu';
 interface Props {
   group?: Group;
   currentUserId?: string;
@@ -26,22 +27,35 @@ interface Props {
 export function GroupMembersView(p: Props) {
   if (!p.group) return null;
   const owner = p.group.role === 'OWNER';
+  // 내보내기 (destructive) stays last; 신고 · 차단 are there for everyone.
+  const menuItems = (member: GroupMember): MemberMenuItem[] => {
+    const manage = owner && member.role === 'MEMBER';
+    const items: MemberMenuItem[] = [];
+    if (manage)
+      items.push({
+        label: '그룹장 넘기기',
+        onSelect: () => p.setAction({ kind: 'transfer', member }),
+      });
+    if (p.onReport && p.currentUserId)
+      items.push({ label: '신고', onSelect: () => p.onReport?.(member) });
+    if (p.onBlock && p.currentUserId)
+      items.push({
+        label: member.blockedByMe ? '차단 해제' : '차단',
+        onSelect: () => p.onBlock?.(member, !member.blockedByMe),
+      });
+    if (manage)
+      items.push({
+        label: '내보내기',
+        danger: true,
+        onSelect: () => p.setAction({ kind: 'remove', member }),
+      });
+    return items;
+  };
   return (
-    <Section className='settings-card' aria-label='그룹 관리'>
-      <Box className='section-heading'>
-        <Heading id={ROSTER_TITLE_ID} tabIndex={-1}>
-          {p.group.name} 구성원
-        </Heading>
-        {owner && (
-          <Button
-            className='text-button'
-            disabled={p.busy}
-            onClick={() => p.setAction({ kind: 'rename' })}
-          >
-            그룹 이름 수정
-          </Button>
-        )}
-      </Box>
+    <Section className='settings-card' aria-labelledby={ROSTER_TITLE_ID}>
+      <Heading id={ROSTER_TITLE_ID} tabIndex={-1}>
+        구성원
+      </Heading>
       {p.loading && <Text role='status'>구성원을 불러오고 있어요…</Text>}
       {p.error && (
         <Box>
@@ -59,71 +73,34 @@ export function GroupMembersView(p: Props) {
         <Text className='muted'>표시할 구성원이 없어요.</Text>
       )}
       <Box className='group-members'>
-        {p.members.map((member) => (
-          <Box className='group-member-row' key={member.userId}>
-            <Box>
-              <Text>
-                {memberNickname(member)}
-                {member.userId === p.currentUserId && (
-                  <Span className='muted'> · 나</Span>
-                )}
-              </Text>
-              <Text className='muted'>
-                {member.role === 'OWNER' ? '그룹장' : '멤버'}
-                {member.blockedByMe && ' · 차단함'}
-              </Text>
-            </Box>
-            {member.userId !== p.currentUserId &&
-              ((owner && member.role === 'MEMBER') ||
-                ((p.onReport || p.onBlock) && p.currentUserId)) && (
-                <Box className='inline-actions'>
-                  {owner && member.role === 'MEMBER' && (
-                    <>
-                      <Button
-                        className='text-button'
-                        disabled={p.busy}
-                        aria-label={`${memberNickname(member)} 님에게 그룹장 넘기기`}
-                        onClick={() =>
-                          p.setAction({ kind: 'transfer', member })
-                        }
-                      >
-                        그룹장 넘기기
-                      </Button>
-                      <Button
-                        className='text-button danger-text'
-                        disabled={p.busy}
-                        aria-label={`${memberNickname(member)} 님 내보내기`}
-                        onClick={() => p.setAction({ kind: 'remove', member })}
-                      >
-                        내보내기
-                      </Button>
-                    </>
+        {p.members.map((member) => {
+          const items =
+            member.userId === p.currentUserId ? [] : menuItems(member);
+          return (
+            <Box className='group-member-row' key={member.userId}>
+              <Box>
+                <Text>
+                  {memberNickname(member)}
+                  {member.userId === p.currentUserId && (
+                    <Span className='muted'> · 나</Span>
                   )}
-                  {p.onReport && p.currentUserId && (
-                    <Button
-                      className='text-button muted'
-                      disabled={p.busy}
-                      aria-label={`${memberNickname(member)}님 신고`}
-                      onClick={() => p.onReport?.(member)}
-                    >
-                      신고
-                    </Button>
-                  )}
-                  {p.onBlock && p.currentUserId && (
-                    <Button
-                      id={rosterBlockButtonId(member.userId)}
-                      className='text-button muted'
-                      disabled={p.busy}
-                      aria-label={`${memberNickname(member)}님 ${member.blockedByMe ? '차단 해제' : '차단'}`}
-                      onClick={() => p.onBlock?.(member, !member.blockedByMe)}
-                    >
-                      {member.blockedByMe ? '차단 해제' : '차단'}
-                    </Button>
-                  )}
-                </Box>
+                </Text>
+                <Text className='muted'>
+                  {member.role === 'OWNER' ? '그룹장' : '멤버'}
+                  {member.blockedByMe && ' · 차단함'}
+                </Text>
+              </Box>
+              {items.length > 0 && (
+                <GroupMemberMenu
+                  id={rosterBlockButtonId(member.userId)}
+                  label={`${memberNickname(member)} 님 메뉴`}
+                  disabled={p.busy}
+                  items={items}
+                />
               )}
-          </Box>
-        ))}
+            </Box>
+          );
+        })}
       </Box>
       {p.nextCursor && (
         <Button
@@ -132,28 +109,6 @@ export function GroupMembersView(p: Props) {
           onClick={() => void p.loadMembers(p.nextCursor)}
         >
           구성원 더 보기
-        </Button>
-      )}
-      {owner ? (
-        <>
-          <Text className='muted'>
-            그룹장은 다른 구성원에게 그룹장을 넘긴 후 나갈 수 있어요.
-          </Text>
-          <Button
-            className='text-button danger-text'
-            disabled={p.busy}
-            onClick={() => p.setAction({ kind: 'delete' })}
-          >
-            그룹 삭제
-          </Button>
-        </>
-      ) : (
-        <Button
-          className='text-button danger-text'
-          disabled={p.busy}
-          onClick={() => p.setAction({ kind: 'leave' })}
-        >
-          그룹 나가기
         </Button>
       )}
     </Section>

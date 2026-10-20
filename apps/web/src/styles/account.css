@@ -176,26 +176,6 @@
 .settings-card > button {
   justify-self: start;
 }
-.invitation-result {
-  display: grid;
-  justify-items: center;
-  gap: 16px;
-  padding: 24px;
-  background: var(--wash);
-  border-radius: 12px;
-}
-.invitation-code {
-  font-size: 26px;
-  letter-spacing: 0.12em;
-  font-weight: 650;
-  user-select: all;
-}
-.invitation-url {
-  overflow-wrap: anywhere;
-  font-size: 12px;
-  color: var(--muted);
-  user-select: all;
-}
 .invitation-row {
   display: flex;
   align-items: center;
@@ -227,8 +207,8 @@
     flex-direction: column;
     gap: 12px;
   }
-  .invitation-result {
-    padding: 16px;
+  .group-danger {
+    padding: 20px 16px;
   }
 }
 
@@ -236,18 +216,98 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
   gap: 12px;
-  padding: 16px 0;
+  min-height: 72px;
+  padding: 12px 0;
   border-bottom: 1px solid var(--line);
 }
 .group-member-row > :first-child {
+  flex: 1 1 auto;
   min-width: 0;
   overflow-wrap: anywhere;
 }
-.group-member-row .inline-actions {
-  flex-wrap: wrap;
-  gap: 16px;
+/* 그룹 설정: compact switcher, summary, per-row menu, separated 나가기·삭제. */
+.group-switch {
+  display: grid;
+  gap: 4px;
+}
+.groups-page .group-switch-title {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--muted);
+}
+.group-switch .group-list-row {
+  align-items: center;
+  min-height: 48px;
+  padding: 12px 4px;
+}
+.group-switch .group-list-row > span:first-child,
+.group-summary-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.group-summary-text {
+  display: grid;
+  gap: 4px;
+}
+.member-menu {
+  position: relative;
+  flex: 0 0 auto;
+}
+.member-menu-items {
+  position: absolute;
+  z-index: 8;
+  right: 0;
+  top: calc(100% + 6px);
+  min-width: 160px;
+  display: grid;
+  gap: 2px;
+  padding: 6px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 6px 24px #0001;
+}
+.member-menu-item {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  text-align: left;
+  white-space: nowrap;
+}
+.member-menu-item:hover {
+  background: var(--wash);
+}
+.group-danger {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.group-danger h2 {
+  font-size: 17px;
+  letter-spacing: -0.02em;
+}
+.group-danger > p {
+  line-height: 1.6;
+}
+.group-danger .danger-text {
+  color: #b3261e;
+}
+/* Group picker (header): actions under the group list, icon then label. */
+.group-menu > button + .group-menu-actions {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+}
+.group-menu .group-menu-actions button,
+.group-menu .group-menu-actions a {
+  justify-content: flex-start;
 }
 
 .account-deletion-form .danger-button {

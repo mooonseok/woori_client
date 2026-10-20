@@ -88,6 +88,9 @@ export function Ul(props: ComponentPropsWithRef<'ul'>) {
 export function Li(props: ComponentPropsWithRef<'li'>) {
   return <li {...props} />;
 }
+export function Ol(props: ComponentPropsWithRef<'ol'>) {
+  return <ol {...props} />;
+}
 export function Form(props: ComponentPropsWithRef<'form'>) {
   return <form {...props} />;
 }
