@@ -1,10 +1,18 @@
 # 집 컴퓨터 준비와 운영 이행
 
-## 현재 배포 기준 우선 (2026-10-19 사용자 보고)
+## 현재 운영 기준 (2026-10-19)
 
-API·워커는 AWS Lightsail 서울의 별도 Ubuntu/Docker 인스턴스, DB는 Supabase Pro 서울을 사용한다. 사용자는 API healthz/readyz 200, 워커 polling·lastPassOk/videoReady true, 운영 R2 버킷·토큰·CORS 설정, Cloudflare Pages 회원 웹 woori.stream의 로그인 화면을 확인했다고 보고했다. 이 문서 갱신에서 해당 운영 환경을 직접 재검증한 것은 아니다.
+현행 구성은 AWS Lightsail 서울 API·워커, Supabase Pro 서울, 비공개 R2, Cloudflare Pages다. 아래 Railway 절차와 `deploy/railway.*.json`은 이전 계획의 보관 자료이며 현행 배포에 실행하지 않는다. 현재 상태 판단은 이 절과 README의 최신 요약을 우선한다.
 
-아래 Railway·Singapore와 운영 리소스 미생성 설명은 이전 계획 및 절차 보관용이다. 현재 배포에서는 이 절과 실제 서버 배포 설정을 우선하며 Railway 서비스 생성·예약 작업을 그대로 실행하지 않는다. 전체 운영 수용, 실기기, 관리자 웹 배포, 일일 백업 스케줄·성공 감시·복원 훈련은 별도 확인이 필요하다. 이전 검사 기록을 현재 운영 검증 완료 근거로 사용하지 않는다.
+사용자는 두 Lightsail 서버의 Docker 실행, API HTTPS healthz/readyz 200, 워커 polling 및 lastPassOk/videoReady true, 운영 R2 버킷·토큰·CORS 설정, Pages `woori-web` 배포와 `woori.stream` 로그인 화면을 확인했다고 보고했다. 이번 문서 갱신은 원격 직접 검증이 아니다. 운영 기능 전체 수용·실기기·일일 백업 스케줄·알림·복원 훈련 및 관리자 웹 배포는 미확인으로 남긴다. Supabase 운영 DB 적용·TLS 검증의 과거 근거는 status.json을 따른다.
+
+2026-10-20 외부에서 직접 확인한 운영 상태(비밀값·운영 데이터 조회 없음):
+
+- 운영 DB: 읽기 전용 `migrate status` 결과 21개 중 19개 적용, `20261101000000_member_nickname`·`20261102000000_neutral_member_copy` 미적용.
+- API: `https://api.woori.stream` healthz·readyz 200, 응답이 Caddy를 거친다(`via: 1.1 Caddy`). Node 포트 3001은 외부에서 닫혀 있고 80은 열려 있다(HTTPS 전환·인증서용). 회원·관리자 두 origin의 CORS 사전 요청이 허용된다. 실행 중인 이미지는 서버에서 확인하지 않았다. 마지막 기록 이미지 `woori-server:20261019-1`의 소스 287개 파일은 `c940d04`(PR #18)와 해시가 모두 같아 닉네임 기능 이전 버전이다.
+- 회원 웹: `woori.stream` HTML 제목이 이전 문구라 v4.1·공개 홈·닉네임(PR #19~#21) 이전 빌드다. CSP의 `media-src`가 API를 가리켜 PR #18 동영상 변경은 반영돼 있다.
+- 관리자 웹: `admin.woori.stream` DNS 레코드가 없어 미배포다.
+- 이 시점 API·웹은 실행 버전을 외부에 표시하지 않았다. 아래 "릴리스 이미지"와 Pages `release.json` 이후 배포부터 확인할 수 있다.
 
 ## 저장소·도구
 
@@ -83,7 +91,7 @@ pre-push는 전송 커밋을 임시 checkout에서 설치·전체 검사한다. 
 server pre-push에는 위의 로컬 DB 연결 설정과 실행 중인 PostgreSQL이 필요하다.
 검사 스크립트의 localhost 보호 제한을 원격 DB에 맞춰 제거하지 않는다.
 
-운영 단계에서 준비할 항목: Railway API/worker, Supabase Pro 연결·TLS·migration 계정,
+운영 단계에서 확인할 항목: Lightsail 서울 API/worker, Supabase Pro 서울 연결·TLS·migration 계정,
 웹 정적 호스팅과 HTTPS 도메인, 실제 발신 도메인, 개발/운영 R2 분리,
 복원 가능한 DB/객체 백업, 모니터링 수신처, 네이티브 개발자 계정/서명.
 가격/요금제/OS 지원은 이 문서에 고정하지 않는다. 생성·결제·배포 직전 확인한다.
@@ -133,24 +141,17 @@ Web Analytics가 필요하면 자동 삽입이 아니라 수동 설치로 하고
 브라우저 콘솔에 CSP 위반이 없어야 하고, 사진 1장 업로드로 R2 PUT을 확인한다.
 관리자 웹은 `X-Robots-Tag`, HTML `Cache-Control: no-store`, `/_next/static` immutable을 확인한다.
 
-## 서버 배포: Railway API·워커 (W07-4)
+## 서버 배포: AWS Lightsail 서울 API·워커 (W07-4)
 
-같은 `woori_server` 저장소로 Railway 서비스 2개를 Singapore 리전에 만든다(리전은 서비스 설정에서 고른다).
-각 서비스의 Config-as-code 경로에 아래 파일을 지정한다. 파일에는 비밀값이 없다.
+2026-10-16 사용자 결정으로 Railway/Singapore에서 Lightsail/Seoul로 변경됐다. API 2GB·워커 4GB로 생성한 기록이 있으며 부하 측정 전에는 증설·비용 변경을 하지 않는다. 두 프로세스는 별도 인스턴스로 분리한다. 기존 `deploy/railway.*.json`은 참고용이며 활성 배포·스케줄이 아니다.
 
-| 항목          | API                       | 워커                                                 |
-| ------------- | ------------------------- | ---------------------------------------------------- |
-| 설정 파일     | `deploy/railway.api.json` | `deploy/railway.worker.json`                         |
-| 빌드          | Railpack, `pnpm build`    | `deploy/worker.Dockerfile`(Debian ffmpeg, `--check`) |
-| 시작          | `pnpm start:api`          | 이미지 CMD `node dist/src/worker/main.js`            |
-| 헬스체크      | `/readyz`(DB·메일 설정)   | 없음(HTTP 없음). 관리자 지표 `workers`로 확인        |
-| 커스텀 도메인 | `api.woori.stream`        | 없음                                                 |
+- API 진입점: `node dist/src/main.js`, 워커: `node dist/src/worker/main.js`. 두 인스턴스가 같은 릴리스 이미지를 쓰고 API만 명령을 바꾼다.
+- 서버의 컨테이너 이름·env 파일 위치·재시작 정책·Caddy 구성은 저장소에 아직 기록되지 않았다. 사용자 확인 후 아래 반영 절차에 맞춰 기록한다.
+- API 앞의 HTTPS 프록시와 외부 접근 제한을 먼저 구성해야 한다. 현재 운영 검사는 `TRUST_PROXY_HOPS=1`을 요구하므로 정확히 한 프록시만 경유하고 Node 포트 직접 접근은 차단하는 토폴로지를 검증한다.
+- `api.woori.stream`은 DNS only로 계획한다. 별도 Cloudflare 프록시를 추가하면 IP 기반 제한과 신뢰 hop을 다시 설계한다.
+- `/readyz`는 DB와 메일 설정을 함께 검사한다. DB 연결 성공만으로 서비스 전체 준비 완료가 아니다.
 
-`api.woori.stream`의 Cloudflare DNS 레코드는 **DNS only(회색 구름)** 로 둔다. 프록시(주황 구름)를 켜면
-Railway 앞에 Cloudflare 한 단이 더 생겨 `TRUST_PROXY_HOPS=1` 기준의 `req.ip`가 Cloudflare 엣지 주소가 되고,
-IP 기준 rate limit이 모든 회원을 한 묶음으로 세거나 우회된다. 웹·관리자 Pages 도메인만 프록시를 쓴다.
-
-운영 환경변수(서비스 Variables에만 입력, 저장소·로그·채팅 금지):
+운영 환경변수(저장소 밖 제한된 secret/env 파일에 입력, 로그·채팅 금지):
 
 - 공통: `NODE_ENV=production`, `DATABASE_URL`(Supabase의 `woori_api` 런타임 역할, TLS),
   `WEB_ORIGIN=https://woori.stream`, `MAIL_MODE=resend`, `RESEND_API_KEY`,
@@ -161,7 +162,7 @@ IP 기준 rate limit이 모든 회원을 한 묶음으로 세거나 우회된다
 - API만: `ADMIN_WEB_ORIGIN=https://admin.woori.stream`,
   `CORS_ALLOWED_ORIGINS=https://woori.stream,https://admin.woori.stream`(정확히 이 두 개, 다른 origin 금지), `TRUST_PROXY_HOPS=1`,
   `ADMIN_TOTP_ENCRYPTION_KEY`.
-- `MIGRATION_DATABASE_URL`은 어떤 Railway 서비스에도 넣지 않는다.
+- `MIGRATION_DATABASE_URL`은 API·워커 실행 환경에 넣지 않는다.
 
 `NODE_ENV=production`이면 API·워커가 시작할 때 https origin, CORS 목록, `TRUST_PROXY_HOPS=1`,
 Resend 발신 주소가 웹 도메인(하위 도메인 포함)인지, `MAIL_OUTBOX_KEY`, R2 설정, localhost가 아닌 DB 주소를 검사한다.
@@ -172,11 +173,24 @@ CORS 목록은 `WEB_ORIGIN`·`ADMIN_WEB_ORIGIN` 두 개와 정확히 같아야 �
 
 배포 순서: 운영 migration → API·워커(같은 커밋) → 웹. 파괴적 migration은 별도 절차로 한다.
 
+### 릴리스 이미지 (API·워커 공용)
+
+- 신뢰할 수 있는 컴퓨터에서 `pnpm build` 후 `node scripts/release-image.mjs --commit <배포할 커밋>`을 실행한다. origin에 push된 커밋만 배포용으로 만든다.
+  커밋을 `git archive`로 내보내 linux/amd64로 빌드하고, 네트워크를 끈 컨테이너에서 두 가지를 확인한다. 워커 `--check`(ffmpeg·libx264·AAC·preset·release)와 `scripts/release-smoke.cjs`(소스 해시, amd64, 비root, 비공개 설정 파일 없음, 운영 모드 API 기동, `/healthz` release, DB 없을 때 `/readyz` 503)다.
+  결과는 `~/.woori/releases/<KST 날짜>-<커밋 7자>/`에 이미지 tar.gz·`SHA256SUMS`·`release.json`(0600)으로 남는다.
+- `release.json`의 `deployable`이 true인 산출물만 운영에 올린다. `--worktree`(작업 트리, release null)와 `--allow-unpushed`는 로컬 검증용이며 배포 불가로 표시된다.
+- `release.json`의 `migrations.latest`가 운영 DB의 마지막 적용 migration보다 새로우면 이미지 반영 전에 아래 운영 migration 절차를 먼저 한다.
+- 서버 반영(두 인스턴스 각각): tar.gz와 `SHA256SUMS`를 복사한다 → `sha256sum -c SHA256SUMS` → `docker load` → 새 태그로 컨테이너를 교체한다. 워커를 먼저 SIGTERM으로 멈추면 진행 중 작업은 시도 횟수 차감 없이 대기열로 돌아간다. 이전 태그 이미지는 지우지 않고 롤백용으로 남긴다.
+- 반영 확인: `https://api.woori.stream/healthz`의 `release`가 `release.json`의 `release`와 같아야 한다. `/readyz`의 `capabilities.push`는 푸시 키가 로드됐는지만 나타낸다. 워커는 `docker logs`의 시작 줄(`"status":"polling"`)에 같은 `release`가 보여야 한다. `woori-server:20261019-1`처럼 이 기능 이전 이미지는 release를 표시하지 않는다.
+- 롤백: 같은 방법으로 이전 태그 컨테이너를 다시 띄운다. 추가형 migration(컬럼·테이블 추가)은 되돌리지 않는다. 이전 API가 새 컬럼을 쓰지 않아도 동작하는지 각 릴리스의 migration에서 확인한다.
+- 웹: `pnpm pages:web`·`pnpm pages:admin` 산출물의 `/release.json`이 빌드한 커밋을 표시한다(Pages Git 빌드는 `CF_PAGES_COMMIT_SHA`, 로컬 빌드는 HEAD). 커밋되지 않은 변경이 섞인 빌드는 release가 null이며 운영에 올리지 않는다.
+- API 응답에는 HSTS 헤더가 없다(2026-10-20 확인). `woori.stream`의 HSTS가 `includeSubDomains`라 브라우저는 하위 도메인도 HTTPS로 고정하지만, API에 직접 붙이려면 Caddy 설정에 추가한다(선택).
+
 ## 운영 생성 전 준비와 TLS
 
-2026-10-16 현재 사용자가 준비한 것은 도메인·개발용 R2·Resend다. 운영 리소스 생성·결제·비밀값 입력은 사용자가 직접 한다. 운영 배포 브랜치는 아직 미정이며 서비스 Git 자동 배포를 연결하기 전에 정한다. 추천은 승인된 릴리스를 migration 이후 운영 브랜치로 승격하는 방식이다. develop을 연결하는 즉시 자동 배포되도록 설정하지 않는다.
+2026-10-16 현재 도메인·개발용 R2·Resend와 Supabase Pro 서울 운영 DB가 준비됐다. 운영 리소스 생성·결제·비밀값 입력은 사용자가 직접 한다. 운영 배포 브랜치는 아직 미정이며 서비스 Git 자동 배포를 연결하기 전에 정한다. 추천은 승인된 릴리스를 migration 이후 운영 브랜치로 승격하는 방식이다. develop을 연결하는 즉시 자동 배포되도록 설정하지 않는다.
 
-- Supabase Pro Singapore 프로젝트를 생성하고 일일 백업·SSL enforcement를 확인한다. 가능하면 Data API를 끈다.
+- Supabase Pro 서울 프로젝트의 일일 백업과 SSL enforcement를 확인한다. SSL 연결과 비SSL 거부는 확인됐고, 자동 일일 백업의 실제 완료 시각·복원은 아직 미검증이다. 가능하면 Data API를 끈다.
 - IPv4가 필요한 연결은 대시보드의 Session pooler 문자열을 사용한다. migration 역할과 `woori_api` 런타임 역할의 문자열을 분리한다.
 - CA 인증서를 내려받고 `verify-full` 연결을 검증한다. `sslmode=require`만 붙이고 인증서 검증이 완료됐다고 가정하지 않는다. 인증서 검증 실패를 `rejectUnauthorized=false`로 우회하지 않는다.
 - 해당 프로젝트 CA를 확인한 뒤 공개 인증서만 `deploy/`에 추가할 수 있다. `sslrootcert` 경로는 API/worker 실행 디렉터리와 이미지 내 파일 존재를 확인한다. 아직 인증서 파일은 추가하지 않았다.
@@ -201,7 +215,13 @@ CORS 목록은 `WEB_ORIGIN`·`ADMIN_WEB_ORIGIN` 두 개와 정확히 같아야 �
 6. `20261030010000_one_waiting_delivery` 적용 전 확인(대기 배송 중복, 결과 0행이 정상):
    `SELECT "notificationId","installationId",count(*) FROM woori.notification_deliveries WHERE status IN ('PENDING','RUNNING') GROUP BY 1,2 HAVING count(*)>1;`
    중복이 있으면 migration이 오래된 바인딩 쪽을 `DONE/superseded`로 닫고 인덱스를 만든다.
-7. 되돌릴 때는 Railway에서 이전 배포로 돌린다. 추가된 테이블·컬럼은 남겨 둔다(이전 코드와 호환).
+7. 되돌릴 때는 Lightsail API·워커를 검증된 이전 이미지로 돌린다(위 "릴리스 이미지" 참고). 추가된 테이블·컬럼은 남겨 둔다(이전 코드와 호환).
+8. 닉네임 migration 2개(`20261101000000_member_nickname`, `20261102000000_neutral_member_copy`)는 `woori.users`에 `nickname`(기본값 `회원_` + 무작위 8자)과 `nicknameNeedsUpdate` 컬럼을 추가한다.
+   - 기존 회원: 이름과 무관한 `회원_<id 앞 8자>` 임시 닉네임과 변경 안내 표시(`nicknameNeedsUpdate=true`)를 받는다.
+   - 탈퇴 회원: `탈퇴한 회원`이 된다.
+   - 권한·호환성: `woori.users`에는 테이블 단위 UPDATE 권한이 있어 권한 변경이 필요 없다. 이전 API(`c940d04`)는 새 컬럼을 읽지 않고, 가입 시 기본값이 채워지므로 migration을 먼저 적용해도 동작한다.
+   - 반대 순서는 안 된다. 새 웹은 가입 요청에 `nickname`을 보내므로, 이전 API는 이를 알 수 없는 필드로 보고 400을 낸다. 따라서 웹은 새 API 반영 뒤에 올린다.
+   - 적용 전 확인: 영향 받는 회원 수(`SELECT status, count(*) FROM woori.users GROUP BY status`)를 상태별 개수로만 조회한다.
 
 ## 운영 R2
 
@@ -223,7 +243,7 @@ CORS 목록은 `WEB_ORIGIN`·`ADMIN_WEB_ORIGIN` 두 개와 정확히 같아야 �
 
 ## 모니터링과 비용 알림
 
-- API: Railway 헬스체크 `/readyz`. 외부 가동 확인(선택)도 `https://api.woori.stream/readyz`를 본다.
+- API: Lightsail 배포 후 `/readyz` 헬스체크와 재시작·알림을 구성한다. 외부 가동 확인(선택)도 `https://api.woori.stream/readyz`를 본다. 실행 버전은 `/healthz`의 `release`로 확인한다.
 - 워커: 관리자 지표 `workers.healthy`(120초 안의 heartbeat와 성공한 회차), `queues.*.oldestDueSeconds`,
   `mail.failed24h`를 본다. heartbeat는 15초 타이머로 따로 기록하므로 긴 동영상 변환 중에도 갱신되고,
   진행 중 작업은 `instances[].busyJob`(`video-transcode`/`photo-processing`)·`busySeconds`로 보인다.
@@ -231,7 +251,7 @@ CORS 목록은 `WEB_ORIGIN`·`ADMIN_WEB_ORIGIN` 두 개와 정확히 같아야 �
   `videoReady=false`인 워커는 동영상 작업을 가져가지 않는다(사진은 처리).
   재배포(SIGTERM) 시 진행 중 변환을 멈추고 작업을 시도 횟수 차감 없이 바로 대기열로 돌린 뒤 종료한다.
   강제 종료돼도 15분 리스가 끝나면 다른 회차가 다시 잡는다. 워커 로그의 실패 줄은 `{"service":"woori-worker","job":...,"status":"failed"}` 형식이며 값은 담지 않는다.
-- Railway 사용량 알림 $45, 하드 한도 $60(월). Supabase·Cloudflare·Resend 요금 알림도 각 콘솔에서 켠다.
+- 기존 Railway $45 알림/$60 한도 계획은 폐기한다. AWS 예산·알림을 별도로 설정해야 하며 아직 미설정이다. Supabase·Cloudflare·Resend 요금 알림도 각 콘솔에서 켠다.
 
 ## 백업과 복원 훈련 (RPO 24시간, RTO 반나절)
 
@@ -245,16 +265,30 @@ CORS 목록은 `WEB_ORIGIN`·`ADMIN_WEB_ORIGIN` 두 개와 정확히 같아야 �
   안전 정지: 운영 목록이 0개, 두 버킷이 같음, manifest의 원본 버킷이 다름, manifest 손상이면 아무것도 바꾸지 않고
   `{"status":"aborted","reason":...}`로 끝난다. 지울 대상이 백업 객체의 5%를 넘으면 삭제만 건너뛰고(복사는 진행) 종료 코드 1을 낸다.
   원인을 확인한 뒤에만 `--force-large-prune`을 붙인다.
+  목록을 읽은 뒤 복사 전에 운영에서 지워진 객체(사진 삭제·정리)는 실패가 아니라 `sourceGone`으로 센다.
+  실패·누락 없이 끝난 `--apply` 실행만 `_woori-backup/last-success.json`(시각·개수만)을 남기고 출력에 `"status":"ok"`를 쓴다.
+  일부 실패는 `"status":"partial"`과 종료 코드 1이다. 공급자 오류는 `{"status":"failed","error":<SDK 오류 이름>,"httpStatus":<코드>}`만 출력한다(예: AccessDenied 403, NoSuchBucket 404).
+  운영 버킷이 비어 있으면(첫 업로드 전) `SOURCE_EMPTY`로 멈추고 종료 코드 1을 낸다.
+  prune을 하지 않는 동안 manifest의 orphans는 계속 늘어난다. 읽기 상한(32MiB)의 80%를 넘으면 백업은 완료하되 종료 코드 3과 `manifestSize:"near-limit"`로 알린다. 상한을 넘으면 manifest를 쓰지 않고 종료 코드 1을 낸다. 보관 기간을 정해야 해소된다.
 - 일일 실행은 2026-10-16 사용자 확정이다. 자동 실행 환경·시간·실패 알림은 아직 배포하지 않았다.
   개인 컴퓨터의 수동 실행만으로 24시간 RPO를 달성했다고 보고하지 않는다. 마지막 성공 백업 시각과
   실패·누락을 감시하고, 재시도 여유를 둔 실행 주기를 운영 배포 전에 확정한다. 백업은 복사 시점이
   분산된 증분 사본이므로 DB 백업 시각에 대응하는 객체가 있는지도 복원 훈련에서 확인한다.
-- 서버 `deploy/railway.backup.json`은 별도 예약 실행 서비스용 준비 파일이다. 매일 03:00 KST(18:00 UTC),
-  `node scripts/r2-backup.mjs --apply`, 단일 실행이며 자동 prune을 하지 않는다. 실제 서비스는 아직 만들지 않았다.
-  API·워커와 별도로 생성 승인을 받은 후 백업에 필요한 R2 변수만 넣고, DB·메일·관리자 키는 넣지 않는다.
-  첫 실행 전 버킷·권한을 확인하고 dry-run을 승인·검토한다. 운영 브랜치 연결·스케줄 활성화는 배포 승인 후 한다.
-  이전 실행이 끝나지 않으면 Railway가 다음 실행을 건너뛰므로 실행 종료·실패와 마지막 성공 시각을 따로 감시한다.
-  [Railway Cron Jobs](https://docs.railway.com/cron-jobs) 참조. 이 설정 파일만으로 백업/알림이 운영된다고 보고하지 않는다.
+- Lightsail 일일 실행 템플릿: `deploy/lightsail/`에 세 파일이 있다. 아직 서버에 설치하지 않았다.
+  - `woori-r2-backup.service`·`woori-r2-backup.timer`: 매일 03:30 KST, `Persistent=true`로 놓친 실행을 재가동 후 수행한다.
+  - `r2-backup-run.sh`: flock(`/run/woori-r2-backup.lock`)으로 겹침을 막고, 로컬에 있는 릴리스 이미지만(`--pull never`) 써서 `timeout 150m node scripts/r2-backup.mjs --apply`를 실행한다(메모리 512MB·CPU 1, 권한 축소). 종료 코드를 그대로 돌려준다(124 시간 초과, 125 docker 오류 포함). prune은 하지 않는다.
+  - 설치 위치(워커 인스턴스, root):
+    - 래퍼: `/usr/local/lib/woori/r2-backup-run.sh`
+    - 유닛·타이머: `/etc/systemd/system/`
+    - `/etc/woori/r2-backup.conf`: `WOORI_IMAGE=woori-server:<배포 태그>`. 배포마다 갱신한다.
+    - `/etc/woori/r2-backup.env`: 0600. 위 R2 변수 5개만 넣는다(따옴표·export 없이). 앱 키·DB·메일 값은 넣지 않는다.
+  - 첫 실행: 같은 이미지로 dry-run(`docker run --rm --pull never --env-file /etc/woori/r2-backup.env <이미지> node scripts/r2-backup.mjs`, 읽기만 함) 결과를 검토한다. 다음으로 `systemctl start woori-r2-backup.service`로 첫 `--apply`를 하고 소요 시간을 잰다. 그 뒤 `systemctl enable --now woori-r2-backup.timer`를 실행한다. 각 단계는 사용자 승인 후 진행한다. `--apply`는 잠금이 걸리도록 항상 서비스로 실행한다. `docker run`으로 직접 실행하지 않는다.
+  - 실행 확인: `systemctl list-timers woori-r2-backup.timer`, `journalctl -u woori-r2-backup`.
+- 실패·누락 감시: 실행이 아예 없으면(호스트 중단·타이머 비활성) 호스트가 스스로 알릴 수 없다. 그래서 외부 "데드맨" 감시 서비스가 필요하다. 서비스와 알림 수신처는 미정이다.
+  - 래퍼는 `/etc/woori/r2-backup.ping`(root 0600, 감시 URL 한 줄)이 있으면 시작 시 `/start`, 끝나면 `/<종료 코드>`를 붙여 호출한다(Healthchecks 방식). 파일이 없으면 호출하지 않는다.
+  - 권장 설정: 주기 1일, 유예 2~3시간, 종료 코드가 0이 아니면 즉시 알림.
+  - 감시 서비스가 정해지기 전에는 24시간 RPO를 감시하고 있다고 보고하지 않는다.
+- `deploy/railway.backup.json`은 이전 Railway 계획의 보관 파일이며 현행 실행 수단이 아니다.
 - 월 1회 복원 훈련:
   1. Supabase에서 최신 일일 백업을 새 프로젝트(Singapore)로 복원한다. 운영 프로젝트를 덮어쓰지 않는다.
   2. 새 프로젝트에 `woori_api` 역할을 만들고 `prisma/runtime-grants.sql`을 적용한다.
@@ -267,3 +301,17 @@ CORS 목록은 `WEB_ORIGIN`·`ADMIN_WEB_ORIGIN` 두 개와 정확히 같아야 �
 ## 영상 권한 보완 배포 호환성
 
 기존 `/video` JSON 응답의 URL 의미가 R2 서명 링크에서 API 경로로 바뀐다. 이전 웹은 API 경로를 거절하거나 쿠키 없는 재생을 할 수 있으므로 API만 먼저 바꾼 뒤 오래 방치하지 않는다. 새 API·워커 준비 후 곧바로 새 회원·관리자 웹으로 전환하고 캐시된 이전 웹에는 새로고침이 필요하다. 보안 정책 때문에 옛 R2 링크 허용으로 되돌리는 호환 경로는 두지 않는다. 기존에 발급된 R2 링크는 최장 600초 만료될 때까지 남을 수 있고 이미 전송된 파일은 회수할 수 없다. 새 API에서는 매 요청 세션·권한을 재검사하며 이미 진행 중인 스트림을 실시간으로 회수하는 정책과는 구분한다.
+
+## 2026-10-16 운영 DB 최초 적용 결과
+
+- 대상: 사용자 생성 Supabase Pro `woori-production`, 서울, PostgreSQL 17.11. 빈 woori 스키마·런타임 역할 상태를 확인하고 스키마 덤프를 보관한 뒤 명시적 승인으로 적용했다.
+- 19개 migration 적용 완료, 마지막은 `20261031000000_mail_outbox_monitoring`. DB migration checksum과 저장소 SQL SHA256 전부 일치. migration 메타데이터는 public._prisma_migrations, 앱 데이터는 woori 스키마다.
+- 앱 테이블 30개에 RLS 활성화와 server_api_access 정책. woori_api는 LOGIN만 필요하며 슈퍼유저·DB/역할 생성·상속·replication·RLS 우회·스키마 CREATE 권한 및 상위 역할 멤버십이 없다. 컬럼별 UPDATE/관리자 감사 로그 불변 권한 확인. anon/authenticated는 woori 스키마 USAGE 불가.
+- 소유자와 런타임 연결 모두 Session pooler 5432 + verify-full TLS1.3 성공. SSL 없는 연결은 ESSLREQUIRED로 거부됐다.
+- 비공개 파일은 ~/.woori/production/migration.env(소유자), runtime-db.env(런타임), supabase-ca.crt(CA). 두 env 파일은 0600이다. 서버에 옮길 때 인증서 경로를 실행 환경에 맞춰 바꿔야 한다. 로컬 개발 .env는 유지했다.
+- 변경 전 구조와 비밀값 없는 적용 로그·권한 검증 결과는 ~/.woori/production/db-provision-20261016/에 보관했다. 이는 앱 스키마가 없던 상태의 구조 보관이며, 정기 데이터 백업·전체 관리형 DB 복원 검증을 대신하지 않는다.
+- 실제 API를 로컬 루프백 임시 포트에서 실행: woori_api Prisma 조회 성공, /healthz 200, 미인증 /v1/groups 401. 외부 운영 메일/R2/푸시 설정을 로드하지 않아 /readyz는 503(예상)이다.
+- 실제 워커를 로컬에서 --once로 실행: 정상 종료, lastPassOk=true·videoReady=true heartbeat 1행. 회원·사진 등 업무 데이터는 0행 유지. 외부 메일/푸시/R2 호출이나 합성 회원 생성은 하지 않았다. 사진·푸시 서비스는 외부 설정이 없어 생략되므로 실제 작업 처리 검증으로 보고하지 않는다.
+- 검증용 API·워커는 종료했다. Lightsail 상시 배포, HTTPS·프록시, 운영 외부 연동, 실기기·복원 훈련은 다음 단계다. 운영 DB에 테스트·seed·reset을 실행하지 않는다.
+
+- 최종 권한 보완: Supabase 기본 권한 때문에 public._prisma_migrations에 붙었던 anon/authenticated 접근을 확인했다. runtime-grants.sql에 PUBLIC·anon·authenticated·service_role·woori_api의 migration ledger 권한 회수를 추가하고 운영에 적용했다. owner 접근은 유지한다. 격리 로컬 회귀 검증(기본 권한 재현, 두 번 적용, ROLLBACK) 포함 통합 테스트 200개 통과. 기존 migration SQL은 변경하지 않았다.

@@ -175,7 +175,9 @@
         "2026-10-16 client authenticated-video changes: 261 tests passed (16 scripts, 164 web, 81 admin), types/lint/boundaries (321 files)/format passed; plain-copy production-value pages:web/pages:admin builds generated 29/18 HTML with CSP. Browser acceptance remains unverified: Chrome automation and user direct navigation both showed ERR_BLOCKED_BY_CLIENT for the local synthetic fixture. No bypass attempted; four owned fixture processes stopped and ports confirmed closed.",
         "2026-10-16 independent security review resolved draft ticket signing-key misuse, media headers on JSON errors and stream errors during asynchronous authorization. Final code checks current member permissions per GET/HEAD/Range; admin grant is signed by a server-only derived key and binds current admin/session/photo/audit/purpose/expiry. HTML video requires exact admin Origin; other admin requests retain X-Woori-Request. No new DB migration/grants or production changes.",
         "2026-10-16 final server verification: build/typecheck passed; 139 unit tests and 199 isolated PostgreSQL integration tests passed, including reused member URL denied after block/leave and admin ticket rejection for different/revoked session, tampering, expiry, reauthentication expiry and wrong/missing Origin. HEAD ignores Range, HTTP 206/416, failed-open JSON headers and stream abort/error handling covered. Existing development DB/schema/grants were not changed. Policy tests passed (server 18/client 16); handoff lifecycle tests passed (5 per repository).",
-        "2026-10-16 readiness follow-up remains uncommitted/unpushed. Only owned synthetic browser services and Docker audit image were cleaned up. Production resources, actual HTTPS/cookies, physical-device playback/push, backup scheduling/alerts and restore drill remain unverified; W07 stays in_progress and CLEANUP is not eligible."
+        "2026-10-16 readiness follow-up remains uncommitted/unpushed. Only owned synthetic browser services and Docker audit image were cleaned up. Production resources, actual HTTPS/cookies, physical-device playback/push, backup scheduling/alerts and restore drill remain unverified; W07 stays in_progress and CLEANUP is not eligible.",
+        "2026-10-20 external read-only production comparison (no secrets, no production data reads beyond the migration ledger): prisma migrate status with the private migration file shows 19 of 21 migrations applied on Supabase woori-production; 20261101000000_member_nickname and 20261102000000_neutral_member_copy are pending. api.woori.stream healthz/readyz 200 behind Caddy, Node port 3001 closed, both web origins pass CORS preflight, API sends no HSTS (woori.stream HSTS includeSubDomains covers it). Last recorded image woori-server:20261019-1: all 287 source-manifest hashes equal c940d04 (pre-nickname). woori.stream serves a pre-v4.1 build (old title; PR #18 API media-src present). admin.woori.stream has no DNS record. Whether Lightsail actually runs 20261019-1 was not checked on the servers. A read-only user-count query was refused by the local permission classifier and not retried; production DB, servers and Pages were not changed.",
+        "2026-10-20 feature/release-readiness (uncommitted): scripts/pages-build.mjs writes /release.json {app, release, dirty, pushed, localEnv}; release names the commit only for a clean build of a commit on origin develop/main (CF_PAGES_COMMIT_SHA on Pages Git builds) without apps/<app>/.env* files; web serves it no-store. Verification: plain-copy production-value builds pages:web 29 / pages:admin 18 pages with release.json; lint, typecheck, 293 functional tests (scripts 17, web 195, admin 81), boundaries (341 files), format, build passed; policy:check and policy:test 16 passed in the real checkout; release flags exercised in a temporary standalone clone (dirty/pushed/localEnv)."
       ],
       "implementationRefs": [
         "https://github.com/mooonseok/woori_client/pull/17; merged into develop eb9588b; implementation 132bf82",
@@ -183,10 +185,11 @@
         "apps/admin (video audited view, metrics mail/queues/workers)",
         "apps/*/public/_headers",
         "scripts/pages-build.mjs",
-        "fix/production-readiness (uncommitted follow-up)",
+        "https://github.com/mooonseok/woori_client/pull/18; merged into develop cbc7c67; implementation bc2a3b2",
         "apps/web/src/services/media-client.ts",
         "apps/web/src/utils/media-url.ts",
-        "apps/admin/src/utils/media-url.ts"
+        "apps/admin/src/utils/media-url.ts",
+        "feature/release-readiness (2026-10-20, uncommitted)"
       ],
       "peerEvidence": [
         "W07 web/admin aligned with contracts/openapi.json 0.25.0 (bundles, album pages, video, metrics busy fields).",
@@ -206,8 +209,9 @@
     "W04: physical iPhone/Android acceptance and deployment memory testing remain; HEIC decoder adoption deferred after failed installed-decoder PoC.",
     "W05: physical-device/mobile screen-reader validation remains; operator identity, privacy contact, retention periods and legal policy text are undecided and shown as placeholders.",
     "W06: audit-log, report and inquiry retention periods undecided; operator identity/contact still placeholders (W05).",
-    "W07: decisions complete (infra, bundling, beta scope incl. video, 300 MB selection total); remaining is user provisioning of production accounts and deployment acceptance.",
-    "W08: review corresponding DESIGN.md decisions before implementation."
+    "W07: remaining — user-approved production rollout (nickname migrations → API/worker from a release image → member web), admin web Pages project/DNS/Access, first admin + MFA in production, backup timer install with a dead-man monitoring service and alert recipient, AWS budget/cost alerts, production acceptance (mail, media, push, two-account isolation).",
+    "W08: review corresponding DESIGN.md decisions before implementation.",
+    "Operations policy (undecided): operator and contact, final privacy notice details, inquiry/report/audit-log/backup retention periods, suspended group owner handling, cost limits and outage alert recipients."
   ],
   "durableDecisionsMoved": false,
   "permanentRefs": []

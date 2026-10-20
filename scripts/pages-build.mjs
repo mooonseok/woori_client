@@ -3,10 +3,19 @@
 //   enforced together with the _headers CSP, so no 'unsafe-inline' remains;
 // - fills the _headers origins from the Pages build environment;
 // - fails on local/mock URLs, an API outside woori.stream, unresolved
-//   placeholders or Pages limits.
+//   placeholders or Pages limits;
+// - writes release.json with the source commit, so an operator can tell which
+//   build a Pages site serves.
 // Usage: node scripts/pages-build.mjs <web|admin>
+import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  readFileSync,
+  readdirSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -111,7 +120,49 @@ const files = (dir) =>
     return statSync(path).isDirectory() ? files(path) : [path];
   });
 
-export function finish(out, values) {
+// Cloudflare's Git builds provide CF_PAGES_COMMIT_SHA; a local build (direct
+// upload) uses HEAD. release names the commit only when the build can be
+// reproduced from it: no uncommitted changes, no local env file that `next
+// build` reads (apps/<app>/.env*, all gitignored), and the commit is already
+// on origin develop/main. Otherwise release is null and the flags say why.
+export function releaseInfo(app, { commit, dirty, pushed, localEnv }) {
+  if (!/^[0-9a-f]{40}$/.test(commit ?? ''))
+    throw new Error('Cannot determine the source commit for release.json');
+  const release = !dirty && pushed && !localEnv ? commit : null;
+  return { app, release, dirty, pushed, localEnv };
+}
+
+// Env files Next loads in a production build; every one is gitignored here.
+export const LOCAL_ENV_FILES = [
+  '.env',
+  '.env.local',
+  '.env.production',
+  '.env.production.local',
+];
+
+// Whether origin's current develop or main head contains the commit.
+function onReleaseBranch(git, commit) {
+  let heads;
+  try {
+    heads = git(['ls-remote', '--heads', 'origin', 'develop', 'main']);
+  } catch {
+    return false;
+  }
+  return heads
+    .split('\n')
+    .map((line) => line.split(/\s+/)[0])
+    .filter((sha) => /^[0-9a-f]{40}$/.test(sha))
+    .some((head) => {
+      try {
+        git(['merge-base', '--is-ancestor', commit, head]);
+        return true;
+      } catch {
+        return false;
+      }
+    });
+}
+
+export function finish(out, values, release) {
   const all = files(out);
   const problems = [];
   for (const path of all.filter((p) =>
@@ -132,6 +183,8 @@ export function finish(out, values) {
   }
   const headers = join(out, '_headers');
   writeFileSync(headers, renderHeaders(readFileSync(headers, 'utf8'), values));
+  if (release)
+    writeFileSync(join(out, 'release.json'), `${JSON.stringify(release)}\n`);
   return pages;
 }
 
@@ -149,8 +202,20 @@ if (resolve(process.argv[1] ?? '') === fileURLToPath(import.meta.url)) {
   };
   if (app === 'web' && process.env.NEXT_PUBLIC_APP_MODE === 'demo')
     throw new Error('Production Pages builds run in live mode');
-  const pages = finish(join(root, 'apps', app, 'out'), values);
+  const git = (args) =>
+    execFileSync('git', args, { cwd: root }).toString().trim();
+  const fromPages = process.env.CF_PAGES_COMMIT_SHA;
+  const commit = fromPages || git(['rev-parse', 'HEAD']);
+  const release = releaseInfo(app, {
+    commit,
+    dirty: !fromPages && git(['status', '--porcelain']) !== '',
+    pushed: Boolean(fromPages) || onReleaseBranch(git, commit),
+    localEnv: LOCAL_ENV_FILES.some((name) =>
+      existsSync(join(root, 'apps', app, name))
+    ),
+  });
+  const pages = finish(join(root, 'apps', app, 'out'), values, release);
   console.log(
-    `pages-build ${app}: ${pages} pages, CSP origins ${Object.values(values).join(' ')}`
+    `pages-build ${app}: ${pages} pages, CSP origins ${Object.values(values).join(' ')}, release ${release.release ?? `none (dirty=${release.dirty}, pushed=${release.pushed}, localEnv=${release.localEnv})`}`
   );
 }

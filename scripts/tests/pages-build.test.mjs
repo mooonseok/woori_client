@@ -7,6 +7,8 @@ import { join } from 'node:path';
 import {
   finish,
   forbiddenUrls,
+  releaseInfo,
+  LOCAL_ENV_FILES,
   httpsOrigin,
   r2Origin,
   renderHeaders,
@@ -121,7 +123,26 @@ test('an export with local or mock URLs fails; a clean one is finished in place'
     join(out, '_headers'),
     '/*\n  CSP: connect-src {{API_ORIGIN}}\n'
   );
-  assert.equal(finish(out, { API_ORIGIN: 'https://api.woori.stream' }), 2);
+  const release = releaseInfo('web', {
+    commit: 'c'.repeat(40),
+    dirty: false,
+    pushed: true,
+    localEnv: false,
+  });
+  assert.equal(
+    finish(out, { API_ORIGIN: 'https://api.woori.stream' }, release),
+    2
+  );
+  assert.deepEqual(
+    JSON.parse(readFileSync(join(out, 'release.json'), 'utf8')),
+    {
+      app: 'web',
+      release: 'c'.repeat(40),
+      dirty: false,
+      pushed: true,
+      localEnv: false,
+    }
+  );
   assert.match(readFileSync(join(out, '404.html'), 'utf8'), /data-woori-csp/);
   assert.match(
     readFileSync(join(out, '_headers'), 'utf8'),
@@ -178,4 +199,31 @@ test('the API origin is woori.stream or a subdomain; R2 keeps only its account f
   // The storage host is Cloudflare's, so the allowlist does not apply to it.
   assert.equal(r2Origin(account), account);
   assert.throws(() => r2Origin('https://api.woori.stream'), /account id/);
+});
+
+test('release.json names a commit only when the build is reproducible from it', () => {
+  const commit = 'a'.repeat(40);
+  const clean = { commit, dirty: false, pushed: true, localEnv: false };
+  assert.deepEqual(releaseInfo('admin', clean), {
+    app: 'admin',
+    release: commit,
+    dirty: false,
+    pushed: true,
+    localEnv: false,
+  });
+  // Uncommitted changes, an unpublished commit or a local env file never
+  // claim the HEAD commit; the flags say why.
+  for (const reason of [{ dirty: true }, { pushed: false }, { localEnv: true }])
+    assert.equal(releaseInfo('web', { ...clean, ...reason }).release, null);
+  assert.deepEqual(LOCAL_ENV_FILES, [
+    '.env',
+    '.env.local',
+    '.env.production',
+    '.env.production.local',
+  ]);
+  for (const bad of [undefined, '', 'abc1234', 'A'.repeat(40), `${commit}\n`])
+    assert.throws(
+      () => releaseInfo('web', { ...clean, commit: bad }),
+      /source commit/
+    );
 });
