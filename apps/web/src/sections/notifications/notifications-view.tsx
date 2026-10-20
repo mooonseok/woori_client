@@ -78,7 +78,7 @@ export function NotificationsView({
       </Header>
       <Text className='notification-demo-note'>
         {live
-          ? '가족의 사진과 이야기를 확인해 보세요. 기기 알림은 알림 설정에서 켤 수 있어요.'
+          ? '그룹의 새로운 소식을 확인해 보세요. 기기 알림은 알림 설정에서 켤 수 있어요.'
           : '지금은 예시 소식이에요. 데모에서는 기기 알림을 보내지 않아요.'}
       </Text>
       {live && (
@@ -105,7 +105,7 @@ export function NotificationsView({
         <Box className='notification-empty'>
           <Icon name='bell' size={32} />
           <Heading>아직 받은 알림이 없어요</Heading>
-          <Text>가족이 올린 사진과 내 사진에 남긴 이야기가 여기에 모여요.</Text>
+          <Text>새로 올라온 사진·동영상과 댓글·반응 소식이 여기에 모여요.</Text>
         </Box>
       ) : (
         <>

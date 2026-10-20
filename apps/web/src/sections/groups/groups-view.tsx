@@ -107,7 +107,7 @@ export function GroupsView(p: GroupsViewProps) {
               maxLength={40}
               value={p.name}
               onChange={(event) => p.setName(event.target.value)}
-              placeholder='예: 우리 가족'
+              placeholder='예: 주말 산책 모임'
               disabled={p.pending || !p.verified}
             />
           </Label>

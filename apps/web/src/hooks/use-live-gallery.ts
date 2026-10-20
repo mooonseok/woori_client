@@ -1,4 +1,5 @@
 'use client';
+import { memberNickname } from '@/utils/nickname';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import type { Album, GalleryData, Group, Photo } from '@/dto/album.dto';
@@ -1279,7 +1280,7 @@ export function useLiveGalleryState() {
       void reload();
     },
     mode: 'live' as const,
-    profileName: user?.displayName || '',
+    profileName: memberNickname(user),
     setProfileName: () => setToast('프로필 수정 기능을 준비하고 있어요.'),
     viewer,
     loadDisplay: displayLoader(groupId),

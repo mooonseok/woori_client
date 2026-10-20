@@ -38,8 +38,8 @@ export function VerifyEmailView(p: Props) {
       ) : (
         <>
           <Text>
-            {p.email} 주소로 받은 확인 링크를 열어 주세요. 가족만 들어오는
-            공간을 위해 한 번 확인해요.
+            {p.email} 주소로 받은 확인 링크를 열어 주세요. 그룹을 만들거나
+            참여하기 전에 사용하는 이메일인지 확인해요.
           </Text>
           {p.token && (
             <Button

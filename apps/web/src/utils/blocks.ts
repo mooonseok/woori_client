@@ -1,3 +1,4 @@
+import { memberNickname } from './nickname.ts';
 import { BLOCK_LIMIT } from '../constants/block.ts';
 import type { Photo } from '../dto/album.dto.ts';
 import type { BlockChange } from '../dto/block.dto.ts';
@@ -11,7 +12,7 @@ export function uploaderOf(
 ): { authorId: string; authorName?: string } {
   const uploader = photo?.uploader;
   return uploader && typeof uploader.id === 'string' && uploader.id
-    ? { authorId: uploader.id, authorName: uploader.displayName }
+    ? { authorId: uploader.id, authorName: memberNickname(uploader) }
     : { authorId: '' };
 }
 // Report/block are offered only for a known person who is not me.

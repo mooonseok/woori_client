@@ -25,7 +25,7 @@ test('recovery mutations use cookie/CSRF/no-store and keep tokens out of URLs', 
         return new Response(null, { status: 204 });
       return Response.json(
         request.method === 'PATCH'
-          ? { user: { id: 'current', displayName: '새 이름' } }
+          ? { user: { id: 'current', nickname: '새 별명' } }
           : { accepted: true }
       );
     }
@@ -42,8 +42,8 @@ test('recovery mutations use cookie/CSRF/no-store and keep tokens out of URLs', 
     token: 'a'.repeat(43),
     newPassword: 'fixture-new-password',
   });
-  const result = await updateProfile('새 이름');
-  assert.equal(result.user.displayName, '새 이름');
+  const result = await updateProfile({ nickname: '새 별명' });
+  assert.equal(result.user.nickname, '새 별명');
   assert.deepEqual(
     calls.map((r) => new URL(r.url).pathname),
     [
@@ -59,7 +59,7 @@ test('recovery mutations use cookie/CSRF/no-store and keep tokens out of URLs', 
     assert.equal(call.headers.get('X-Woori-Request'), '1');
     assert.equal(new URL(call.url).search, '');
   }
-  assert.deepEqual(await calls[3].json(), { displayName: '새 이름' });
+  assert.deepEqual(await calls[3].json(), { nickname: '새 별명' });
 });
 
 test('expired links, rate limits and aborted requests remain failures', async (t) => {
@@ -101,4 +101,28 @@ test('expired links, rate limits and aborted requests remain failures', async (t
     ),
     (e: unknown) => e instanceof DOMException && e.name === 'AbortError'
   );
+});
+
+test('private account name edits remain separate from nickname edits', async (t) => {
+  const saved = process.env.NEXT_PUBLIC_API_BASE_URL;
+  process.env.NEXT_PUBLIC_API_BASE_URL = 'http://localhost:3001';
+  t.after(() => {
+    if (saved === undefined) delete process.env.NEXT_PUBLIC_API_BASE_URL;
+    else process.env.NEXT_PUBLIC_API_BASE_URL = saved;
+  });
+  t.mock.method(
+    globalThis,
+    'fetch',
+    async (_input: unknown, init?: RequestInit) => {
+      assert.deepEqual(JSON.parse(String(init?.body)), {
+        displayName: '복구 이름',
+      });
+      return Response.json({
+        user: { displayName: '복구 이름', nickname: '별빛' },
+      });
+    }
+  );
+  const result = await updateProfile({ displayName: '복구 이름' });
+  assert.equal(result.user.nickname, '별빛');
+  assert.equal(result.user.displayName, '복구 이름');
 });

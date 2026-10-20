@@ -27,7 +27,8 @@ export function InviteView(p: Props) {
       <Text className='eyebrow'>INVITATION</Text>
       <Heading>함께할 공간으로 초대받았어요</Heading>
       <Text className='muted'>
-        초대를 확인한 뒤 참여해 주세요. 참여 전에는 가족 사진이 공개되지 않아요.
+        초대를 확인한 뒤 참여해 주세요. 그룹에 참여해야 사진과 동영상을 볼 수
+        있어요.
       </Text>
       {!p.hasToken && (
         <Form

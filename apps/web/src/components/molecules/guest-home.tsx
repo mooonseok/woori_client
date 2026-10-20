@@ -66,7 +66,7 @@ export function GuestHomeView({
           </Heading>
           <Text className='guest-description'>
             <Span>사진과 동영상으로 이어지는 우리.</Span>
-            <Span>초대받은 가족과 친구끼리, 편하게 나눠요.</Span>
+            <Span>초대받은 사람들과 편하게 나눠요.</Span>
           </Text>
           <Box className='guest-actions'>
             <Link

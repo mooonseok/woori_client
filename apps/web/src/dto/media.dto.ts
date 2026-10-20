@@ -56,6 +56,7 @@ export interface VideoAccess {
 export interface PhotoUploader {
   id: string;
   displayName: string;
+  nickname?: string;
 }
 export interface UploadTicket {
   photoId: string;

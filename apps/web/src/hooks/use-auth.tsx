@@ -151,9 +151,12 @@ function useAuthState() {
     }
     return result.user;
   }
-  async function saveProfile(displayName: string) {
+  async function saveProfile(profile: {
+    displayName?: string;
+    nickname?: string;
+  }) {
     const request = ++generation.current;
-    const result = await updateProfile(displayName);
+    const result = await updateProfile(profile);
     if (request !== generation.current)
       throw new Error('계정 상태가 바뀌었어요. 다시 확인해 주세요.');
     setUser(result.user);

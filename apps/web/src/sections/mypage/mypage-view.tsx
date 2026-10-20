@@ -1,3 +1,4 @@
+import { NICKNAME_HELP } from '@/utils/nickname';
 import { ThemePicker } from '@/components/molecules/theme-picker';
 import {
   themeLabel,
@@ -28,6 +29,7 @@ interface Props {
   logoutPending: boolean;
   onLogout: () => void;
   name: string;
+  nicknameNeedsUpdate: boolean;
   edit: boolean;
   guide: 'view' | 'pin' | null;
   groupCount: number;
@@ -45,6 +47,7 @@ export function MypageView({
   onThemeOpen,
   onThemeClose,
   name,
+  nicknameNeedsUpdate,
   live,
   email,
   verified,
@@ -101,6 +104,12 @@ export function MypageView({
           프로필 수정
         </Button>
       </Section>
+      {live && nicknameNeedsUpdate && (
+        <Text role='status' className='notice-panel'>
+          이름 대신 임시 닉네임이 표시되고 있어요. 프로필 수정에서 원하는
+          닉네임으로 바꿔 주세요.
+        </Text>
+      )}
       {live && (
         <Section>
           <Heading className='setting-heading'>계정</Heading>
@@ -231,14 +240,11 @@ export function MypageView({
       {edit && (
         <EntryDialog
           title='프로필 수정'
-          label='이름'
+          label='닉네임'
+          maxLength={80}
           initialValue={name}
           submitLabel='저장'
-          note={
-            live
-              ? '아이디·비밀번호 찾기에도 변경한 이름을 사용해 주세요.'
-              : undefined
-          }
+          note={`다른 사람에게 보이는 닉네임을 바꿀 수 있어요. ${NICKNAME_HELP}`}
           onSubmit={setName}
           onClose={() => setEdit(false)}
         />

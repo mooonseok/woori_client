@@ -1,3 +1,4 @@
+import { memberNickname } from './nickname.ts';
 import type { PhotoComment } from '../dto/album.dto.ts';
 import type { CommentResponse } from '../dto/photo-interactions.dto.ts';
 export function commentModel(comment: CommentResponse): PhotoComment {
@@ -5,7 +6,7 @@ export function commentModel(comment: CommentResponse): PhotoComment {
     id: comment.id,
     photoId: comment.photoId,
     authorId: comment.author.id,
-    authorName: comment.author.displayName,
+    authorName: memberNickname(comment.author),
     body: comment.body,
     createdAt: comment.createdAt,
     canEdit: comment.canEdit,

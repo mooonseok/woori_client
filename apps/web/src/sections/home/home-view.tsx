@@ -141,7 +141,7 @@ export function HomeView({
         {!albums.length && (
           <EmptyState
             title='첫 앨범을 만들어 보세요'
-            body='가족과 함께 나눌 사진을 한곳에 모아요.'
+            body='함께 나눌 사진과 동영상을 한곳에 모아요.'
             action='앨범 만들러 가기'
             onAction={onAlbums}
           />

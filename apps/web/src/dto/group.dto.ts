@@ -1,6 +1,7 @@
 export interface GroupMember {
   userId: string;
   displayName: string;
+  nickname?: string;
   role: 'OWNER' | 'MEMBER';
   joinedAt: string | null;
   // OpenAPI 0.15.0 (additive): I have personally blocked this member.

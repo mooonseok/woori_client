@@ -33,7 +33,7 @@ export function GalleryStatus() {
       <Heading>
         {group
           ? `${group.name}, 우리의 사진 공간`
-          : '가족과 함께할 공간을 만들어요'}
+          : '함께할 그룹을 만들어 보세요'}
       </Heading>
       <Text>
         {group

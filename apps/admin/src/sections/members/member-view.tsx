@@ -53,6 +53,7 @@ interface DialogCopy {
 interface Props {
   listHref: string;
   name: string;
+  nickname: string;
   username: string;
   status: string;
   statusLabel: string;
@@ -116,6 +117,10 @@ export function MemberView({ firstFieldRef, reasonFieldRef, ...p }: Props) {
         <Section className='card' aria-labelledby='member-info'>
           <Heading id='member-info'>계정</Heading>
           <Dl className='facts'>
+            <Box>
+              <Dt>닉네임</Dt>
+              <Dd>{p.nickname}</Dd>
+            </Box>
             <Box>
               <Dt>이메일</Dt>
               <Dd>

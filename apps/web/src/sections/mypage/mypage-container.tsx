@@ -5,6 +5,7 @@ import { DEMO_MODE } from '@/constants/app-mode';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGallery } from '@/hooks/use-gallery';
+import { nicknameProblem, normalizeNickname } from '@/utils/nickname';
 import { MypageView } from './mypage-view';
 export function MypageContainer() {
   const router = useRouter(),
@@ -53,14 +54,18 @@ export function MypageContainer() {
       logoutPending={logoutPending}
       onLogout={() => void logout()}
       name={name}
+      nicknameNeedsUpdate={!!auth.user?.nicknameNeedsUpdate}
       edit={edit}
       guide={guide}
       groupCount={data.groups.length}
       setName={async (value) => {
-        if (DEMO_MODE) setName(value);
+        const nickname = normalizeNickname(value);
+        const problem = nicknameProblem(nickname);
+        if (problem) throw new Error(problem);
+        if (DEMO_MODE) setName(nickname);
         else {
-          await auth.saveProfile(value.trim());
-          setToast('이름을 저장했어요.');
+          await auth.saveProfile({ nickname });
+          setToast('닉네임을 저장했어요.');
         }
       }}
       setEdit={setEdit}

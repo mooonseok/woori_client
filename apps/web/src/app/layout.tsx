@@ -18,8 +18,8 @@ export const metadata: Metadata = {
       { url: '/icons/favicon-v2.ico', sizes: 'any' },
     ],
   },
-  title: '우리 — 가족 사진 앨범',
-  description: '함께한 순간을 함께 간직하는 가족 사진 앨범',
+  title: '우리 — 함께하는 앨범',
+  description: '사진과 동영상으로 함께한 순간을 나누는 공유 앨범',
   robots: { index: false, follow: false },
 };
 export default function RootLayout({

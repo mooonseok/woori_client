@@ -13,6 +13,8 @@ import {
 import { Link } from '@/components/molecules/link';
 import { Icon } from '@/components/atoms/icon';
 interface Props {
+  displayName: string;
+  onEditName: () => void;
   username: string;
   email: string;
   mode: 'password' | 'email' | null;
@@ -24,6 +26,8 @@ interface Props {
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }
 export function AccountSettingsView({
+  displayName,
+  onEditName,
   username,
   email,
   mode,
@@ -49,10 +53,19 @@ export function AccountSettingsView({
       </Box>
       <Section className='notice-panel'>
         <Text>아이디 · {username}</Text>
+        <Text>이름 · {displayName}</Text>
         <Text className='account-email'>이메일 · {email}</Text>
       </Section>
       {!mode ? (
         <Section>
+          <Button className='menu-row' onClick={onEditName}>
+            <Span>계정 이름 수정</Span>
+            <Icon name='chevron-right' />
+          </Button>
+          <Text className='field-help'>
+            이름은 계정 복구에 사용해요. 닉네임은 마이페이지의 프로필 수정에서
+            바꿀 수 있어요.
+          </Text>
           <Button className='menu-row' onClick={() => onSelect('password')}>
             <Span>비밀번호 변경</Span>
             <Icon name='chevron-right' />

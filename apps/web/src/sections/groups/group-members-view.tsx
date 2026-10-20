@@ -1,3 +1,4 @@
+import { memberNickname } from '@/utils/nickname';
 import {
   Box,
   Section,
@@ -62,7 +63,7 @@ export function GroupMembersView(p: Props) {
           <Box className='group-member-row' key={member.userId}>
             <Box>
               <Text>
-                {member.displayName}
+                {memberNickname(member)}
                 {member.userId === p.currentUserId && (
                   <Span className='muted'> · 나</Span>
                 )}
@@ -81,7 +82,7 @@ export function GroupMembersView(p: Props) {
                       <Button
                         className='text-button'
                         disabled={p.busy}
-                        aria-label={`${member.displayName} 님에게 그룹장 넘기기`}
+                        aria-label={`${memberNickname(member)} 님에게 그룹장 넘기기`}
                         onClick={() =>
                           p.setAction({ kind: 'transfer', member })
                         }
@@ -91,7 +92,7 @@ export function GroupMembersView(p: Props) {
                       <Button
                         className='text-button danger-text'
                         disabled={p.busy}
-                        aria-label={`${member.displayName} 님 내보내기`}
+                        aria-label={`${memberNickname(member)} 님 내보내기`}
                         onClick={() => p.setAction({ kind: 'remove', member })}
                       >
                         내보내기
@@ -102,7 +103,7 @@ export function GroupMembersView(p: Props) {
                     <Button
                       className='text-button muted'
                       disabled={p.busy}
-                      aria-label={`${member.displayName}님 신고`}
+                      aria-label={`${memberNickname(member)}님 신고`}
                       onClick={() => p.onReport?.(member)}
                     >
                       신고
@@ -113,7 +114,7 @@ export function GroupMembersView(p: Props) {
                       id={rosterBlockButtonId(member.userId)}
                       className='text-button muted'
                       disabled={p.busy}
-                      aria-label={`${member.displayName}님 ${member.blockedByMe ? '차단 해제' : '차단'}`}
+                      aria-label={`${memberNickname(member)}님 ${member.blockedByMe ? '차단 해제' : '차단'}`}
                       onClick={() => p.onBlock?.(member, !member.blockedByMe)}
                     >
                       {member.blockedByMe ? '차단 해제' : '차단'}
