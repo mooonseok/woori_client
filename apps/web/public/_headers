@@ -17,6 +17,10 @@
 /_next/static/*
   Cache-Control: public, max-age=31536000, immutable
 
+# The source commit of this build (scripts/pages-build.mjs), never cached.
+/release.json
+  Cache-Control: no-store
+
 # Always revalidated so a new service worker or app manifest is picked up.
 /sw.js
   Cache-Control: no-cache
