@@ -85,7 +85,7 @@ export function InviteContainer() {
       await gallery.reload();
       gallery.setGroupId(result.group.id);
       clearPendingInvite();
-      router.replace('/albums');
+      router.replace('/');
     } catch (error) {
       setError(
         error instanceof Error ? error.message : '그룹에 참여하지 못했어요.'

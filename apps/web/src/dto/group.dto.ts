@@ -6,6 +6,8 @@ export interface GroupMember {
   joinedAt: string | null;
   // OpenAPI 0.15.0 (additive): I have personally blocked this member.
   blockedByMe?: boolean;
+  // Profile photo version (/v1/users/{id}/avatar?v=), null without one.
+  avatarVersion?: number | null;
 }
 export interface GroupMembersPage {
   members: GroupMember[];

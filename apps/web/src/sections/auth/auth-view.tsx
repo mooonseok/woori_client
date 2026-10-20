@@ -10,11 +10,15 @@ import {
 import { NICKNAME_HELP } from '@/utils/nickname';
 import { Icon } from '@/components/atoms/icon';
 import { Link } from '@/components/molecules/link';
-import type { FormEvent } from 'react';
+import type { FocusEvent, FormEvent } from 'react';
 interface Props {
   signup: boolean;
   passwordVisible: boolean;
   onPasswordVisibilityChange: () => void;
+  // Sign-up only: mismatch text under the confirmation field (null = none).
+  confirmationProblem?: string | null;
+  onPasswordInput?: (event: FormEvent<HTMLInputElement>) => void;
+  onConfirmationBlur?: (event: FocusEvent<HTMLInputElement>) => void;
   invitation: boolean;
   pending: boolean;
   error: string;
@@ -31,6 +35,9 @@ export function AuthView({
   signup,
   passwordVisible,
   onPasswordVisibilityChange,
+  confirmationProblem,
+  onPasswordInput,
+  onConfirmationBlur,
   invitation,
   pending,
   error,
@@ -85,7 +92,7 @@ export function AuthView({
             disabled={pending}
           />
         </Label>
-        <Box>
+        <Box className='form-field'>
           <Label htmlFor='auth-password'>비밀번호</Label>
           <Box className='auth-password-field'>
             <Input
@@ -98,6 +105,7 @@ export function AuthView({
               minLength={signup ? 12 : 1}
               maxLength={128}
               disabled={pending}
+              onInput={signup ? onPasswordInput : undefined}
             />
             <Button
               variant='icon'
@@ -117,50 +125,87 @@ export function AuthView({
         </Box>
         {signup && (
           <>
-            <Label>
-              이름
-              <Input
-                name='displayName'
-                autoComplete='name'
-                aria-describedby='signup-name-help'
-                required
-                maxLength={80}
-                disabled={pending}
-              />
-            </Label>
-            <Text id='signup-name-help' className='field-help'>
-              이름은 아이디·비밀번호 찾기에 사용해요. 다른 사람에게는 닉네임이
-              보여요.
-            </Text>
-            <Label>
-              닉네임
-              <Input
-                name='nickname'
-                autoComplete='nickname'
-                required
-                maxLength={80}
-                aria-describedby='signup-nickname-help'
-                disabled={pending}
-              />
-            </Label>
-            <Text id='signup-nickname-help' className='field-help'>
-              {NICKNAME_HELP}
-            </Text>
-            <Label>
-              이메일
-              <Input
-                name='email'
-                type='email'
-                autoComplete='email'
-                autoCapitalize='none'
-                required
-                maxLength={254}
-                disabled={pending}
-              />
-            </Label>
-            <Text className='field-help'>
-              이메일 확인 후 그룹을 만들거나 초대로 참여할 수 있어요.
-            </Text>
+            <Box className='form-field'>
+              <Label>
+                비밀번호 확인
+                <Input
+                  name='confirmPassword'
+                  type={passwordVisible ? 'text' : 'password'}
+                  autoComplete='new-password'
+                  required
+                  minLength={12}
+                  maxLength={128}
+                  aria-describedby='signup-password-confirm-help'
+                  aria-invalid={confirmationProblem ? true : undefined}
+                  disabled={pending}
+                  onInput={onPasswordInput}
+                  onBlur={onConfirmationBlur}
+                />
+              </Label>
+              <Text
+                id='signup-password-confirm-help'
+                className={
+                  confirmationProblem
+                    ? 'field-help field-help-error'
+                    : 'field-help'
+                }
+                aria-live='polite'
+              >
+                {confirmationProblem ??
+                  '같은 비밀번호를 한 번 더 입력해 주세요.'}
+              </Text>
+            </Box>
+            <Box className='form-field'>
+              <Label>
+                이름
+                <Input
+                  name='displayName'
+                  autoComplete='name'
+                  aria-describedby='signup-name-help'
+                  required
+                  maxLength={80}
+                  disabled={pending}
+                />
+              </Label>
+              <Text id='signup-name-help' className='field-help'>
+                이름은 아이디·비밀번호 찾기에 사용해요. 다른 사람에게는 닉네임이
+                보여요.
+              </Text>
+            </Box>
+            <Box className='form-field'>
+              <Label>
+                닉네임
+                <Input
+                  name='nickname'
+                  autoComplete='nickname'
+                  required
+                  maxLength={80}
+                  aria-describedby='signup-nickname-help'
+                  disabled={pending}
+                />
+              </Label>
+              <Text id='signup-nickname-help' className='field-help'>
+                {NICKNAME_HELP}
+              </Text>
+            </Box>
+            <Box className='form-field'>
+              <Label>
+                이메일
+                <Input
+                  name='email'
+                  type='email'
+                  autoComplete='email'
+                  autoCapitalize='none'
+                  required
+                  maxLength={254}
+                  aria-describedby='signup-email-help'
+                  disabled={pending}
+                />
+              </Label>
+              <Text id='signup-email-help' className='field-help'>
+                이메일 확인 후 그룹을 만들거나 초대로 참여할 수 있어요.
+              </Text>
+            </Box>
           </>
         )}
         {error &&

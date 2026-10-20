@@ -123,22 +123,24 @@ export function AccountSettingsView({
               </Label>
               {mode === 'password' ? (
                 <>
-                  <Label>
-                    새 비밀번호
-                    <Input
-                      name='newPassword'
-                      type='password'
-                      autoComplete='new-password'
-                      required
-                      minLength={12}
-                      maxLength={128}
-                      disabled={pending}
-                      aria-describedby='change-password-help'
-                    />
-                  </Label>
-                  <Text id='change-password-help' className='field-help'>
-                    현재 비밀번호와 다르게, 12자 이상으로 입력해 주세요.
-                  </Text>
+                  <Box className='form-field'>
+                    <Label>
+                      새 비밀번호
+                      <Input
+                        name='newPassword'
+                        type='password'
+                        autoComplete='new-password'
+                        required
+                        minLength={12}
+                        maxLength={128}
+                        disabled={pending}
+                        aria-describedby='change-password-help'
+                      />
+                    </Label>
+                    <Text id='change-password-help' className='field-help'>
+                      현재 비밀번호와 다르게, 12자 이상으로 입력해 주세요.
+                    </Text>
+                  </Box>
                   <Label>
                     새 비밀번호 확인
                     <Input

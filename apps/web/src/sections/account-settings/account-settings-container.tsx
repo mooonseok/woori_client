@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { requestEmailChange } from '@/services/account-settings';
 import { EntryDialog } from '@/components/organisms/entry-dialog/entry-dialog';
 import { AccountSettingsView } from './account-settings-view';
+import { PASSWORD_MISMATCH, passwordsDiffer } from '@/utils/password';
 
 export function AccountSettingsContainer() {
   const auth = useAuth(),
@@ -33,9 +34,9 @@ export function AccountSettingsContainer() {
     const newPassword = String(data.get('newPassword'));
     if (
       mode === 'password' &&
-      newPassword !== String(data.get('confirmPassword'))
+      passwordsDiffer(newPassword, String(data.get('confirmPassword')))
     ) {
-      setError('두 비밀번호가 같지 않아요. 다시 확인해 주세요.');
+      setError(PASSWORD_MISMATCH);
       return;
     }
     const controller = new AbortController();

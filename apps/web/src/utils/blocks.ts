@@ -26,7 +26,7 @@ export function isOtherPerson(
 export function blockConfirmCopy(name: string) {
   return {
     title: `${name}님을 차단할까요?`,
-    description: `${name}님이 올린 사진·댓글·반응과 ${name}님 활동 알림이 나에게만 보이지 않아요. ${name}님에게는 알리지 않고, 같은 그룹에서 나가지도 않아요. 그룹에서 내보내기는 그룹장이 그룹 관리에서 할 수 있어요. 차단하면 ${name}님 활동으로 받은 기존 알림도 지워져요.`,
+    description: `${name}님이 올린 사진·댓글·반응과 ${name}님 활동 알림이 나에게만 보이지 않아요. ${name}님에게는 알리지 않고, 같은 그룹에서 나가지도 않아요. 그룹에서 내보내기는 그룹장이 그룹 설정에서 할 수 있어요. 차단하면 ${name}님 활동으로 받은 기존 알림도 지워져요.`,
     confirmLabel: '차단하기',
   };
 }

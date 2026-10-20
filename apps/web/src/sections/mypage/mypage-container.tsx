@@ -20,6 +20,7 @@ export function MypageContainer() {
   const auth = useAuth();
   const theme = useTheme();
   const [themeOpen, setThemeOpen] = useState(false);
+  const [avatarOpen, setAvatarOpen] = useState(false);
   const [logoutPending, setLogoutPending] = useState(false);
   async function logout() {
     if (logoutPending) return;
@@ -54,6 +55,11 @@ export function MypageContainer() {
       logoutPending={logoutPending}
       onLogout={() => void logout()}
       name={name}
+      userId={auth.user?.id}
+      avatarVersion={auth.user?.avatarVersion}
+      avatarOpen={avatarOpen}
+      onAvatarOpen={() => setAvatarOpen(true)}
+      onAvatarClose={() => setAvatarOpen(false)}
       nicknameNeedsUpdate={!!auth.user?.nicknameNeedsUpdate}
       edit={edit}
       guide={guide}

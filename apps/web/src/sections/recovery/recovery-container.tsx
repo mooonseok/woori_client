@@ -7,6 +7,7 @@ import { pendingInvite, rememberInvite } from '@/services/invite-return';
 import { safeReturnTo, authDestination } from '@/utils/auth-navigation';
 import type { RecoveryMode } from '@/dto/recovery.dto';
 import { RecoveryView } from './recovery-view';
+import { PASSWORD_MISMATCH, passwordsDiffer } from '@/utils/password';
 export function RecoveryContainer({ mode }: { mode: RecoveryMode }) {
   const router = useRouter();
   const search = useSearchParams(),
@@ -47,9 +48,12 @@ export function RecoveryContainer({ mode }: { mode: RecoveryMode }) {
     setError('');
     if (
       mode === 'reset' &&
-      String(data.get('newPassword')) !== String(data.get('confirmPassword'))
+      passwordsDiffer(
+        String(data.get('newPassword')),
+        String(data.get('confirmPassword'))
+      )
     ) {
-      setError('두 비밀번호가 같지 않아요. 다시 확인해 주세요.');
+      setError(PASSWORD_MISMATCH);
       return;
     }
     const controller = new AbortController();

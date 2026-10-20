@@ -22,13 +22,15 @@
   color: var(--muted);
   font-weight: 650;
 }
+/* Form rhythm: 8px inside one field (label, input, help), 20px between
+   fields, so help text reads as part of the field above it (1 : 2.1). */
 .stack-form {
   display: grid;
-  gap: 20px;
+  gap: var(--space-5);
 }
 .stack-form label {
   display: grid;
-  gap: 9px;
+  gap: var(--space-2);
   font-size: 14px;
   font-weight: 600;
 }
@@ -45,14 +47,26 @@
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
-.stack-form button {
-  margin-top: 4px;
+/* The submit action sits 28px under the last field (20 + 8). */
+.stack-form > button {
+  margin-top: var(--space-2);
 }
 .field-help {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 400;
-  line-height: 1.6;
+  line-height: 1.5;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+/* Label, input and help text of one field stay together; the 8px gap still
+   clears the input focus ring (2px + 3px offset). */
+.stack-form .form-field {
+  display: grid;
+  gap: var(--space-2);
+}
+.field-help.field-help-error {
+  color: #a82424;
 }
 .form-error {
   color: #a82424;
@@ -126,11 +140,15 @@
   line-height: 1.6;
   width: 100%;
 }
+/* 그룹 설정: 글자 4단계(제목 24·28 / 섹션 18 / 본문 15 / 보조 13), 섹션은
+   구분선 하나를 사이에 두고 위아래 24(합 48), 섹션 안은 12. */
 .groups-page {
   max-width: 760px;
-  margin: 24px auto 60px;
+  margin: var(--space-6) auto 60px;
   display: grid;
-  gap: 28px;
+  gap: var(--space-6);
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 .groups-page .section-heading {
   display: flex;
@@ -156,45 +174,36 @@
 }
 .settings-card {
   display: grid;
-  gap: 20px;
+  gap: var(--space-3);
   border-top: 1px solid var(--line);
-  padding-top: 28px;
+  padding-top: var(--space-6);
 }
 .settings-card h2 {
-  font-size: 21px;
-  letter-spacing: -0.03em;
+  font-size: 18px;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
 }
 .settings-card > button {
   justify-self: start;
 }
-.invitation-result {
+.invitation-list {
   display: grid;
-  justify-items: center;
-  gap: 16px;
-  padding: 24px;
-  background: var(--wash);
-  border-radius: 12px;
-}
-.invitation-code {
-  font-size: 26px;
-  letter-spacing: 0.12em;
-  font-weight: 650;
-  user-select: all;
-}
-.invitation-url {
-  overflow-wrap: anywhere;
-  font-size: 12px;
-  color: var(--muted);
-  user-select: all;
 }
 .invitation-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 18px 0;
+  gap: var(--space-4);
+  padding: var(--space-3) 0;
   border-bottom: 1px solid var(--line);
-  font-size: 14px;
+  font-size: 15px;
+  line-height: 1.4;
+}
+.invitation-row:last-child {
+  border-bottom: 0;
+}
+.invitation-row .muted {
+  font-size: 13px;
 }
 .invite-preview {
   display: grid;
@@ -211,34 +220,148 @@
     gap: 20px;
   }
   .groups-page {
-    margin-top: 16px;
+    margin-top: var(--space-4);
   }
   .groups-page .section-heading {
     align-items: flex-start;
     flex-direction: column;
     gap: 12px;
   }
-  .invitation-result {
-    padding: 16px;
-  }
 }
 
+.group-members {
+  display: grid;
+}
+/* Avatar 32 + name/role: two lines fit a 56px row. The last row has no rule,
+   so it never doubles the next section's divider. */
 .group-member-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-  padding: 16px 0;
+  gap: var(--space-3);
+  min-height: 56px;
+  padding: var(--space-2) 0;
   border-bottom: 1px solid var(--line);
 }
-.group-member-row > :first-child {
+.group-member-row:last-child {
+  border-bottom: 0;
+}
+.group-member-text {
+  flex: 1 1 auto;
   min-width: 0;
   overflow-wrap: anywhere;
 }
-.group-member-row .inline-actions {
-  flex-wrap: wrap;
-  gap: 16px;
+.group-member-name {
+  font-size: 15px;
+  line-height: 1.4;
+}
+.group-member-role {
+  font-size: 13px;
+  line-height: 1.4;
+}
+/* 그룹 설정: compact switcher, summary, per-row menu, separated 나가기·삭제. */
+.group-switch {
+  display: grid;
+  gap: 4px;
+}
+.groups-page .group-switch-title {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--muted);
+}
+.group-switch .group-list-row {
+  align-items: center;
+  min-height: 48px;
+  padding: 12px 4px;
+}
+.group-switch .group-list-row > span:first-child,
+.group-summary-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.group-summary-text {
+  display: grid;
+  gap: var(--space-1);
+}
+/* The current group's name belongs to the page title, so no divider above. */
+.group-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.group-summary h2 {
+  font-size: 18px;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+}
+.group-summary-text .muted {
+  font-size: 13px;
+}
+.groups-empty {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-1);
+}
+.member-menu {
+  position: relative;
+  flex: 0 0 auto;
+}
+.member-menu-items {
+  position: absolute;
+  z-index: 8;
+  right: 0;
+  top: calc(100% + 6px);
+  min-width: 160px;
+  display: grid;
+  gap: 2px;
+  padding: 6px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 6px 24px #0001;
+}
+.member-menu-item {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  text-align: left;
+  white-space: nowrap;
+}
+.member-menu-item:hover {
+  background: var(--wash);
+}
+/* Same section treatment as the others (one divider, same left edge); only
+   the heading colour marks it as destructive. */
+.group-danger {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+  border-top: 1px solid var(--line);
+  padding-top: var(--space-6);
+}
+.group-danger h2 {
+  font-size: 18px;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+  color: #b3261e;
+}
+.group-danger > p {
+  line-height: 1.6;
+}
+.group-danger .danger-text {
+  color: #b3261e;
+}
+/* Group picker (header): actions under the group list, icon then label. */
+.group-menu > button + .group-menu-actions {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+}
+.group-menu .group-menu-actions button,
+.group-menu .group-menu-actions a {
+  justify-content: flex-start;
 }
 
 .account-deletion-form .danger-button {

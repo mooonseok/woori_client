@@ -1,0 +1,417 @@
+/* 그룹 첫 화면 시작 안내 (A안). 색은 토큰만, 여백은 --space 단계만 쓴다. */
+.group-start {
+  display: grid;
+  gap: var(--space-6);
+  min-width: 0;
+}
+.group-start-main {
+  display: grid;
+  align-content: start;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+/* 제목 · 구성원 */
+.group-start-title {
+  font-size: 1.625rem;
+  font-weight: 650;
+  line-height: 1.36;
+  letter-spacing: -0.03em;
+  overflow-wrap: anywhere;
+  word-break: keep-all;
+}
+.group-start-name,
+.group-start-title-rest {
+  display: block;
+}
+.group-start-title-rest {
+  color: var(--muted);
+}
+.group-start-lede {
+  margin-top: var(--space-2);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--muted);
+  word-break: keep-all;
+}
+.group-start-people {
+  margin-top: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.group-start-chips {
+  list-style: none;
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  min-height: 32px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.group-start-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 32px;
+  max-width: 100%;
+  padding: 0 var(--space-3) 0 var(--space-1);
+  border-radius: 999px;
+  background: var(--wash);
+  color: var(--ink);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.2;
+}
+.group-start-chip-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.group-start-me {
+  color: var(--muted);
+  font-weight: 500;
+}
+.group-start-chip-more {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 var(--space-1);
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+/* 시작 단계: 아이콘 열 32 + 글 열. 행동 버튼은 설명 바로 아래에 두고,
+   좁은 화면에서는 카드 폭 전체를 쓴다(들여쓰기 없이 한 기준선). */
+.group-start-steps {
+  padding: var(--space-1) var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+.group-start-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.group-start-step {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) 0;
+}
+.group-start-step + .group-start-step {
+  border-top: 1px solid var(--line);
+}
+.group-start-step-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--soft);
+  color: var(--soft-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.group-start-step-body {
+  display: contents;
+}
+.group-start-step-text {
+  min-width: 0;
+}
+.group-start-step-title {
+  font-size: 1rem;
+  font-weight: 650;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+.group-start-step-desc {
+  margin-top: var(--space-1);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+  word-break: keep-all;
+}
+.group-start-step-body > .ui-button,
+.group-start-step-body > .text-button {
+  grid-column: 1 / -1;
+  max-width: 100%;
+}
+.group-start-step-body > .ui-button {
+  width: 100%;
+}
+.group-start-step-body > .text-button {
+  justify-self: start;
+  margin-inline-start: calc(-1 * var(--space-2));
+}
+.group-start .ui-button--primary {
+  min-height: 48px;
+}
+/* 끝난 단계: 한 줄로 접고 '더 초대하기'만 오른쪽에 둔다. */
+.group-start-step.is-done {
+  padding: var(--space-3) 0;
+}
+.group-start-step.is-done .group-start-step-icon {
+  width: 24px;
+  height: 24px;
+  margin-inline: var(--space-1);
+}
+.group-start-step.is-done .group-start-step-body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-3);
+  min-width: 0;
+}
+.group-start-step.is-done .group-start-step-text {
+  flex: 1 1 140px;
+}
+.group-start-step.is-done .group-start-step-body > .text-button {
+  margin-inline-end: calc(-1 * var(--space-2));
+}
+.group-start-step.is-done .group-start-step-title {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+.group-start-step.is-done .group-start-step-desc {
+  margin-top: 0;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+.group-start-done {
+  font-weight: 600;
+  color: var(--soft-text);
+}
+.group-start-upload {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4) 0;
+  border-top: 1px solid var(--line);
+}
+.group-start-upload .ui-button {
+  width: 100%;
+  min-height: 48px;
+  font-size: 1rem;
+}
+.group-start-upload-label {
+  min-width: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+.group-start-hint {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* 사진이 모이면 이 화면이 바뀐다는 한 줄 안내(빈 사진 자리는 두지 않는다). */
+.group-start-moments-note {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted);
+  word-break: keep-all;
+}
+
+/* 오른쪽 칸: 좁은 화면에서는 중복을 빼고 그룹 설정 링크만 */
+.group-start-rail {
+  min-width: 0;
+}
+.group-start-rail-block {
+  display: none;
+}
+/* 아이콘이 본문 기준선에 오도록 안쪽 여백만큼 왼쪽으로 당긴다. */
+.group-start-settings {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  margin-left: calc(-1 * var(--space-2));
+  padding: 0 var(--space-2);
+  border-radius: 10px;
+  color: var(--accent);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  transition: background-color var(--duration) var(--ease);
+}
+.group-start-settings:hover {
+  background: var(--soft);
+}
+.group-start-settings:focus-visible {
+  outline-offset: 2px;
+}
+
+@media (min-width: 1024px) {
+  /* 안내 열은 680까지만: 글과 버튼이 한 시선 안에 머문다. */
+  .group-start {
+    grid-template-columns: minmax(0, 680px) 300px;
+    align-items: start;
+    gap: var(--space-12);
+  }
+  .group-start-main {
+    gap: var(--space-8);
+  }
+  .group-start-title {
+    font-size: 1.75rem;
+    line-height: 1.34;
+  }
+  .group-start-lede {
+    margin-top: var(--space-2);
+    font-size: 1rem;
+  }
+  /* 구성원은 오른쪽 칸에서 보여 준다. */
+  .group-start-intro .group-start-people,
+  .group-start-intro .group-start-chips {
+    display: none;
+  }
+  .group-start-steps {
+    padding: var(--space-1) var(--space-6);
+  }
+  .group-start-step {
+    grid-template-columns: 40px minmax(0, 1fr);
+    column-gap: var(--space-4);
+    row-gap: var(--space-3);
+    padding: var(--space-6) 0;
+  }
+  .group-start-step-icon {
+    width: 40px;
+    height: 40px;
+  }
+  .group-start-step-title {
+    font-size: 1.0625rem;
+  }
+  .group-start-step-desc {
+    font-size: 0.9375rem;
+    line-height: 1.6;
+  }
+  /* 버튼은 글 열에 맞춰 설명 바로 아래, 내용 폭으로. */
+  .group-start-step-body > .ui-button,
+  .group-start-step-body > .text-button {
+    grid-column: 2;
+    justify-self: start;
+  }
+  .group-start-step-body > .ui-button {
+    width: auto;
+    min-width: 160px;
+  }
+  /* 테두리 없는 버튼은 글자(아이콘)가 글 열 기준선에서 시작하게 한다. */
+  .group-start-step-body > .ui-button--quiet {
+    min-width: 0;
+    padding-inline: var(--space-2);
+    margin-inline-start: calc(-1 * var(--space-2));
+  }
+  .group-start-step.is-done {
+    padding: var(--space-4) 0;
+  }
+  .group-start-step.is-done .group-start-step-icon {
+    margin-inline: var(--space-2);
+  }
+  .group-start-upload {
+    padding: var(--space-5) 0 var(--space-6);
+  }
+  .group-start-moments-note {
+    font-size: 0.9375rem;
+    line-height: 1.6;
+  }
+  .group-start-rail {
+    padding: var(--space-1) var(--space-5);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+  .group-start-rail-block {
+    display: block;
+    padding: var(--space-5) 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .group-start-rail h2 {
+    font-size: 1.0625rem;
+    font-weight: 650;
+    line-height: 1.4;
+    letter-spacing: -0.02em;
+  }
+  .group-start-rail-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-2);
+  }
+  .group-start-rail-count {
+    font-size: 0.875rem;
+    color: var(--muted);
+  }
+  .group-start-roster {
+    list-style: none;
+    margin: var(--space-3) 0 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-3);
+  }
+  .group-start-roster li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+  .group-start-roster-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .group-start-roster-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  .group-start-roster-role {
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: var(--muted);
+  }
+  .group-start-rail-line {
+    margin-top: var(--space-2);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--muted);
+    overflow-wrap: anywhere;
+  }
+  /* 18px 아이콘을 첫 줄(1.5em) 가운데에 맞춘다. */
+  .group-start-rail-line svg {
+    flex: none;
+    margin-top: calc((1.5em - 18px) / 2);
+  }
+  .group-start-settings {
+    display: flex;
+    margin: var(--space-2) calc(-1 * var(--space-2)) var(--space-3);
+  }
+  .group-start-settings > span {
+    flex: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .group-start-settings {
+    transition: none;
+  }
+}

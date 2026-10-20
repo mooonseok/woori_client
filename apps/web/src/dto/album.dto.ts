@@ -59,6 +59,7 @@ export interface PhotoComment {
   photoId: string;
   authorId: string;
   authorName: string;
+  authorAvatarVersion?: number | null;
   body: string;
   createdAt: string;
   point?: Point;

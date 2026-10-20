@@ -162,6 +162,16 @@ function useAuthState() {
     setUser(result.user);
     return result.user;
   }
+  // Changes that answer with the updated account (profile photo upload or
+  // removal); a session change meanwhile discards the answer.
+  async function applyUser(change: () => Promise<{ user: AuthUser }>) {
+    const request = ++generation.current;
+    const result = await change();
+    if (request !== generation.current)
+      throw new Error('계정 상태가 바뀌었어요. 다시 확인해 주세요.');
+    setUser(result.user);
+    return result.user;
+  }
   async function changeCredentials(
     action: () => Promise<void>,
     onChanged: () => void
@@ -180,6 +190,7 @@ function useAuthState() {
     verificationDelivery,
     refresh,
     saveProfile,
+    applyUser,
     logout,
     confirm,
     deleteAccount: (input: AccountDeletionInput, onChanged: () => void) => {

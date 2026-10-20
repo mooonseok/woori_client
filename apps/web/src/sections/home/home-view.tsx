@@ -13,6 +13,8 @@ interface Props {
   onImageError?: (photo: Photo) => void;
   demo?: boolean;
   memories?: ReactNode;
+  /** Live start guide while the group has no photos; replaces the memories. */
+  start?: ReactNode;
   albums: Album[];
   photos: Photo[];
   hero?: Photo;
@@ -25,6 +27,7 @@ export function HomeView({
   onRetryPreview,
   onImageError,
   memories,
+  start,
   albums,
   photos,
   hero,
@@ -33,7 +36,7 @@ export function HomeView({
   onAlbum,
   onAlbums,
 }: Props) {
-  if (!hero && !memories)
+  if (!hero && !memories && !start)
     return (
       <EmptyState
         title={
@@ -50,9 +53,14 @@ export function HomeView({
         onAction={albums.length ? () => onAlbum(albums[0].id) : onAlbums}
       />
     );
+  // The start guide has its own moments preview and album step.
+  const showMoments =
+    !start &&
+    photos.some((photo) => albums.some((album) => album.id === photo.albumId));
   return (
     <Box className='home-layout'>
-      {memories ||
+      {start ||
+        memories ||
         (hero && (
           <Section className='memory-section'>
             <Box className='media-card-frame'>
@@ -92,9 +100,7 @@ export function HomeView({
             </Box>
           </Section>
         ))}
-      {photos.some((photo) =>
-        albums.some((album) => album.id === photo.albumId)
-      ) && (
+      {showMoments && (
         <Section className='moments-section'>
           <Header className='section-header'>
             <Heading>함께 모은 순간</Heading>
@@ -131,42 +137,44 @@ export function HomeView({
           </Box>
         </Section>
       )}
-      <Section className='recent-section'>
-        <Header className='section-header'>
-          <Heading>최근 앨범</Heading>
-          <Button className='text-button' onClick={onAlbums}>
-            전체 보기 <Icon name='chevron-right' size={18} />
-          </Button>
-        </Header>
-        {!albums.length && (
-          <EmptyState
-            title='첫 앨범을 만들어 보세요'
-            body='함께 나눌 사진과 동영상을 한곳에 모아요.'
-            action='앨범 만들러 가기'
-            onAction={onAlbums}
-          />
-        )}
-        <Box className='recent-grid'>
-          {albums
-            .slice()
-            .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-            .slice(0, 4)
-            .map((a) => (
-              <AlbumCard
-                key={a.id}
-                onRetry={onRetryPreview}
-                onImageError={onImageError}
-                album={a}
-                cover={photos.find((p) => p.id === a.coverId)}
-                count={
-                  a.photoCount ??
-                  photos.filter((p) => p.albumId === a.id).length
-                }
-                onOpen={() => onAlbum(a.id)}
-              />
-            ))}
-        </Box>
-      </Section>
+      {(!start || albums.length > 0) && (
+        <Section className='recent-section'>
+          <Header className='section-header'>
+            <Heading>최근 앨범</Heading>
+            <Button className='text-button' onClick={onAlbums}>
+              전체 보기 <Icon name='chevron-right' size={18} />
+            </Button>
+          </Header>
+          {!albums.length && (
+            <EmptyState
+              title='첫 앨범을 만들어 보세요'
+              body='함께 나눌 사진과 동영상을 한곳에 모아요.'
+              action='앨범 만들러 가기'
+              onAction={onAlbums}
+            />
+          )}
+          <Box className='recent-grid'>
+            {albums
+              .slice()
+              .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+              .slice(0, 4)
+              .map((a) => (
+                <AlbumCard
+                  key={a.id}
+                  onRetry={onRetryPreview}
+                  onImageError={onImageError}
+                  album={a}
+                  cover={photos.find((p) => p.id === a.coverId)}
+                  count={
+                    a.photoCount ??
+                    photos.filter((p) => p.albumId === a.id).length
+                  }
+                  onOpen={() => onAlbum(a.id)}
+                />
+              ))}
+          </Box>
+        </Section>
+      )}
     </Box>
   );
 }
