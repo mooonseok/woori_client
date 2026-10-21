@@ -140,8 +140,9 @@ export const LOCAL_ENV_FILES = [
   '.env.production.local',
 ];
 
-// Whether origin's current develop or main head contains the commit.
-function onReleaseBranch(git, commit) {
+// Whether origin's current develop or main head contains the commit. A head
+// that moved after the checkout (a push during a CI build) is fetched first.
+export function onReleaseBranch(git, commit) {
   let heads;
   try {
     heads = git(['ls-remote', '--heads', 'origin', 'develop', 'main']);
@@ -154,6 +155,11 @@ function onReleaseBranch(git, commit) {
     .filter((sha) => /^[0-9a-f]{40}$/.test(sha))
     .some((head) => {
       try {
+        try {
+          git(['cat-file', '-e', `${head}^{commit}`]);
+        } catch {
+          git(['fetch', '--no-tags', '--quiet', 'origin', head]);
+        }
         git(['merge-base', '--is-ancestor', commit, head]);
         return true;
       } catch {

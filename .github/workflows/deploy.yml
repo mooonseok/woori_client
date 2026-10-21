@@ -1,0 +1,366 @@
+# Production deploy of the member web (and the admin web once enabled) to the
+# existing Cloudflare Pages Direct Upload projects. A Direct Upload project
+# cannot be switched to Git integration, so Actions builds, checks and
+# uploads with `wrangler pages deploy`; Pages never builds this repository.
+# - Trigger: a push to the release branch, develop (2026-10-21 decision: every
+#   merged PR deploys; there is no separate main). workflow_dispatch from the
+#   release branch redeploys a commit already on it (empty commit = branch
+#   head), including commits from before this workflow (they need a
+#   release.json).
+# - Tools vs input: scripts/pages-deploy.mjs and scripts/wrangler always come
+#   from this workflow's commit; the commit being deployed is only checked
+#   out to be built, and its scripts/api-contract.mjs is read from git.
+# - Jobs: target (which commit) -> quality (quality.yml via workflow_call on
+#   that commit: the same commit as this file, unlike workflow_run, which runs
+#   the default branch's file) and build (no environment, no secrets: runs the
+#   dependencies' code, uploads each out/ as an artifact with its digest) ->
+#   deploy per app (environment production, pinned actions, no app
+#   dependencies installed): artifact digest and release.json -> deploy
+#   protection -> Pages project and live page check -> production API
+#   contract gate (server first, then web; waits up to
+#   API_CONTRACT_WAIT_MINUTES, at most 40) -> still the release-branch head ->
+#   record the live deployment -> upload as the production branch ->
+#   production deployment is this commit -> site checks (3 tries) -> on
+#   failure, cancel or timeout, rollback to the recorded deployment.
+# - A run whose push was superseded deploys nothing; checked again right
+#   before the upload.
+# One-time setup, in this order, before this workflow reaches the release
+# branch (that merge is a push that starts it):
+# 1. Environment "production": Deployment branches and tags = Selected, only
+#    the release branch. A missing environment would be created on first use
+#    without protection, so the deploy job reads it through the GitHub API and
+#    refuses to run unless it allows exactly the release branch.
+# 2. Secrets CLOUDFLARE_API_TOKEN (custom token: Account > Cloudflare Pages >
+#    Edit, this account only) and CLOUDFLARE_ACCOUNT_ID in that environment
+#    only. Repository or organization secrets reach every workflow on every
+#    branch, so any pushed branch could read them; the target job fails if it
+#    can see them (a job without an environment sees only those).
+# 3. Ruleset on the release branch: require a pull request, block force
+#    pushes, restrict deletions (develop-pr-required already does). The
+#    deploy job checks these rules too.
+# 4. Variables: PAGES_PRODUCTION_BRANCH (the Pages project's production
+#    branch: Pages API GET /accounts/<id>/pages/projects/<name>
+#    production_branch), NEXT_PUBLIC_API_BASE_URL, WOORI_R2_ORIGIN (same
+#    values as the Pages Production variables). Optional: PAGES_PROJECT_WEB
+#    (woori-web), WEB_SITE_ORIGIN (https://woori.stream),
+#    API_CONTRACT_WAIT_MINUTES (30), PAGES_AUTO_ROLLBACK (false disables
+#    rollback), DEPLOY_ADMIN_WEB (repository variable; it shapes the jobs).
+# 5. Zone woori.stream: Rocket Loader, Email Address Obfuscation, Web
+#    Analytics automatic setup and Bot Fight Mode off. They add script that
+#    the build's CSP blocks; the deploy job stops before the upload while the
+#    live page carries any of it.
+# 6. Then merge this workflow into the release branch. Stop manual ZIP
+#    uploads to the project.
+# Admin web (DEPLOY_ADMIN_WEB=true, default off) needs first: a separate
+# Direct Upload project (PAGES_PROJECT_ADMIN) with the same production
+# branch, the admin.woori.stream custom domain (ADMIN_SITE_ORIGIN), a
+# Cloudflare Access policy on its *.pages.dev hosts, zone Browser Cache TTL
+# "Respect Existing Headers" (its HTML no-store is checked), and the API's
+# ADMIN_WEB_ORIGIN, CORS_ALLOWED_ORIGINS and ADMIN_TOTP_ENCRYPTION_KEY.
+# Manual rollback: Pages dashboard > Deployments > Rollback to this
+# deployment, or `node scripts/pages-deploy.mjs rollback <app>` with
+# PREVIOUS_DEPLOYMENT_ID, DEPLOY_COMMIT and the Cloudflare secrets.
+name: Deploy
+on:
+  push:
+    # The release branch: change it together with env.RELEASE_BRANCH
+    # (scripts/tests/pages-deploy.test.mjs checks that they agree).
+    branches: [develop]
+  workflow_dispatch:
+    inputs:
+      commit:
+        description:
+          Commit on the release branch to redeploy (40-character SHA, empty =
+          branch head)
+        type: string
+        required: false
+        default: ''
+permissions:
+  contents: read
+env:
+  RELEASE_BRANCH: develop
+jobs:
+  target:
+    name: Target
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      commit: ${{ steps.target.outputs.commit }}
+      deploy: ${{ steps.target.outputs.deploy }}
+      apps: ${{ steps.target.outputs.apps }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Refuse repository-level Cloudflare secrets
+        # Only whether they are visible here, never their values.
+        run: |
+          if [ "$REPOSITORY_SECRETS" != false ]; then
+            echo "::error::Keep CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID as production environment secrets only"
+            exit 1
+          fi
+        env:
+          REPOSITORY_SECRETS:
+            ${{ secrets.CLOUDFLARE_API_TOKEN != '' ||
+            secrets.CLOUDFLARE_ACCOUNT_ID != '' }}
+      - id: target
+        run: node scripts/pages-deploy.mjs target
+        env:
+          INPUT_COMMIT: ${{ inputs.commit }}
+          DEPLOY_ADMIN_WEB: ${{ vars.DEPLOY_ADMIN_WEB }}
+
+  quality:
+    name: Quality
+    needs: target
+    if: needs.target.outputs.deploy == 'true'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/quality.yml
+    with:
+      ref: ${{ needs.target.outputs.commit }}
+
+  build:
+    name: Build
+    needs: target
+    if: needs.target.outputs.deploy == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Runs the dependencies' code: no environment, no secrets, read-only.
+    permissions:
+      contents: read
+    outputs:
+      deploy: ${{ steps.current.outputs.deploy }}
+      web: ${{ steps.web.outputs.digest }}
+      admin: ${{ steps.admin.outputs.digest }}
+    env:
+      DEPLOY_COMMIT: ${{ needs.target.outputs.commit }}
+      ADMIN: ${{ contains(fromJSON(needs.target.outputs.apps), 'admin') }}
+      NEXT_PUBLIC_API_BASE_URL: ${{ vars.NEXT_PUBLIC_API_BASE_URL }}
+      WOORI_R2_ORIGIN: ${{ vars.WOORI_R2_ORIGIN }}
+    steps:
+      - name: Check out the commit to deploy
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.target.outputs.commit }}
+          path: app
+          # Full history and no stored token: pages-build.mjs checks that the
+          # commit is on origin develop/main with an anonymous ls-remote.
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Check out the deploy tools
+        uses: actions/checkout@v4
+        with:
+          path: tools
+          fetch-depth: 0
+          persist-credentials: false
+          sparse-checkout: scripts
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: app/package.json
+      # No dependency cache: a production build installs from the lockfile.
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: app/.nvmrc
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+        working-directory: app
+      - name: Build the member web
+        run: pnpm pages:web
+        working-directory: app
+        env:
+          NEXT_PUBLIC_APP_MODE: live
+      - name: Build the admin web
+        if: env.ADMIN == 'true'
+        run: pnpm pages:admin
+        working-directory: app
+      # Before judging release.json: a push superseded during the build is
+      # skipped here instead of failing.
+      - name: Recheck the release branch
+        id: current
+        run: node tools/scripts/pages-deploy.mjs target
+        env:
+          INPUT_COMMIT: ${{ inputs.commit }}
+      - name: Check the member web build
+        id: web
+        if: steps.current.outputs.deploy == 'true'
+        run: node tools/scripts/pages-deploy.mjs built web
+        env:
+          PAGES_OUT_DIR: app/apps/web/out
+      - name: Check the admin web build
+        id: admin
+        if: steps.current.outputs.deploy == 'true' && env.ADMIN == 'true'
+        run: node tools/scripts/pages-deploy.mjs built admin
+        env:
+          PAGES_OUT_DIR: app/apps/admin/out
+      - name: Upload the member web build
+        if: steps.current.outputs.deploy == 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: pages-web
+          path: app/apps/web/out
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload the admin web build
+        if: steps.current.outputs.deploy == 'true' && env.ADMIN == 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: pages-admin
+          path: app/apps/admin/out
+          if-no-files-found: error
+          retention-days: 7
+
+  deploy:
+    name: Deploy (${{ matrix.app }})
+    needs: [target, quality, build]
+    if: needs.build.outputs.deploy == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      # Read the production environment's deployment branches.
+      actions: read
+    strategy:
+      # Never cancel the other app mid-upload or mid-rollback.
+      fail-fast: false
+      matrix:
+        app: ${{ fromJSON(needs.target.outputs.apps) }}
+    environment:
+      name: production
+      url: ${{ steps.before.outputs.site }}
+    # One deploy per app at a time. GitHub keeps one pending run per group
+    # (the default queue: single; the documented queue: max is not accepted
+    # by actionlint 1.7.12): a newer pending run replaces an older one, which
+    # then shows as cancelled. Harmless for pushes (the newer head contains
+    # it); re-run a replaced workflow_dispatch.
+    concurrency:
+      group: pages-production-${{ matrix.app }}
+      cancel-in-progress: false
+    env:
+      APP: ${{ matrix.app }}
+      DEPLOY_COMMIT: ${{ needs.target.outputs.commit }}
+      PAGES_PRODUCTION_BRANCH: ${{ vars.PAGES_PRODUCTION_BRANCH }}
+      PAGES_PROJECT_WEB: ${{ vars.PAGES_PROJECT_WEB }}
+      PAGES_PROJECT_ADMIN: ${{ vars.PAGES_PROJECT_ADMIN }}
+      WEB_SITE_ORIGIN: ${{ vars.WEB_SITE_ORIGIN }}
+      ADMIN_SITE_ORIGIN: ${{ vars.ADMIN_SITE_ORIGIN }}
+      NEXT_PUBLIC_API_BASE_URL: ${{ vars.NEXT_PUBLIC_API_BASE_URL }}
+    steps:
+      - name: Check out the deploy tools
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          # Full history: the deployed commit's api-contract.mjs and ancestry.
+          fetch-depth: 0
+          persist-credentials: false
+          sparse-checkout: scripts
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: .nvmrc
+      - name: Download the build
+        # v8 fails on a digest mismatch with what the build job uploaded.
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: pages-${{ matrix.app }}
+          path: ${{ runner.temp }}/pages
+      - name: Check the build
+        id: artifact
+        run: node scripts/pages-deploy.mjs artifact "$APP"
+        env:
+          PAGES_OUT_DIR: ${{ runner.temp }}/pages
+          EXPECTED_DIGEST: ${{ needs.build.outputs[matrix.app] }}
+      - name: Check the deploy protection
+        id: protection
+        run: node scripts/pages-deploy.mjs protection
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      # Only wrangler, from scripts/wrangler/package-lock.json, without
+      # install scripts; the app's dependencies are never installed here.
+      - name: Install wrangler
+        id: wrangler
+        run: npm ci --ignore-scripts --no-audit --no-fund
+        working-directory: scripts/wrangler
+      - name: Check the Pages project
+        id: project
+        run: node scripts/pages-deploy.mjs preflight "$APP"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Check the release branch
+        id: early
+        run: node scripts/pages-deploy.mjs target
+        env:
+          INPUT_COMMIT: ${{ inputs.commit }}
+      - name: Wait for the production API contract
+        id: gate
+        if: steps.early.outputs.deploy == 'true'
+        run: node scripts/pages-deploy.mjs gate
+        env:
+          API_CONTRACT_WAIT_MINUTES:
+            ${{ vars.API_CONTRACT_WAIT_MINUTES || '30' }}
+      - name: Recheck the release branch
+        id: current
+        if: steps.early.outputs.deploy == 'true'
+        run: node scripts/pages-deploy.mjs target
+        env:
+          INPUT_COMMIT: ${{ inputs.commit }}
+      - name: Record the live deployment
+        id: before
+        if: steps.current.outputs.deploy == 'true'
+        run: node scripts/pages-deploy.mjs preflight "$APP"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Deploy to Cloudflare Pages
+        id: deploy
+        if: steps.current.outputs.deploy == 'true'
+        # From an empty directory, so no wrangler config or functions/ folder
+        # is picked up; only the downloaded build is uploaded.
+        run: |
+          message="$(git log -1 --format=%s "$DEPLOY_COMMIT")"
+          wrangler="$GITHUB_WORKSPACE/scripts/wrangler/node_modules/.bin/wrangler"
+          mkdir -p "$RUNNER_TEMP/wrangler-cwd"
+          cd "$RUNNER_TEMP/wrangler-cwd"
+          "$wrangler" pages deploy "$PAGES_OUT_DIR" \
+            --project-name="$PAGES_PROJECT" --branch="$PAGES_BRANCH" \
+            --commit-hash="$DEPLOY_COMMIT" --commit-message="$message" \
+            --commit-dirty=false
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          PAGES_OUT_DIR: ${{ runner.temp }}/pages
+          PAGES_PROJECT: ${{ steps.before.outputs.project }}
+          PAGES_BRANCH: ${{ steps.before.outputs.branch }}
+          WRANGLER_SEND_METRICS: 'false'
+      - name: Confirm the production deployment
+        id: confirm
+        if: steps.deploy.outcome == 'success'
+        run: node scripts/pages-deploy.mjs confirm "$APP"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          PREVIOUS_DEPLOYMENT_ID:
+            ${{ steps.before.outputs.previous_deployment_id }}
+      - name: Verify the site
+        id: verify
+        if: steps.deploy.outcome == 'success'
+        run: node scripts/pages-deploy.mjs verify "$APP"
+        env:
+          PAGES_OUT_DIR: ${{ runner.temp }}/pages
+      # Also after a cancel or timeout once the upload started; rollback does
+      # nothing while production still serves the recorded deployment.
+      - name: Roll back to the previous deployment
+        id: rollback
+        if: >-
+          (failure() || cancelled()) && vars.PAGES_AUTO_ROLLBACK != 'false' &&
+          steps.before.outputs.previous_deployment_id != '' &&
+          contains(fromJSON('["success","failure","cancelled"]'),
+          steps.deploy.outcome)
+        run: node scripts/pages-deploy.mjs rollback "$APP"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          PREVIOUS_DEPLOYMENT_ID:
+            ${{ steps.before.outputs.previous_deployment_id }}
+          PREVIOUS_RELEASE: ${{ steps.before.outputs.previous_release }}

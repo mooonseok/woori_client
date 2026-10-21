@@ -1,0 +1,9 @@
+{
+  "name": "woori-pages-wrangler",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Wrangler for the Pages deploy job only (.github/workflows/deploy.yml runs npm ci --ignore-scripts here). Outside the pnpm workspace, so app installs never pull it and the deploy job installs nothing else.",
+  "dependencies": {
+    "wrangler": "4.146.0"
+  }
+}
