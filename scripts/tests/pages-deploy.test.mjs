@@ -953,8 +953,10 @@ function deployWorkflowProblems(text) {
   const jobs = wf.jobs ?? {};
   const { target = {}, quality = {}, build = {}, deploy = {} } = jobs;
   check(
-    isDeepStrictEqual(wf.on?.push?.branches, [wf.env?.RELEASE_BRANCH]),
-    'on.push.branches must be exactly env.RELEASE_BRANCH'
+    !('push' in (wf.on ?? {})) &&
+      'workflow_dispatch' in (wf.on ?? {}) &&
+      wf.env?.RELEASE_BRANCH === 'develop',
+    'manual-only workflow_dispatch on develop required'
   );
   check(!('workflow_run' in (wf.on ?? {})), 'no workflow_run trigger');
   check(
@@ -1124,8 +1126,8 @@ test('deploy.yml keeps the deploy wiring: release branch, order, secrets, rollba
       /build must not see secrets/,
     ],
     'trigger branch drift': [
-      deploy.replace('branches: [develop]', 'branches: [main]'),
-      /on\.push\.branches/,
+      deploy.replace('on:\n', 'on:\n  push:\n    branches: [develop]\n'),
+      /manual-only/,
     ],
   };
   for (const [name, [mutated, expected]] of Object.entries(mutations)) {

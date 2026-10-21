@@ -22,7 +22,10 @@
     "policy:check": "node scripts/policy/check.mjs",
     "policy:test": "node --test scripts/policy/policy.test.mjs",
     "policy:quality": "node scripts/policy/gate.mjs quality",
-    "policy:ci": "node scripts/policy/gate.mjs ci"
+    "policy:ci": "node scripts/policy/gate.mjs ci",
+    "deploy:setup": "node scripts/deploy-web.mjs setup",
+    "deploy:web": "node scripts/deploy-web.mjs",
+    "test:deploy:local": "node --test scripts/tests/local-deploy.test.mjs"
   },
   "devDependencies": {
     "eslint": "^9.39.0",
