@@ -3,10 +3,20 @@ on:
   pull_request:
   push:
     branches: [develop, main]
+  # deploy.yml runs this same file (same commit) on the commit it deploys, so
+  # a main push runs Quality twice: a deploy cannot wait for this separate run
+  # except through workflow_run, which uses the default branch's files.
+  workflow_call:
+    inputs:
+      ref:
+        description: Commit to check (empty checks the event commit)
+        type: string
+        required: false
+        default: ''
 permissions:
   contents: read
 concurrency:
-  group: quality-${{ github.workflow }}-${{ github.ref }}
+  group: quality-${{ github.workflow }}-${{ inputs.ref || github.ref }}
   cancel-in-progress: true
 jobs:
   quality:
@@ -16,6 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ inputs.ref }}
           fetch-depth: 0
           persist-credentials: false
       - uses: pnpm/action-setup@v4

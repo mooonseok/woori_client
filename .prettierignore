@@ -3,6 +3,7 @@ node_modules
 out
 dist
 pnpm-lock.yaml
+package-lock.json
 next-env.d.ts
 *.tsbuildinfo
 apps/web/public/demo/credits.json
