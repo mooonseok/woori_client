@@ -1,12 +1,12 @@
+# Terminal deployment is the default (pnpm deploy:web).
+# No push trigger. This workflow is a manual fallback; never run it concurrently
+# with a terminal deployment. PR Quality checks remain enabled.
 # Production deploy of the member web (and the admin web once enabled) to the
 # existing Cloudflare Pages Direct Upload projects. A Direct Upload project
 # cannot be switched to Git integration, so Actions builds, checks and
 # uploads with `wrangler pages deploy`; Pages never builds this repository.
-# - Trigger: a push to the release branch, develop (2026-10-21 decision: every
-#   merged PR deploys; there is no separate main). workflow_dispatch from the
-#   release branch redeploys a commit already on it (empty commit = branch
-#   head), including commits from before this workflow (they need a
-#   release.json).
+# - Trigger: workflow_dispatch only, from develop. Normal releases use
+#   pnpm deploy:web in an IDE terminal. Do not run both paths concurrently.
 # - Tools vs input: scripts/pages-deploy.mjs and scripts/wrangler always come
 #   from this workflow's commit; the commit being deployed is only checked
 #   out to be built, and its scripts/api-contract.mjs is read from git.
@@ -49,8 +49,8 @@
 #    Analytics automatic setup and Bot Fight Mode off. They add script that
 #    the build's CSP blocks; the deploy job stops before the upload while the
 #    live page carries any of it.
-# 6. Then merge this workflow into the release branch. Stop manual ZIP
-#    uploads to the project.
+# 6. Terminal scripts are the default; this workflow is a manual fallback.
+#    Stop concurrent manual ZIP uploads to the project.
 # Admin web (DEPLOY_ADMIN_WEB=true, default off) needs first: a separate
 # Direct Upload project (PAGES_PROJECT_ADMIN) with the same production
 # branch, the admin.woori.stream custom domain (ADMIN_SITE_ORIGIN), a
@@ -62,10 +62,6 @@
 # PREVIOUS_DEPLOYMENT_ID, DEPLOY_COMMIT and the Cloudflare secrets.
 name: Deploy
 on:
-  push:
-    # The release branch: change it together with env.RELEASE_BRANCH
-    # (scripts/tests/pages-deploy.test.mjs checks that they agree).
-    branches: [develop]
   workflow_dispatch:
     inputs:
       commit:

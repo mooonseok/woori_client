@@ -1,11 +1,7 @@
 name: Quality
 on:
   pull_request:
-  push:
-    branches: [develop, main]
-  # deploy.yml runs this same file (same commit) on the commit it deploys, so
-  # a main push runs Quality twice: a deploy cannot wait for this separate run
-  # except through workflow_run, which uses the default branch's files.
+  # Manual Deploy fallback reuses this quality job.
   workflow_call:
     inputs:
       ref:
