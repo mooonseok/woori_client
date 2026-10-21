@@ -1124,7 +1124,7 @@ test('deploy.yml keeps the deploy wiring: release branch, order, secrets, rollba
       /build must not see secrets/,
     ],
     'trigger branch drift': [
-      deploy.replace('branches: [main]', 'branches: [develop]'),
+      deploy.replace('branches: [develop]', 'branches: [main]'),
       /on\.push\.branches/,
     ],
   };
