@@ -10,6 +10,7 @@ import {
   releaseInfo,
   LOCAL_ENV_FILES,
   httpsOrigin,
+  onReleaseBranch,
   r2Origin,
   renderHeaders,
   scriptHashes,
@@ -226,4 +227,57 @@ test('release.json names a commit only when the build is reproducible from it', 
       () => releaseInfo('web', { ...clean, commit: bad }),
       /source commit/
     );
+});
+
+test('a release-branch head that moved after the checkout is fetched, not taken as unpushed', () => {
+  const commit = 'a'.repeat(40);
+  const develop = '1'.repeat(40);
+  const main = '2'.repeat(40);
+  const fakeGit = ({ local, contains, fetchFails = false }) => {
+    const calls = [];
+    const git = (args) => {
+      calls.push(args.join(' '));
+      if (args[0] === 'ls-remote')
+        return `${develop}\trefs/heads/develop\n${main}\trefs/heads/main`;
+      if (args[0] === 'cat-file') {
+        if (!local.includes(args[2].slice(0, 40))) throw new Error('missing');
+        return '';
+      }
+      if (args[0] === 'fetch') {
+        if (fetchFails) throw new Error('offline');
+        local.push(args.at(-1));
+        return '';
+      }
+      if (args[0] === 'merge-base') {
+        if (!local.includes(args[3]) || !contains.includes(args[3]))
+          throw new Error('not an ancestor');
+        return '';
+      }
+      throw new Error(`unexpected git ${args.join(' ')}`);
+    };
+    return { git, calls };
+  };
+  // main moved during the build: its new head is fetched and checked.
+  const moved = fakeGit({ local: [develop], contains: [main] });
+  assert.equal(onReleaseBranch(moved.git, commit), true);
+  assert.ok(moved.calls.includes(`fetch --no-tags --quiet origin ${main}`));
+  // Heads already present are not fetched.
+  const present = fakeGit({ local: [develop, main], contains: [develop] });
+  assert.equal(onReleaseBranch(present.git, commit), true);
+  assert.ok(!present.calls.some((c) => c.startsWith('fetch')));
+  // Not on either branch, or the head cannot be fetched: not pushed.
+  assert.equal(
+    onReleaseBranch(
+      fakeGit({ local: [develop, main], contains: [] }).git,
+      commit
+    ),
+    false
+  );
+  assert.equal(
+    onReleaseBranch(
+      fakeGit({ local: [develop], contains: [main], fetchFails: true }).git,
+      commit
+    ),
+    false
+  );
 });
