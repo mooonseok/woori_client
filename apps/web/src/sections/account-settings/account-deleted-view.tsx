@@ -2,7 +2,7 @@ import { Box, Heading, Text } from '@/components/atoms/ui';
 import { Link } from '@/components/molecules/link';
 export function AccountDeletedView() {
   return (
-    <Box className='auth-panel'>
+    <Box className='auth-panel task-panel'>
       <Text className='eyebrow'>WOORI</Text>
       <Heading>회원 탈퇴가 완료됐어요</Heading>
       <Text role='status'>

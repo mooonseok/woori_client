@@ -8,6 +8,7 @@ import {
   Form,
 } from '@/components/atoms/ui';
 import { Link } from '@/components/molecules/link';
+import { Icon } from '@/components/atoms/icon';
 interface Props {
   code: string;
   onCode: (value: string) => void;
@@ -23,12 +24,19 @@ interface Props {
 }
 export function InviteView(p: Props) {
   return (
-    <Box className='auth-panel'>
-      <Text className='eyebrow'>INVITATION</Text>
-      <Heading>함께할 공간으로 초대받았어요</Heading>
+    <Box className='auth-panel task-panel'>
+      <Box className='task-symbol' aria-hidden='true'>
+        <Icon name='users' size={28} />
+      </Box>
+      <Heading>
+        {p.hasToken || p.preview
+          ? '그룹에 초대받았어요'
+          : '초대 코드로 참여하기'}
+      </Heading>
       <Text className='muted'>
-        초대를 확인한 뒤 참여해 주세요. 그룹에 참여해야 사진과 동영상을 볼 수
-        있어요.
+        {p.hasToken || p.preview
+          ? '어떤 그룹인지 확인하고 참여해 주세요. 함께 나눈 사진과 동영상을 볼 수 있어요.'
+          : '전달받은 코드를 입력하면 초대받은 그룹을 확인할 수 있어요.'}
       </Text>
       {!p.hasToken && (
         <Form

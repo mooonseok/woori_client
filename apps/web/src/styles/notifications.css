@@ -1,7 +1,7 @@
 .notification-screen {
-  width: min(100%, 760px);
+  width: min(100%, 700px);
   margin: 0 auto;
-  padding: 12px 24px 48px;
+  padding: 12px 0 48px;
   box-sizing: border-box;
   color: #1e2023;
   animation: notification-enter 180ms ease-out;
@@ -362,7 +362,7 @@
 }
 @media (max-width: 600px) {
   .notification-screen {
-    padding: 8px 16px 32px;
+    padding: 8px 0 32px;
   }
   .notification-header {
     gap: 4px;
