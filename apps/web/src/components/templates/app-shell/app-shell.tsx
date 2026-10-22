@@ -41,8 +41,9 @@ function Shell({ children }: { children: ReactNode }) {
   const auth = useAuth();
   const { user } = auth;
   const entryRoute = ['/login', '/signup'].includes(path.replace(/\/$/, ''));
+  const verificationRoute = path.replace(/\/$/, '') === '/verify-email';
   const member = DEMO_MODE || !!user;
-  const memberShell = member && !entryRoute;
+  const memberShell = member && !entryRoute && !verificationRoute;
   const [logoutPending, setLogoutPending] = useState(false);
   async function logout() {
     if (logoutPending) return;
@@ -81,7 +82,9 @@ function Shell({ children }: { children: ReactNode }) {
     { href: ROUTES.MY, label: '마이페이지', icon: 'user' },
   ];
   return (
-    <Box className={`app-root ${memberShell ? 'member-shell' : 'entry-shell'}`}>
+    <Box
+      className={`app-root ${memberShell ? 'member-shell' : 'entry-shell'}${verificationRoute ? ' verification-shell' : ''}`}
+    >
       {DEMO_MODE && (
         <Box className='preview-bar'>
           개발 미리보기 · 예시 사진 · 데이터는 서버에 전송되지 않아요
@@ -141,6 +144,7 @@ function Shell({ children }: { children: ReactNode }) {
           </Details>
         ) : (
           !member &&
+          !verificationRoute &&
           auth.status === 'anonymous' &&
           path.replace(/\/$/, '') !== '/change-email' && <HeaderLogin />
         )}

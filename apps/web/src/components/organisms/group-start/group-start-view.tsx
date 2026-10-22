@@ -91,7 +91,7 @@ function InviteStep(p: GroupStartViewProps) {
             {waiting
               ? '초대 상태를 확인하고 있어요.'
               : step.kind === 'todo'
-                ? '링크나 코드를 받으면 바로 참여할 수 있어요.'
+                ? '초대 링크나 코드를 공유해 함께할 사람을 초대해요.'
                 : step.kind === 'sent'
                   ? `초대를 보냈어요 · ${inviteExpiryDate(step.expiresAt)}`
                   : step.kind === 'member'
@@ -149,7 +149,9 @@ function AlbumStep(p: GroupStartViewProps) {
       <Box className='group-start-step-body'>
         <Box className='group-start-step-text'>
           <Subheading className='group-start-step-title'>{title}</Subheading>
-          <Text className='group-start-step-desc'>제목만 정하면 돼요.</Text>
+          <Text className='group-start-step-desc'>
+            함께 나눌 사진과 동영상을 담을 앨범을 만들어요.
+          </Text>
         </Box>
         <Button
           variant={
@@ -283,32 +285,32 @@ export function GroupStartView(p: GroupStartViewProps) {
   const upload = state.album.kind === 'done' ? state.album.album : null;
   return (
     <Box className='group-start'>
-      <Box className='group-start-main'>
-        <Section
-          className='group-start-intro'
-          aria-labelledby='group-start-title'
+      <Section
+        className='group-start-intro'
+        aria-labelledby='group-start-title'
+      >
+        <Heading
+          id='group-start-title'
+          className='group-start-title'
+          tabIndex={-1}
         >
-          <Heading
-            id='group-start-title'
-            className='group-start-title'
-            tabIndex={-1}
-          >
-            {together ? (
-              `${p.memberCount}명이 함께하고 있어요`
-            ) : (
-              <>
-                <Span className='group-start-name'>‘{p.groupName}’</Span>
-                <Span className='group-start-title-rest'>공간이 생겼어요</Span>
-              </>
-            )}
-          </Heading>
-          <Text className='group-start-lede'>
-            {together
-              ? '첫 사진을 올리면 모두 함께 볼 수 있어요.'
-              : '함께할 사람을 초대하고 첫 사진을 올려 보세요.'}
-          </Text>
-          <People {...p} />
-        </Section>
+          {together ? (
+            `${p.memberCount}명이 함께하고 있어요`
+          ) : (
+            <>
+              <Span className='group-start-name'>‘{p.groupName}’에서</Span>{' '}
+              <Span className='group-start-title-rest'>함께 시작해요</Span>
+            </>
+          )}
+        </Heading>
+        <Text className='group-start-lede'>
+          {together
+            ? '사진과 동영상을 올리고 함께한 순간을 나눠 보세요.'
+            : '사람들을 초대하고, 첫 앨범에 사진과 동영상을 담아 보세요.'}
+        </Text>
+        <People {...p} />
+      </Section>
+      <Box className='group-start-main'>
         <Section
           className='group-start-steps'
           aria-labelledby='group-start-steps-title'
@@ -333,7 +335,7 @@ export function GroupStartView(p: GroupStartViewProps) {
               >
                 <Icon name='upload' size={20} />
                 <Span className='group-start-upload-label'>
-                  ‘{upload.title}’에 사진 담기
+                  ‘{upload.title}’에 사진·동영상 올리기
                 </Span>
               </Link>
               <Text id={UPLOAD_HINT_ID} className='group-start-hint'>
@@ -343,7 +345,7 @@ export function GroupStartView(p: GroupStartViewProps) {
           )}
         </Section>
         <Text className='group-start-moments-note'>
-          사진이 모이면 여기에서 한눈에 봐요.
+          함께 올린 사진과 동영상이 여기에 모여요.
         </Text>
       </Box>
       <Rail {...p} />

@@ -20,12 +20,8 @@
   overflow-wrap: anywhere;
   word-break: keep-all;
 }
-.group-start-name,
 .group-start-title-rest {
-  display: block;
-}
-.group-start-title-rest {
-  color: var(--muted);
+  white-space: nowrap;
 }
 .group-start-lede {
   margin-top: var(--space-2);
@@ -258,14 +254,17 @@
 }
 
 @media (min-width: 1024px) {
-  /* 안내 열은 680까지만: 글과 버튼이 한 시선 안에 머문다. */
+  /* 제목은 두 열 위에, 시작 행동과 그룹 정보는 같은 기준선에 둔다. */
   .group-start {
-    grid-template-columns: minmax(0, 680px) 300px;
+    grid-template-columns: minmax(0, 1fr) 280px;
     align-items: start;
-    gap: var(--space-12);
+    gap: var(--space-6) var(--space-8);
+  }
+  .group-start-intro {
+    grid-column: 1 / -1;
   }
   .group-start-main {
-    gap: var(--space-8);
+    gap: var(--space-4);
   }
   .group-start-title {
     font-size: 1.75rem;
@@ -284,7 +283,7 @@
     padding: var(--space-1) var(--space-6);
   }
   .group-start-step {
-    grid-template-columns: 40px minmax(0, 1fr);
+    grid-template-columns: 40px minmax(0, 1fr) auto;
     column-gap: var(--space-4);
     row-gap: var(--space-3);
     padding: var(--space-6) 0;
@@ -300,15 +299,15 @@
     font-size: 0.9375rem;
     line-height: 1.6;
   }
-  /* 버튼은 글 열에 맞춰 설명 바로 아래, 내용 폭으로. */
+  /* 넓은 화면에서는 설명과 행동을 한 행에서 읽는다. */
   .group-start-step-body > .ui-button,
   .group-start-step-body > .text-button {
-    grid-column: 2;
-    justify-self: start;
+    grid-column: 3;
+    justify-self: end;
   }
   .group-start-step-body > .ui-button {
     width: auto;
-    min-width: 160px;
+    min-width: 144px;
   }
   /* 테두리 없는 버튼은 글자(아이콘)가 글 열 기준선에서 시작하게 한다. */
   .group-start-step-body > .ui-button--quiet {
@@ -317,6 +316,7 @@
     margin-inline-start: calc(-1 * var(--space-2));
   }
   .group-start-step.is-done {
+    grid-template-columns: 40px minmax(0, 1fr);
     padding: var(--space-4) 0;
   }
   .group-start-step.is-done .group-start-step-icon {
@@ -331,6 +331,7 @@
   }
   .group-start-rail {
     padding: var(--space-1) var(--space-5);
+    background: var(--wash);
     border: 1px solid var(--line);
     border-radius: var(--radius);
   }
