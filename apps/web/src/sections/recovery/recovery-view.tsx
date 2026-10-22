@@ -33,7 +33,7 @@ export function RecoveryView({
   onRetry,
 }: Props) {
   return (
-    <Box className='auth-panel'>
+    <Box className='auth-panel task-panel'>
       <Text className='eyebrow'>WOORI</Text>
       <Heading>
         {done

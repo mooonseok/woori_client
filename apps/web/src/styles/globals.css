@@ -228,25 +228,8 @@ svg {
   padding-bottom: 80px;
   min-height: 60vh;
 }
-/* Member pages start on the same line as the logo and group picker. Narrow
-   pages keep their reading width but are no longer centred (centring moved
-   their titles 210–240px right of the picker on desktop). */
-.member-shell
-  .app-content
-  :is(
-    .groups-page,
-    .mypage,
-    .service-page,
-    .theme-settings,
-    .notification-screen,
-    .auth-panel,
-    .state-panel
-  ) {
-  margin-inline: 0;
-}
-.member-shell .app-content .notification-screen {
-  padding-inline: 0;
-}
+/* Narrow pages retain their own centred reading column. Gallery layouts use
+   the full content width; the header does not dictate a form's left edge. */
 .bottom-nav {
   display: none;
 }

@@ -36,7 +36,7 @@ export function EmailChangeView({
   onRefresh,
 }: Props) {
   return (
-    <Box className='auth-panel'>
+    <Box className='auth-panel task-panel'>
       <Text className='eyebrow'>WOORI</Text>
       <Heading>새 이메일 확인</Heading>
       {invalidToken ? (
