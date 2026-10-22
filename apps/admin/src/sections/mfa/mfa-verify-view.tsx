@@ -1,5 +1,6 @@
 import type { FormEvent, Ref } from 'react';
 import {
+  Box,
   Button,
   Form,
   Section,
@@ -8,6 +9,7 @@ import {
   Title,
 } from '@/components/atoms/ui';
 import { Notice } from '@/components/molecules/notice';
+import { AuthBrand } from '@/components/molecules/auth-brand';
 import { OtpField } from '@/components/molecules/otp-field';
 import { PRE_MFA_MINUTES } from '@/constants/admin-auth';
 interface Props {
@@ -38,12 +40,17 @@ export function MfaVerifyView({
 }: Props) {
   return (
     <Section className='auth-panel' aria-labelledby='mfa-title'>
-      <Text className='eyebrow'>2단계 인증</Text>
-      <Title id='mfa-title'>인증 코드를 입력해 주세요</Title>
-      <Text className='muted'>
+      <AuthBrand />
+      <Box className='auth-heading'>
+        <Title id='mfa-title'>2단계 인증</Title>
+        <Text className='auth-description'>
+          인증 앱에 표시된 6자리 코드를 입력해 주세요. 로그인 후{' '}
+          {PRE_MFA_MINUTES}분 안에 완료해야 해요.
+        </Text>
+      </Box>
+      <Text className='auth-account'>
         <Strong>{adminName}</Strong>
-        {username && ` (@${username})`} 계정이에요. 인증 앱에 표시된 6자리
-        코드를 입력해 주세요. 로그인 후 {PRE_MFA_MINUTES}분 안에 완료해야 해요.
+        {username && ` (@${username})`}
       </Text>
       <Form
         className='stack-form'
@@ -65,7 +72,7 @@ export function MfaVerifyView({
           className='primary full'
           aria-disabled={pending || leaving}
         >
-          {pending ? '확인 중…' : '확인'}
+          {pending ? '확인 중…' : '인증하기'}
         </Button>
       </Form>
       <Button

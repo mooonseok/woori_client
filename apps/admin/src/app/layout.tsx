@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { AdminShell } from '@/components/templates/admin-shell/admin-shell';
 import '@/styles/globals.css';
 import '@/styles/admin.css';
+import '@/styles/auth.css';
 
 export const metadata: Metadata = {
   title: { default: '우리 관리자', template: '%s · 우리 관리자' },

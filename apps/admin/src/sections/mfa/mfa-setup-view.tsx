@@ -17,6 +17,7 @@ import {
 import { Icon } from '@/components/atoms/icon';
 import { LoadError, LoadingState } from '@/components/molecules/load-state';
 import { Notice } from '@/components/molecules/notice';
+import { AuthBrand } from '@/components/molecules/auth-brand';
 import { OtpField } from '@/components/molecules/otp-field';
 import { PRE_MFA_MINUTES } from '@/constants/admin-auth';
 interface Props {
@@ -64,13 +65,17 @@ export function MfaSetupView({
       className='auth-panel auth-panel-wide'
       aria-labelledby='setup-title'
     >
-      <Text className='eyebrow'>2단계 인증 등록</Text>
-      <Title id='setup-title'>인증 앱을 연결해 주세요</Title>
-      <Text className='muted'>
+      <AuthBrand />
+      <Box className='auth-heading'>
+        <Title id='setup-title'>인증 앱 연결</Title>
+        <Text className='auth-description'>
+          처음 로그인할 때 인증 앱을 연결해요. 로그인 후 {PRE_MFA_MINUTES}분
+          안에 완료해 주세요.
+        </Text>
+      </Box>
+      <Text className='auth-account'>
         <Strong>{adminName}</Strong>
-        {username && ` (@${username})`} 계정은 처음 로그인할 때 인증 앱(Google
-        Authenticator, 1Password 등 TOTP 앱)을 등록해야 해요. 로그인 후{' '}
-        {PRE_MFA_MINUTES}분 안에 완료해 주세요.
+        {username && ` (@${username})`}
       </Text>
       {loading ? (
         <LoadingState message='등록용 키를 만들고 있어요…' />
@@ -92,6 +97,10 @@ export function MfaSetupView({
               <Text className='step-title'>
                 인증 앱에서 QR 코드를 스캔해 주세요.
               </Text>
+              <Text className='field-help'>
+                Google Authenticator, 1Password 등 TOTP 인증 앱을 사용할 수
+                있어요.
+              </Text>
               <Box className='qr-frame'>
                 <Image
                   src={qrDataUrl}
@@ -101,7 +110,7 @@ export function MfaSetupView({
                 />
               </Box>
               <Details className='secret-details'>
-                <Summary>QR 코드를 스캔할 수 없나요? 키 직접 입력하기</Summary>
+                <Summary>QR 대신 키로 등록하기</Summary>
                 <Box className='secret-box'>
                   <Code className='secret-code' translate='no'>
                     {secretGroups}

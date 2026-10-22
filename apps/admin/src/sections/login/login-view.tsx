@@ -10,6 +10,7 @@ import {
   Title,
 } from '@/components/atoms/ui';
 import { Notice } from '@/components/molecules/notice';
+import { AuthBrand } from '@/components/molecules/auth-brand';
 interface Props {
   username: string;
   password: string;
@@ -34,12 +35,14 @@ export function LoginView({
 }: Props) {
   return (
     <Section className='auth-panel' aria-labelledby='login-title'>
-      <Text className='eyebrow'>WOORI ADMIN</Text>
-      <Title id='login-title'>관리자 로그인</Title>
-      <Text className='muted'>
-        운영자 전용 화면이에요. 회원 계정과 별도인 관리자 계정으로 로그인한 뒤
-        인증 앱으로 2단계 인증을 진행해요.
-      </Text>
+      <AuthBrand />
+      <Box className='auth-heading'>
+        <Title id='login-title'>관리자 로그인</Title>
+        <Text className='auth-description'>
+          회원 계정과 별도인 관리자 계정으로 로그인해 주세요. 로그인 후 인증
+          앱으로 본인을 확인해요.
+        </Text>
+      </Box>
       {notice && <Notice>{notice}</Notice>}
       <Form
         className='stack-form'
