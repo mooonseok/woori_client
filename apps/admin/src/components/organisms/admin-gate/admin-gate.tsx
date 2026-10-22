@@ -3,12 +3,14 @@ import { useEffect, type ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Box, Button, Heading, Main, Text } from '@/components/atoms/ui';
 import { useAdminSession } from '@/hooks/use-admin-session';
-import { gateDecision } from '@/utils/admin-navigation';
+import { gateDecision, routeKind } from '@/utils/admin-navigation';
 // Session guard for every admin screen. /auth/me runs on load and focus (in
 // the session provider); this only routes by its answer.
 export function AdminGate({ children }: { children: ReactNode }) {
   const { status, session, error, endReason, refresh } = useAdminSession();
   const path = usePathname();
+  const isAuthRoute = routeKind(path) !== 'protected';
+  const mainClass = isAuthRoute ? 'gate-main auth-main' : 'gate-main';
   const router = useRouter();
   const mfa = session?.mfa ?? null;
   const decision = gateDecision({ path, search: '', status, mfa, endReason });
@@ -26,8 +28,8 @@ export function AdminGate({ children }: { children: ReactNode }) {
   if (decision.type === 'render') return children;
   if (decision.type === 'error')
     return (
-      <Main className='gate-main'>
-        <Box className='gate-panel'>
+      <Main className={mainClass}>
+        <Box className={isAuthRoute ? 'gate-panel auth-panel' : 'gate-panel'}>
           <Heading>관리자 서버에 연결하지 못했어요</Heading>
           <Text role='alert'>{error}</Text>
           <Button className='primary' onClick={() => void refresh()}>
@@ -37,7 +39,7 @@ export function AdminGate({ children }: { children: ReactNode }) {
       </Main>
     );
   return (
-    <Main className='gate-main'>
+    <Main className={mainClass}>
       <Text className='console-state' role='status'>
         {decision.type === 'loading'
           ? '관리자 계정을 확인하고 있어요…'
