@@ -78,23 +78,30 @@ interface Props {
 // The ref is kept apart from the other props so render never reads it.
 export function ReportView({ reasonRef, ...p }: Props) {
   return (
-    <Section className='console-page' aria-labelledby='page-title'>
-      <BackLink href={p.listHref} label='신고 목록' />
-      <Box className='page-head'>
-        <Title id='page-title'>{p.title}</Title>
-        <Box className='meta-row'>
-          <Span className='status-chip' data-status={p.status}>
-            {p.statusLabel}
-          </Span>
-          {p.resolution && <Span className='muted'>{p.resolution}</Span>}
-          <Span className='muted'>
-            접수 <Time dateTime={p.createdAt}>{p.created}</Time>
-          </Span>
-          {p.resolved && (
-            <Span className='muted'>
-              종료 <Time dateTime={p.resolvedAt}>{p.resolved}</Time>
+    <Section
+      className='console-page console-page-detail'
+      aria-labelledby='page-title'
+    >
+      <Box className='record-header'>
+        <BackLink href={p.listHref} label='신고 목록' />
+        <Box className='page-head'>
+          <Title id='page-title' className='record-title'>
+            {p.title}
+          </Title>
+          <Box className='meta-row'>
+            <Span className='status-chip' data-status={p.status}>
+              {p.statusLabel}
             </Span>
-          )}
+            {p.resolution && <Span className='muted'>{p.resolution}</Span>}
+            <Span className='muted'>
+              접수 <Time dateTime={p.createdAt}>{p.created}</Time>
+            </Span>
+            {p.resolved && (
+              <Span className='muted'>
+                종료 <Time dateTime={p.resolvedAt}>{p.resolved}</Time>
+              </Span>
+            )}
+          </Box>
         </Box>
       </Box>
       {p.message && <Notice>{p.message}</Notice>}
@@ -178,7 +185,10 @@ export function ReportView({ reasonRef, ...p }: Props) {
           )}
         </Section>
       </Box>
-      <Section className='card stack-form' aria-labelledby='report-actions'>
+      <Section
+        className='card stack-form action-panel'
+        aria-labelledby='report-actions'
+      >
         <Heading id='report-actions'>처리</Heading>
         {p.open ? (
           <>

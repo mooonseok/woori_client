@@ -66,17 +66,22 @@ interface Props {
 }
 export function GroupView(p: Props) {
   return (
-    <Section className='console-page' aria-labelledby='page-title'>
-      <BackLink href={p.listHref} label='그룹 목록' />
-      <Box className='page-head'>
-        <Title id='page-title' className='record-title'>
-          {p.name}
-        </Title>
-        <Box className='meta-row'>
-          <Span className='status-chip' data-status={p.status}>
-            {p.statusLabel}
-          </Span>
-          <Span className='muted'>{p.counts}</Span>
+    <Section
+      className='console-page console-page-detail'
+      aria-labelledby='page-title'
+    >
+      <Box className='record-header'>
+        <BackLink href={p.listHref} label='그룹 목록' />
+        <Box className='page-head'>
+          <Title id='page-title' className='record-title'>
+            {p.name}
+          </Title>
+          <Box className='meta-row'>
+            <Span className='status-chip' data-status={p.status}>
+              {p.statusLabel}
+            </Span>
+            <Span className='muted'>{p.counts}</Span>
+          </Box>
         </Box>
       </Box>
       <Notice>

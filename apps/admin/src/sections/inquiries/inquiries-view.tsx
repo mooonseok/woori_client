@@ -129,7 +129,7 @@ export function InquiriesView(props: Props) {
           onMore={props.onMore}
         >
           <Box
-            className='table-scroll'
+            className='table-scroll table-scroll--inquiries'
             role='region'
             aria-label='문의 목록 (가로로 스크롤할 수 있어요)'
             tabIndex={0}

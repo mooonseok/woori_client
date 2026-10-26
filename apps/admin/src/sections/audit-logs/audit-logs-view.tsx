@@ -47,9 +47,9 @@ export function AuditLogsView({
   return (
     <Section className='console-page' aria-labelledby='page-title'>
       <Box className='page-head'>
-        <Title id='page-title'>감사로그</Title>
+        <Title id='page-title'>감사 로그</Title>
         <Text className='muted'>
-          관리자 로그인·인증·계정 변경 기록이에요. 기록은 수정하거나 삭제할 수
+          관리자 작업과 열람 기록을 확인해요. 기록은 수정하거나 삭제할 수
           없어요. 시간은 한국 표준시(KST)예요.
         </Text>
       </Box>
@@ -99,7 +99,7 @@ export function AuditLogsView({
           body={
             action
               ? '다른 작업 종류를 고르거나 전체 기록을 확인해 주세요.'
-              : '관리자 로그인·인증·계정 변경이 생기면 여기에 표시돼요.'
+              : '관리자 작업과 열람 기록이 여기에 표시돼요.'
           }
         />
       ) : (

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Section, Title } from '@/components/atoms/ui';
+import { Box, Section, Title } from '@/components/atoms/ui';
 import { particle } from '@/utils/plain-text';
 import { BackLink } from './back-link';
 import { EmptyState } from './empty-state';
@@ -31,9 +31,16 @@ export function RecordFrame({
   if (ready) return children;
   const object = title + particle(title, '을', '를');
   return (
-    <Section className='console-page' aria-labelledby='page-title'>
-      <BackLink href={backHref} label={backLabel} />
-      <Title id='page-title'>{title}</Title>
+    <Section
+      className='console-page console-page-detail'
+      aria-labelledby='page-title'
+    >
+      <Box className='record-header'>
+        <BackLink href={backHref} label={backLabel} />
+        <Title id='page-title' className='record-title'>
+          {title}
+        </Title>
+      </Box>
       {loading ? (
         <LoadingState message={`${object} 불러오고 있어요…`} />
       ) : notFound ? (

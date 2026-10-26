@@ -99,17 +99,22 @@ const ACTION_BUTTONS: Record<MemberAction, { label: string; tone: string }> = {
 export function MemberView({ firstFieldRef, reasonFieldRef, ...p }: Props) {
   const deleting = p.action === 'delete';
   return (
-    <Section className='console-page' aria-labelledby='page-title'>
-      <BackLink href={p.listHref} label='회원 목록' />
-      <Box className='page-head'>
-        <Title id='page-title' className='record-title'>
-          {p.name}
-        </Title>
-        <Box className='meta-row'>
-          <Span className='status-chip' data-status={p.status}>
-            {p.statusLabel}
-          </Span>
-          {p.username && <Span className='muted'>@{p.username}</Span>}
+    <Section
+      className='console-page console-page-detail'
+      aria-labelledby='page-title'
+    >
+      <Box className='record-header'>
+        <BackLink href={p.listHref} label='회원 목록' />
+        <Box className='page-head'>
+          <Title id='page-title' className='record-title'>
+            {p.name}
+          </Title>
+          <Box className='meta-row'>
+            <Span className='status-chip' data-status={p.status}>
+              {p.statusLabel}
+            </Span>
+            {p.username && <Span className='muted'>@{p.username}</Span>}
+          </Box>
         </Box>
       </Box>
       {p.message && <Notice>{p.message}</Notice>}
@@ -222,7 +227,10 @@ export function MemberView({ firstFieldRef, reasonFieldRef, ...p }: Props) {
           </Box>
         )}
       </Section>
-      <Section className='card stack-form' aria-labelledby='member-actions'>
+      <Section
+        className='card stack-form action-panel'
+        aria-labelledby='member-actions'
+      >
         <Heading id='member-actions'>관리</Heading>
         {p.deleted ? (
           <Notice>

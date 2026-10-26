@@ -30,7 +30,7 @@ export function AuditLogTableView({
 }) {
   return (
     <Box
-      className='table-scroll'
+      className='table-scroll table-scroll--audit'
       role='region'
       aria-label={`${caption} (가로로 스크롤할 수 있어요)`}
       tabIndex={0}

@@ -126,7 +126,7 @@ export function MembersView(props: Props) {
           onMore={props.onMore}
         >
           <Box
-            className='table-scroll'
+            className='table-scroll table-scroll--members'
             role='region'
             aria-label='회원 목록 (가로로 스크롤할 수 있어요)'
             tabIndex={0}

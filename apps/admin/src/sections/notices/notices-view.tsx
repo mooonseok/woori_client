@@ -108,7 +108,7 @@ export function NoticesView(props: Props) {
           onMore={props.onMore}
         >
           <Box
-            className='table-scroll'
+            className='table-scroll table-scroll--notices'
             role='region'
             aria-label='공지 목록 (가로로 스크롤할 수 있어요)'
             tabIndex={0}
