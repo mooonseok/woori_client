@@ -128,7 +128,7 @@ export function ReportsView(props: Props) {
           onMore={props.onMore}
         >
           <Box
-            className='table-scroll'
+            className='table-scroll table-scroll--reports'
             role='region'
             aria-label='신고 목록 (가로로 스크롤할 수 있어요)'
             tabIndex={0}

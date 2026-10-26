@@ -101,6 +101,7 @@ export function DashboardView({
             <Button
               className='secondary-button small'
               aria-disabled={metricsLoading || metricsRefreshing}
+              aria-busy={metricsLoading || metricsRefreshing}
               onClick={onRefreshMetrics}
             >
               <Icon name='refresh' size={16} />
@@ -117,7 +118,13 @@ export function DashboardView({
         {metricsLoading ? (
           <LoadingState message='운영 지표를 불러오고 있어요…' />
         ) : metricGroups.length === 0 ? (
-          !metricsError && <Text className='muted'>표시할 지표가 없어요.</Text>
+          !metricsError && (
+            <EmptyState
+              icon='plug'
+              title='표시할 운영 지표가 없어요'
+              body='새로고침으로 지표를 다시 확인할 수 있어요.'
+            />
+          )
         ) : (
           <Box className='metric-grid'>
             {metricGroups.map((group) => (
@@ -178,7 +185,7 @@ export function DashboardView({
             ))}
             {workers.rows.length > 0 && (
               <Box
-                className='table-scroll'
+                className='table-scroll table-scroll--workers'
                 role='region'
                 aria-label='워커 상태 (가로로 스크롤할 수 있어요)'
                 tabIndex={0}
@@ -227,7 +234,7 @@ export function DashboardView({
           <Section className='ops-detail' aria-labelledby='queues-title'>
             <Subheading id='queues-title'>큐 지연</Subheading>
             <Box
-              className='table-scroll'
+              className='table-scroll table-scroll--queues'
               role='region'
               aria-label='큐 지연 (가로로 스크롤할 수 있어요)'
               tabIndex={0}
@@ -267,52 +274,53 @@ export function DashboardView({
           </Section>
         )}
       </Section>
-      <Box className='card-grid'>
-        <Section className='card' aria-labelledby='session-title'>
-          <Heading id='session-title'>현재 세션</Heading>
-          <Dl className='facts'>
-            <Box>
-              <Dt>로그인 유지</Dt>
-              <Dd>
-                {sessionExpires ? (
-                  <>
-                    <Time dateTime={sessionExpiresAt}>{sessionExpires}</Time>
-                    까지
-                  </>
-                ) : (
-                  '확인 중'
-                )}
-              </Dd>
-            </Box>
-            <Box>
-              <Dt>자동 로그아웃</Dt>
-              <Dd>{IDLE_TIMEOUT_MINUTES}분 동안 활동이 없으면 종료돼요</Dd>
-            </Box>
-            <Box>
-              <Dt>본인 확인</Dt>
-              <Dd>
-                {reauthUntil ? (
-                  <>
-                    <Time dateTime={reauthUntilAt}>{reauthUntil}</Time>
-                    까지 유효
-                  </>
-                ) : (
-                  '필요할 때 비밀번호와 인증 코드를 다시 확인해요'
-                )}
-              </Dd>
-            </Box>
-          </Dl>
-          <Text className='field-help'>
-            회원 사진 열람·회원 정지 같은 민감한 작업은 최근{' '}
-            {REAUTH_WINDOW_MINUTES}분 안에 본인 확인을 해야 진행돼요.
-          </Text>
-          {reauthNotice && <Notice>{reauthNotice}</Notice>}
-          <Button className='secondary-button' onClick={onReauth}>
-            <Icon name='shield' size={18} />
-            지금 본인 확인
-          </Button>
-        </Section>
-      </Box>
+      <Section
+        className='card dashboard-session'
+        aria-labelledby='session-title'
+      >
+        <Heading id='session-title'>현재 세션</Heading>
+        <Dl className='facts'>
+          <Box>
+            <Dt>로그인 유지</Dt>
+            <Dd>
+              {sessionExpires ? (
+                <>
+                  <Time dateTime={sessionExpiresAt}>{sessionExpires}</Time>
+                  까지
+                </>
+              ) : (
+                '확인 중'
+              )}
+            </Dd>
+          </Box>
+          <Box>
+            <Dt>자동 로그아웃</Dt>
+            <Dd>{IDLE_TIMEOUT_MINUTES}분 동안 활동이 없으면 종료돼요</Dd>
+          </Box>
+          <Box>
+            <Dt>본인 확인</Dt>
+            <Dd>
+              {reauthUntil ? (
+                <>
+                  <Time dateTime={reauthUntilAt}>{reauthUntil}</Time>
+                  까지 유효
+                </>
+              ) : (
+                '필요할 때 비밀번호와 인증 코드를 다시 확인해요'
+              )}
+            </Dd>
+          </Box>
+        </Dl>
+        <Text className='field-help'>
+          회원 사진 열람·회원 정지 같은 민감한 작업은 최근{' '}
+          {REAUTH_WINDOW_MINUTES}분 안에 본인 확인을 해야 진행돼요.
+        </Text>
+        {reauthNotice && <Notice>{reauthNotice}</Notice>}
+        <Button className='secondary-button' onClick={onReauth}>
+          <Icon name='shield' size={18} />
+          지금 본인 확인
+        </Button>
+      </Section>
       <Section className='card' aria-labelledby='recent-title'>
         <Box className='card-head'>
           <Heading id='recent-title'>최근 감사 기록</Heading>
@@ -333,7 +341,7 @@ export function DashboardView({
           <EmptyState
             icon='clock'
             title='아직 감사 기록이 없어요'
-            body='관리자 로그인·인증·계정 변경이 생기면 여기에 표시돼요.'
+            body='관리자 작업과 열람 기록이 여기에 표시돼요.'
           />
         ) : (
           <AuditLogTableView caption='최근 감사 기록' rows={rows} />

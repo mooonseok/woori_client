@@ -30,7 +30,7 @@ export const NAV_ITEMS: readonly AdminNavItem[] = [
   { href: ROUTES.REPORTS, label: '신고', icon: 'flag', ready: true },
   { href: ROUTES.MEMBERS, label: '회원', icon: 'user', ready: true },
   { href: ROUTES.GROUPS, label: '그룹', icon: 'users', ready: true },
-  { href: ROUTES.AUDIT_LOGS, label: '감사로그', icon: 'clock', ready: true },
+  { href: ROUTES.AUDIT_LOGS, label: '감사 로그', icon: 'clock', ready: true },
 ];
 // Detail/sub screens and the menu they belong to. Detail screens take ?id=.
 export const SUB_ROUTES: Readonly<

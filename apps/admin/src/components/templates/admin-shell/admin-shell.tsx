@@ -6,6 +6,7 @@ import {
   Box,
   Button,
   Header,
+  Image,
   Li,
   Main,
   Nav,
@@ -70,8 +71,13 @@ function Console({
         본문으로 건너뛰기
       </Anchor>
       <Header className='topbar'>
-        <Link className='wordmark' href={ROUTES.DASHBOARD}>
-          우리<Span className='wordmark-tag'>관리자</Span>
+        <Link
+          className='wordmark'
+          href={ROUTES.DASHBOARD}
+          aria-label='우리 관리자 홈'
+        >
+          <Image src='/brand/logo.svg' width={40} height={40} alt='' />
+          <Span className='wordmark-tag'>관리자</Span>
         </Link>
         <Box className='topbar-session'>
           <Span className='topbar-admin'>
