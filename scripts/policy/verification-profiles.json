@@ -1,0 +1,135 @@
+{
+  "version": 1,
+  "repository": "woori_client",
+  "profiles": {
+    "policy": {
+      "description": "하네스·스킬·정책 변경: 정적 연결, 안전 fixture, 포맷 검사",
+      "steps": [
+        {
+          "id": "policy-check",
+          "script": "policy:check"
+        },
+        {
+          "id": "policy-test",
+          "script": "policy:test"
+        },
+        {
+          "id": "format-check",
+          "script": "format:check"
+        }
+      ]
+    },
+    "web-ui": {
+      "description": "web UI 코드 검사와 정적 빌드. 실제 브라우저·접근성 확인은 별도 수행한다.",
+      "steps": [
+        {
+          "id": "policy-check",
+          "script": "policy:check"
+        },
+        {
+          "id": "lint",
+          "script": "lint"
+        },
+        {
+          "id": "web-typecheck",
+          "script": "typecheck",
+          "workspace": "@woori/web"
+        },
+        {
+          "id": "web-test",
+          "script": "test",
+          "workspace": "@woori/web"
+        },
+        {
+          "id": "check-boundaries",
+          "script": "check:boundaries"
+        },
+        {
+          "id": "format-check",
+          "script": "format:check"
+        },
+        {
+          "id": "web-build",
+          "script": "build",
+          "workspace": "@woori/web",
+          "requires": ["no-next-dev"]
+        }
+      ]
+    },
+    "admin-ui": {
+      "description": "admin UI 코드 검사와 정적 빌드. 실제 브라우저·접근성 확인은 별도 수행한다.",
+      "steps": [
+        {
+          "id": "policy-check",
+          "script": "policy:check"
+        },
+        {
+          "id": "lint",
+          "script": "lint"
+        },
+        {
+          "id": "admin-typecheck",
+          "script": "typecheck",
+          "workspace": "@woori/admin"
+        },
+        {
+          "id": "admin-test",
+          "script": "test",
+          "workspace": "@woori/admin"
+        },
+        {
+          "id": "check-boundaries",
+          "script": "check:boundaries"
+        },
+        {
+          "id": "format-check",
+          "script": "format:check"
+        },
+        {
+          "id": "admin-build",
+          "script": "build",
+          "workspace": "@woori/admin",
+          "requires": ["no-next-dev"]
+        }
+      ]
+    },
+    "full": {
+      "description": "웹·관리자 전체 자동 검사. 브라우저 및 실기기 수용 검사는 별도다.",
+      "steps": [
+        {
+          "id": "policy-check",
+          "script": "policy:check"
+        },
+        {
+          "id": "policy-test",
+          "script": "policy:test"
+        },
+        {
+          "id": "lint",
+          "script": "lint"
+        },
+        {
+          "id": "typecheck",
+          "script": "typecheck"
+        },
+        {
+          "id": "test",
+          "script": "test"
+        },
+        {
+          "id": "check-boundaries",
+          "script": "check:boundaries"
+        },
+        {
+          "id": "format-check",
+          "script": "format:check"
+        },
+        {
+          "id": "build",
+          "script": "build",
+          "requires": ["no-next-dev"]
+        }
+      ]
+    }
+  }
+}
